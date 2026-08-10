@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlparse
 from .aggregation import aggregate_all, aggregate_country
 from .config import COUNTRIES
 from .coverage import coverage_rows
-from .db import database
+from .db import read_database
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2] / "web"
@@ -44,7 +44,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
             year = int(query.get("year", ["2025"])[0])
             month_value = query.get("month", [""])[0]
             month = int(month_value) if month_value else None
-            with database(self.db_path) as connection:
+            with read_database(self.db_path) as connection:
                 if path == "/api/health":
                     payload = {"status": "ok", "database": str(self.db_path)}
                 elif path == "/api/countries":
@@ -57,7 +57,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
                         raise ValueError("countries must contain 2 to 4 pilot country codes")
                     payload = [aggregate_country(connection, code, year, month) for code in codes]
                 elif path == "/api/coverage":
-                    payload = coverage_rows(connection)
+                    payload = coverage_rows(connection, year)
                 else:
                     self._json({"error": "not found"}, HTTPStatus.NOT_FOUND)
                     return
@@ -88,4 +88,3 @@ def serve(db_path: Path, host: str = "127.0.0.1", port: int = 8000) -> None:
         pass
     finally:
         server.server_close()
-

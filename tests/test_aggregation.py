@@ -3,6 +3,7 @@ import unittest
 
 from electricity_atlas.aggregation import (
     aggregate_country,
+    installed_capacity_summary,
     net_import_balance,
     renewable_share,
     weighted_mean,
@@ -10,6 +11,7 @@ from electricity_atlas.aggregation import (
 )
 from electricity_atlas.config import SOURCE_NAME
 from electricity_atlas.db import initialize
+from electricity_atlas.coverage import coverage_rows
 from electricity_atlas.importer import Importer, Period
 
 
@@ -43,6 +45,15 @@ class DatabaseAggregationTests(unittest.TestCase):
                 source_resolution,interval_minutes,metric,value,unit,quality_status)
                VALUES ('DE','Deutschland',?,?,?,?,?,'PT1H',?,?,?,?, 'observed')""",
             (zone, timestamp, timestamp, SOURCE_NAME, endpoint, interval, metric, value, unit),
+        )
+
+    def add_capacity(self, category, value, timestamp="2025-01-01T00:00:00+01:00", code="DE"):
+        name = "Deutschland" if code == "DE" else "United Kingdom"
+        self.connection.execute(
+            """INSERT INTO installed_capacity
+               (country_code,country_name,timestamp,source,source_resolution,category,value_mw,quality_status)
+               VALUES (?,?,?,?,?,?,?,'observed_end_of_period')""",
+            (code, name, timestamp, SOURCE_NAME, "P1Y", category, value),
         )
 
     def test_time_aggregation_and_trade(self):
@@ -89,6 +100,42 @@ class DatabaseAggregationTests(unittest.TestCase):
         result = aggregate_country(self.connection, "DE", 2025, 1)
         self.assertIsNone(result["generation_twh"])
         self.assertEqual(result["data_status"], "partial")
+
+    def test_installed_capacity_uses_solar_ac_when_dc_is_absent(self):
+        self.add_capacity("fossil_gas", 100)
+        self.add_capacity("solar_ac", 50)
+        result = installed_capacity_summary(self.connection, "DE", "2026-01-01", 2025)
+        self.assertEqual(result["value_mw"], 150)
+
+    def test_installed_capacity_uses_solar_dc_when_ac_is_absent(self):
+        self.add_capacity("fossil_gas", 100)
+        self.add_capacity("solar_dc", 60)
+        result = installed_capacity_summary(self.connection, "DE", "2026-01-01", 2025)
+        self.assertEqual(result["value_mw"], 160)
+
+    def test_installed_capacity_prefers_solar_dc_without_double_counting(self):
+        self.add_capacity("fossil_gas", 100)
+        self.add_capacity("solar_ac", 50)
+        self.add_capacity("solar_dc", 60)
+        result = installed_capacity_summary(self.connection, "DE", "2026-01-01", 2025)
+        self.assertEqual(result["value_mw"], 160)
+
+    def test_stale_installed_capacity_snapshot_is_visible(self):
+        self.add_capacity("fossil_gas", 100, timestamp="2020-01-01T00:00:00+00:00", code="UK")
+        result = aggregate_country(self.connection, "UK", 2025)
+        uk_coverage = next(row for row in coverage_rows(self.connection, 2025) if row["country_code"] == "UK")
+        self.assertEqual(result["installed_capacity_snapshot_year"], 2020)
+        self.assertEqual(result["installed_capacity_status"], "stale")
+        self.assertEqual(result["data_status"], "partial")
+        self.assertEqual(uk_coverage["installed_capacity"], "partial")
+
+    def test_current_installed_capacity_snapshot_remains_full(self):
+        self.add_capacity("fossil_gas", 100, timestamp="2025-01-01T00:00:00+01:00")
+        result = aggregate_country(self.connection, "DE", 2025)
+        de_coverage = next(row for row in coverage_rows(self.connection, 2025) if row["country_code"] == "DE")
+        self.assertEqual(result["installed_capacity_snapshot"], "2025-01-01T00:00:00+01:00")
+        self.assertEqual(result["installed_capacity_status"], "current")
+        self.assertEqual(de_coverage["installed_capacity"], "full")
 
 
 if __name__ == "__main__":

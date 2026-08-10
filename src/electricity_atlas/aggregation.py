@@ -7,7 +7,12 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any, Iterable
 
-from .config import COUNTRIES, GENERATION_METRICS, RENEWABLE_METRICS
+from .config import (
+    COUNTRIES,
+    GENERATION_METRICS,
+    INSTALLED_CAPACITY_MAX_AGE_YEARS,
+    RENEWABLE_METRICS,
+)
 from .normalization import mwh_to_twh, mw_interval_to_mwh
 
 
@@ -101,30 +106,55 @@ def _price_stats(connection: sqlite3.Connection, code: str, start: str, end: str
     }
 
 
-def _installed_capacity(connection: sqlite3.Connection, code: str, end: str) -> float | None:
+def installed_capacity_summary(
+    connection: sqlite3.Connection, code: str, end: str, report_year: int
+) -> dict[str, Any]:
     timestamp_row = connection.execute(
         """SELECT MAX(timestamp) AS timestamp FROM installed_capacity
            WHERE country_code=? AND timestamp<?""",
         (code, end),
     ).fetchone()
     if not timestamp_row or not timestamp_row["timestamp"]:
-        return None
-    rows = connection.execute(
+        return {
+            "value_mw": None,
+            "snapshot_timestamp": None,
+            "snapshot_year": None,
+            "age_years": None,
+            "status": "missing",
+        }
+    rows = list(connection.execute(
         """SELECT category, value_mw FROM installed_capacity
            WHERE country_code=? AND timestamp=?""",
         (code, timestamp_row["timestamp"]),
-    )
+    ))
+    values = {row["category"]: row["value_mw"] for row in rows}
     total = 0.0
     found = False
-    for row in rows:
-        category = row["category"]
-        # Planned assets, energy capacity and solar AC are not added to the
-        # operational generation nameplate total. solar_dc is preferred.
-        if "planned" in category or category == "battery_storage_capacity" or category == "solar_ac":
+    for category, value in values.items():
+        if (
+            "planned" in category
+            or category == "battery_storage_capacity"
+            or category in {"solar_ac", "solar_dc"}
+        ):
             continue
-        total += row["value_mw"]
+        total += value
         found = True
-    return total if found else None
+    solar_value = values.get("solar_dc")
+    if solar_value is None:
+        solar_value = values.get("solar_ac")
+    if solar_value is not None:
+        total += solar_value
+        found = True
+    snapshot_timestamp = timestamp_row["timestamp"]
+    snapshot_year = int(str(snapshot_timestamp)[:4])
+    age_years = max(0, report_year - snapshot_year)
+    return {
+        "value_mw": total if found else None,
+        "snapshot_timestamp": snapshot_timestamp,
+        "snapshot_year": snapshot_year,
+        "age_years": age_years,
+        "status": "stale" if age_years > INSTALLED_CAPACITY_MAX_AGE_YEARS else "current",
+    }
 
 
 def aggregate_country(
@@ -154,6 +184,7 @@ def aggregate_country(
     has_generation = "generation_total" in energy and "missing_expected_series" not in issue_types
     has_consumption = "consumption" in energy and "missing_metric_values" not in issue_types
     has_trade = "import_total" in energy or "export_total" in energy
+    capacity = installed_capacity_summary(connection, code, end, year)
 
     result: dict[str, Any] = {
         "country_code": code,
@@ -171,7 +202,11 @@ def aggregate_country(
         "export_twh": mwh_to_twh(export_mwh) if has_trade else None,
         "net_import_twh": mwh_to_twh(net_import_balance(import_mwh, export_mwh)) if has_trade else None,
         "carbon_intensity_gco2eq_kwh": None,
-        "installed_capacity_mw": _installed_capacity(connection, code, end),
+        "installed_capacity_mw": capacity["value_mw"],
+        "installed_capacity_snapshot": capacity["snapshot_timestamp"],
+        "installed_capacity_snapshot_year": capacity["snapshot_year"],
+        "installed_capacity_age_years": capacity["age_years"],
+        "installed_capacity_status": capacity["status"],
         "mix": {},
     }
     for metric in GENERATION_METRICS:
@@ -182,7 +217,7 @@ def aggregate_country(
         }
     result.update(_price_stats(connection, code, start, end))
     result["quality_issues"] = [dict(row) for row in issues]
-    result["data_status"] = "partial" if any(
+    result["data_status"] = "partial" if capacity["status"] == "stale" or any(
         row["issue_type"] in {"missing_expected_series", "missing_metric_values", "missing_intervals"}
         for row in issues
     ) else ("complete" if has_generation else "missing")

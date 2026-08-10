@@ -7,7 +7,7 @@ from pathlib import Path
 from .aggregation import aggregate_all
 from .config import COUNTRIES, DEFAULT_DB
 from .coverage import coverage_markdown
-from .db import database, reset
+from .db import database, read_database, reset
 from .importer import Importer
 from .server import serve
 from .validation import validation_markdown
@@ -45,16 +45,26 @@ def main(argv: list[str] | None = None) -> int:
         serve(args.db, args.host, args.port)
         return 0
     if args.command == "import":
+        exit_code = 0
         with database(args.db) as connection:
             importer = Importer(connection, refresh=args.refresh)
             for code in args.countries:
-                result = importer.import_country(code, args.year, args.months)
+                try:
+                    result = importer.import_country(code, args.year, args.months)
+                except Exception as exc:
+                    result = {
+                        "errors": 1,
+                        "successes": [],
+                        "failures": [{"endpoint": "country", "error": str(exc), "preserved_rows": None}],
+                    }
                 print(f"{code.upper()}: {json.dumps(result, ensure_ascii=False)}")
-        return 0
+                if result.get("errors", 0):
+                    exit_code = 1
+        return exit_code
     if args.command == "report":
         args.output.mkdir(parents=True, exist_ok=True)
-        with database(args.db) as connection:
-            (args.output / "COVERAGE.generated.md").write_text(coverage_markdown(connection), encoding="utf-8")
+        with read_database(args.db) as connection:
+            (args.output / "COVERAGE.generated.md").write_text(coverage_markdown(connection, args.year), encoding="utf-8")
             (args.output / "VALIDATION.generated.md").write_text(validation_markdown(connection, args.year), encoding="utf-8")
             (args.output / "SUMMARY.generated.json").write_text(
                 json.dumps(aggregate_all(connection, args.year), ensure_ascii=False, indent=2, allow_nan=False),
@@ -67,4 +77,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

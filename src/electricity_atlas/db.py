@@ -122,6 +122,17 @@ def database(path: Path | str) -> Iterator[sqlite3.Connection]:
         connection.close()
 
 
+@contextmanager
+def read_database(path: Path | str) -> Iterator[sqlite3.Connection]:
+    db_path = Path(path).resolve()
+    connection = sqlite3.connect(f"file:{db_path.as_posix()}?mode=ro", uri=True)
+    connection.row_factory = sqlite3.Row
+    try:
+        yield connection
+    finally:
+        connection.close()
+
+
 def reset(path: Path | str) -> bool:
     db_path = Path(path)
     if not db_path.exists():

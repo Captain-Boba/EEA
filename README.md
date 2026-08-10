@@ -35,7 +35,7 @@ Nur einzelne Länder:
 eea import --year 2025 --countries DE FR ES
 ```
 
-Bereits vorhandene oder überdeckende Zeiträume kommen aus `api_cache` und werden nicht erneut geladen. Der erste Jahresimport erfolgt rate-limit-schonend als Jahresabruf. Existiert nur ein Teilbestand, prüft der Import Monatssegmente und lädt ausschließlich fehlende Segmente nach. `--refresh` lädt angeforderte Zeiträume reproduzierbar neu und ersetzt Cache sowie normalisierte Werte. Die öffentliche API ist rate-limitiert; HTTP 429 wird mit begrenztem Backoff wiederholt.
+Bereits vorhandene oder überdeckende Zeiträume kommen aus `api_cache` und werden nicht erneut geladen. Der erste Jahresimport erfolgt rate-limit-schonend als Jahresabruf. Existiert nur ein Teilbestand, prüft der Import Monatssegmente und lädt ausschließlich fehlende Segmente nach. `--months` ersetzt ausschließlich die genannten Monate; Kapazitätssnapshots werden bei einem Monatsimport nicht verändert. Jeder Teilbereich wird erst nach erfolgreichem Download beziehungsweise erfolgreicher Cache-Auswertung innerhalb einer atomaren Transaktion ersetzt. Bei Download-, Validierungs- oder Normalisierungsfehlern bleibt der bisherige normalisierte Teilbereich erhalten. `--refresh` lädt nur die angeforderten Zeiträume neu. Die CLI meldet erfolgreiche Teilbereiche, Fehler und die Anzahl erhaltener Altzeilen; bei mindestens einem Teilfehler endet sie mit einem Exitcode ungleich null. Die öffentliche API ist rate-limitiert; HTTP 429 wird mit begrenztem Backoff wiederholt.
 
 ## Start
 
@@ -89,6 +89,8 @@ python -m unittest discover -s tests -v
 - Preis: EUR/MWh
 - CO₂-Intensität (vorgesehen): gCO2eq/kWh
 - installierte Leistung: MW; Bestandswert am Ende des gemeldeten Zeitraums
+
+Die Summary-Ausgabe enthält für installierte Leistung zusätzlich `installed_capacity_snapshot`, `installed_capacity_snapshot_year`, `installed_capacity_age_years` und `installed_capacity_status`. Ein Snapshot, der mehr als zwei Kalenderjahre vor dem Berichtsjahr liegt, wird als `stale` markiert und setzt den Datenstatus mindestens auf `partial`. Bei Photovoltaik wird `solar_dc` bevorzugt; `solar_ac` dient als Fallback, wenn kein DC-Wert vorhanden ist.
 
 Erneuerbar sind zentral in `config.RENEWABLE_METRICS` ausschließlich Solar, Wind Onshore, Wind Offshore, Wasser und Biomasse. Geothermie, Abfall und „other renewables“ bleiben in v0.1 bewusst `generation_other`, bis K1 die Klassifikation entscheidet.
 

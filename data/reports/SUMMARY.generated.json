@@ -16,6 +16,10 @@
     "net_import_twh": 18.23177575,
     "carbon_intensity_gco2eq_kwh": null,
     "installed_capacity_mw": 308502.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 70.12348582500053,
@@ -148,7 +152,11 @@
     "export_twh": 101.0513875,
     "net_import_twh": -91.0392805,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 123600.0,
+    "installed_capacity_mw": 151850.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 30.261694675000147,
@@ -291,7 +299,11 @@
     "export_twh": 17.659244,
     "net_import_twh": -9.84319975,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 91390.0,
+    "installed_capacity_mw": 132820.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 52.524194,
@@ -429,7 +441,11 @@
     "export_twh": 2.73417975,
     "net_import_twh": 47.11101975,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 84760.0,
+    "installed_capacity_mw": 96630.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 33.945208,
@@ -562,7 +578,11 @@
     "export_twh": 14.0871095,
     "net_import_twh": 1.11392125,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 47200.0,
+    "installed_capacity_mw": 67930.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 19.228633400000042,
@@ -695,7 +715,11 @@
     "export_twh": 13.12359775,
     "net_import_twh": 31.0914055,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 95350.0,
+    "installed_capacity_mw": 108820.0,
+    "installed_capacity_snapshot": "2020-01-01T00:00:00+00:00",
+    "installed_capacity_snapshot_year": 2020,
+    "installed_capacity_age_years": 5,
+    "installed_capacity_status": "stale",
     "mix": {
       "generation_solar": {
         "twh": null,
@@ -933,7 +957,11 @@
     "export_twh": 31.8935355,
     "net_import_twh": -22.45028025,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 33660.0,
+    "installed_capacity_mw": 33700.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 0.009065200000000044,
@@ -1066,7 +1094,11 @@
     "export_twh": 38.8167885,
     "net_import_twh": -33.64732475,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 48000.0,
+    "installed_capacity_mw": 53000.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 2.2812391000000476,
@@ -1199,7 +1231,11 @@
     "export_twh": 18.88590825,
     "net_import_twh": 7.45479125,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 12270.0,
+    "installed_capacity_mw": 15390.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 4.4786842999999505,
@@ -1352,7 +1388,11 @@
     "export_twh": 24.9272605,
     "net_import_twh": -13.64962875,
     "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 36030.0,
+    "installed_capacity_mw": 65310.0,
+    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
+    "installed_capacity_snapshot_year": 2025,
+    "installed_capacity_age_years": 0,
+    "installed_capacity_status": "current",
     "mix": {
       "generation_solar": {
         "twh": 0.4975987500000043,

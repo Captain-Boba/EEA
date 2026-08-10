@@ -70,3 +70,4 @@ EXPECTED_PUBLIC_POWER_SERIES: dict[str, frozenset[str]] = {
 DEFAULT_DB = Path("data/atlas.sqlite3")
 API_BASE_URL = "https://api.energy-charts.info/v2"
 SOURCE_NAME = "energy-charts.info"
+INSTALLED_CAPACITY_MAX_AGE_YEARS = 2
