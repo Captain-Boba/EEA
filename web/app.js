@@ -35,7 +35,7 @@ const selected = new Set();
 
 const $ = id => document.getElementById(id);
 const periodQuery = () => {
-  const params = new URLSearchParams({year: $("year").value});
+  const params = new URLSearchParams({year: $("year").value, source: "combined"});
   if ($("period-type").value === "month") params.set("month", $("month").value);
   return params;
 };
@@ -112,7 +112,7 @@ async function loadSummary() {
     data = await response.json();
     render();
     $("status").textContent = data.some(row => row.generation_twh != null)
-      ? "Lokale Daten geladen." : "Noch keine Daten importiert. Bitte zuerst den Import ausführen.";
+      ? "Kombinierte Daten geladen." : "Noch keine Daten importiert.";
   } catch (error) {
     $("status").textContent = `Fehler: ${error.message}`;
     $("status").className = "error";
@@ -132,10 +132,7 @@ async function compare() {
 }
 
 async function loadCoverage() {
-  const response = await fetch("/api/coverage");
-  if (!response.ok) return;
-  const rows = await response.json();
-  $("coverage").innerHTML = `<ul>${rows.map(row => `<li><strong>${row.country_code}</strong>: ${row.notes}</li>`).join("")}</ul>`;
+  $("coverage").innerHTML = "<p>Energy-Charts und Ember bleiben in der Datenbank getrennt. Herkunft, Verarbeitung und Prioritätsregeln sind im Quellenabschnitt unter den Tabellen dokumentiert.</p>";
 }
 
 function syncPeriodControls() {
@@ -148,5 +145,5 @@ $("period-type").addEventListener("change", syncPeriodControls);
 $("load").addEventListener("click", loadSummary);
 $("compare").addEventListener("click", compare);
 syncPeriodControls();
-loadSummary();
 loadCoverage();
+loadSummary();

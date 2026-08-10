@@ -71,3 +71,19 @@ DEFAULT_DB = Path("data/atlas.sqlite3")
 API_BASE_URL = "https://api.energy-charts.info/v2"
 SOURCE_NAME = "energy-charts.info"
 INSTALLED_CAPACITY_MAX_AGE_YEARS = 2
+
+EMBER_API_BASE_URL = "https://api.ember-energy.org/v1"
+EMBER_SOURCE_NAME = "ember"
+EMBER_SOURCE_LABEL = "Ember, CC BY 4.0"
+EMBER_ISO3: dict[str, str] = {
+    "DE": "DEU",
+    "FR": "FRA",
+    "ES": "ESP",
+    "IT": "ITA",
+    "PL": "POL",
+    "UK": "GBR",
+    "NO": "NOR",
+    "SE": "SWE",
+    "DK": "DNK",
+    "NL": "NLD",
+}

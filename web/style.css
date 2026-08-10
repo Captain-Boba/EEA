@@ -77,3 +77,24 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .missing { color: var(--muted); }
 #status.error { color: var(--danger); }
 details { margin-top: 1.5rem; padding: .9rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
+details summary { cursor: pointer; font-weight: 650; }
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.source-grid article, .merge-rules {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: .55rem;
+  background: var(--surface-raised);
+}
+.source-grid h3, .merge-rules h3 { margin-top: 0; }
+.source-grid p, .source-grid li, .merge-rules li { line-height: 1.55; }
+.source-grid code, .merge-rules code { overflow-wrap: anywhere; }
+a { color: var(--accent); }
+.merge-rules { margin-top: 1rem; }
+@media (max-width: 850px) {
+  .source-grid { grid-template-columns: 1fr; }
+}

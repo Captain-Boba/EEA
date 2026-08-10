@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from .aggregation import aggregate_all
 from .config import COUNTRIES, DEFAULT_DB
 from .coverage import coverage_markdown
 from .db import database, read_database, reset
+from .ember_client import EmberKeyError, load_ember_api_key
+from .ember_importer import EmberImporter
 from .importer import Importer
 from .server import serve
 from .validation import validation_markdown
@@ -18,7 +21,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--db", type=Path, default=DEFAULT_DB, help="SQLite database path")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    import_parser = subparsers.add_parser("import", help="Download and normalize Energy-Charts data")
+    import_parser = subparsers.add_parser("import", help="Download and normalize electricity data")
+    import_parser.add_argument("--source", choices=("energy-charts", "ember"), default="energy-charts")
     import_parser.add_argument("--year", type=int, default=2025)
     import_parser.add_argument("--months", type=int, nargs="*", help="Optional months (1-12); default full year")
     import_parser.add_argument("--countries", nargs="+", default=list(COUNTRIES), help="Pilot country codes")
@@ -45,9 +49,19 @@ def main(argv: list[str] | None = None) -> int:
         serve(args.db, args.host, args.port)
         return 0
     if args.command == "import":
+        if args.source == "ember":
+            try:
+                load_ember_api_key()
+            except EmberKeyError as exc:
+                print(f"Ember import aborted: {exc}", file=sys.stderr)
+                return 1
         exit_code = 0
         with database(args.db) as connection:
-            importer = Importer(connection, refresh=args.refresh)
+            importer = (
+                EmberImporter(connection, refresh=args.refresh)
+                if args.source == "ember"
+                else Importer(connection, refresh=args.refresh)
+            )
             for code in args.countries:
                 try:
                     result = importer.import_country(code, args.year, args.months)

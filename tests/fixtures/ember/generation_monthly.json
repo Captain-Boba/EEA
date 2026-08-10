@@ -1,0 +1,15 @@
+{
+  "stats": {"number_of_records": 10, "query_parameters_used": {}},
+  "data": [
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Bioenergy", "is_aggregate_series": false, "generation_twh": 2.0, "share_of_generation_pct": 3.08},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Coal", "is_aggregate_series": false, "generation_twh": 15.0, "share_of_generation_pct": 23.08},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Gas", "is_aggregate_series": false, "generation_twh": 8.0, "share_of_generation_pct": 12.31},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Hydro", "is_aggregate_series": false, "generation_twh": 3.0, "share_of_generation_pct": 4.62},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Net imports", "is_aggregate_series": false, "generation_twh": 4.0, "share_of_generation_pct": 6.15},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Nuclear", "is_aggregate_series": false, "generation_twh": 20.0, "share_of_generation_pct": 30.77},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Other Fossil", "is_aggregate_series": false, "generation_twh": 1.0, "share_of_generation_pct": 1.54},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Other Renewables", "is_aggregate_series": false, "generation_twh": 1.0, "share_of_generation_pct": 1.54},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Solar", "is_aggregate_series": false, "generation_twh": 5.0, "share_of_generation_pct": 7.69},
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025-01", "series": "Wind", "is_aggregate_series": false, "generation_twh": 10.0, "share_of_generation_pct": 15.38}
+  ]
+}

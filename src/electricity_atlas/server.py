@@ -44,18 +44,21 @@ class AtlasHandler(BaseHTTPRequestHandler):
             year = int(query.get("year", ["2025"])[0])
             month_value = query.get("month", [""])[0]
             month = int(month_value) if month_value else None
+            source = query.get("source", ["combined"])[0]
+            if source not in {"energy-charts", "ember", "combined"}:
+                raise ValueError("source must be 'energy-charts', 'ember' or 'combined'")
             with read_database(self.db_path) as connection:
                 if path == "/api/health":
                     payload = {"status": "ok", "database": str(self.db_path)}
                 elif path == "/api/countries":
                     payload = [country.__dict__ for country in COUNTRIES.values()]
                 elif path == "/api/summary":
-                    payload = aggregate_all(connection, year, month)
+                    payload = aggregate_all(connection, year, month, source)
                 elif path == "/api/compare":
                     codes = [code.upper() for code in query.get("countries", [""])[0].split(",") if code]
                     if not 2 <= len(codes) <= 4 or any(code not in COUNTRIES for code in codes):
                         raise ValueError("countries must contain 2 to 4 pilot country codes")
-                    payload = [aggregate_country(connection, code, year, month) for code in codes]
+                    payload = [aggregate_country(connection, code, year, month, source) for code in codes]
                 elif path == "/api/coverage":
                     payload = coverage_rows(connection, year)
                 else:

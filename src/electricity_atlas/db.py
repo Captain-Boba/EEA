@@ -94,6 +94,24 @@ CREATE TABLE IF NOT EXISTS quality_issue (
     details TEXT NOT NULL,
     UNIQUE(country_code, endpoint, period_start, period_end, issue_type, details)
 );
+
+CREATE TABLE IF NOT EXISTS period_observation (
+    country_code TEXT NOT NULL,
+    period_start TEXT NOT NULL,
+    period_end TEXT NOT NULL,
+    granularity TEXT NOT NULL,
+    source TEXT NOT NULL,
+    source_endpoint TEXT NOT NULL,
+    source_series TEXT NOT NULL DEFAULT '',
+    metric TEXT NOT NULL,
+    value REAL NOT NULL,
+    unit TEXT NOT NULL,
+    quality_status TEXT NOT NULL DEFAULT 'observed',
+    PRIMARY KEY (
+        country_code, period_start, period_end, granularity,
+        source, source_endpoint, source_series, metric
+    )
+) WITHOUT ROWID;
 """
 
 

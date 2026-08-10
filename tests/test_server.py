@@ -23,10 +23,17 @@ class ServerSmokeTests(unittest.TestCase):
                     html = response.read().decode("utf-8")
                 with urlopen(base + "/api/summary?year=2025&month=7", timeout=5) as response:
                     summary = json.load(response)
+                with urlopen(base + "/api/summary?year=2025&month=7&source=ember", timeout=5) as response:
+                    ember_summary = json.load(response)
                 self.assertIn("European Electricity Atlas", html)
+                self.assertIn("Datenquellen und Herkunft", html)
                 self.assertEqual(len(summary), 10)
                 self.assertEqual(summary[0]["period"], "2025-07")
+                self.assertTrue(all(row["source"] == "combined" for row in summary))
                 self.assertTrue(all(row["data_status"] == "missing" for row in summary))
+                self.assertEqual(len(ember_summary), 10)
+                self.assertTrue(all(row["source"] == "ember" for row in ember_summary))
+                self.assertTrue(all(row["data_status"] == "missing" for row in ember_summary))
             finally:
                 server.shutdown()
                 server.server_close()

@@ -157,7 +157,7 @@ def installed_capacity_summary(
     }
 
 
-def aggregate_country(
+def _aggregate_energy_charts_country(
     connection: sqlite3.Connection, country_code: str, year: int, month: int | None = None
 ) -> dict[str, Any]:
     code = country_code.upper()
@@ -190,6 +190,8 @@ def aggregate_country(
         "country_code": code,
         "country_name": COUNTRIES[code].name,
         "period": f"{year:04d}-{month:02d}" if month else str(year),
+        "source": "energy-charts",
+        "source_label": "Energy-Charts.info",
         "generation_twh": mwh_to_twh(generation_mwh) if has_generation else None,
         "consumption_twh": mwh_to_twh(energy.get("consumption", 0.0)) if has_consumption else None,
         "renewable_twh": mwh_to_twh(renewable_mwh) if has_generation else None,
@@ -224,5 +226,146 @@ def aggregate_country(
     return result
 
 
-def aggregate_all(connection: sqlite3.Connection, year: int, month: int | None = None) -> list[dict[str, Any]]:
-    return [aggregate_country(connection, code, year, month) for code in COUNTRIES]
+GENERATION_RESULT_FIELDS = (
+    "generation_twh",
+    "renewable_twh",
+    "renewable_share_pct",
+    "wind_twh",
+    "solar_twh",
+    "nuclear_twh",
+    "fossil_twh",
+)
+ENERGY_CHARTS_RESULT_FIELDS = (
+    "price_avg_eur_mwh",
+    "price_median_eur_mwh",
+    "price_min_eur_mwh",
+    "price_max_eur_mwh",
+    "negative_price_intervals",
+    "negative_price_hours",
+    "import_twh",
+    "export_twh",
+    "net_import_twh",
+    "installed_capacity_mw",
+    "installed_capacity_snapshot",
+    "installed_capacity_snapshot_year",
+    "installed_capacity_age_years",
+    "installed_capacity_status",
+)
+
+
+def _combined_country(
+    connection: sqlite3.Connection, country_code: str, year: int, month: int | None = None
+) -> dict[str, Any]:
+    from .ember_aggregation import aggregate_ember_country
+
+    energy_charts = _aggregate_energy_charts_country(connection, country_code, year, month)
+    ember = aggregate_ember_country(connection, country_code, year, month)
+    generation_source = energy_charts if energy_charts["generation_twh"] is not None else ember
+
+    result: dict[str, Any] = {
+        "country_code": energy_charts["country_code"],
+        "country_name": energy_charts["country_name"],
+        "period": energy_charts["period"],
+        "source": "combined",
+        "generation_source": generation_source["source"],
+        "mix": generation_source["mix"],
+    }
+    for field in GENERATION_RESULT_FIELDS:
+        result[field] = generation_source[field]
+    for field in ENERGY_CHARTS_RESULT_FIELDS:
+        result[field] = energy_charts[field]
+
+    result["consumption_twh"] = (
+        energy_charts["consumption_twh"]
+        if energy_charts["consumption_twh"] is not None
+        else ember["consumption_twh"]
+    )
+    result["carbon_intensity_gco2eq_kwh"] = ember["carbon_intensity_gco2eq_kwh"]
+
+    value_sources: dict[str, str] = {}
+    generation_label = generation_source["source_label"]
+    for field in GENERATION_RESULT_FIELDS:
+        if result[field] is not None:
+            value_sources[field] = generation_label
+    for field in ENERGY_CHARTS_RESULT_FIELDS:
+        if result[field] is not None and not (
+            field.startswith("installed_capacity_") and result["installed_capacity_mw"] is None
+        ):
+            value_sources[field] = energy_charts["source_label"]
+    if result["consumption_twh"] is not None:
+        value_sources["consumption_twh"] = (
+            energy_charts["source_label"]
+            if energy_charts["consumption_twh"] is not None
+            else ember["source_label"]
+        )
+    if result["carbon_intensity_gco2eq_kwh"] is not None:
+        value_sources["carbon_intensity_gco2eq_kwh"] = ember["source_label"]
+
+    sources_used = []
+    for source_name, source_label in (
+        ("energy-charts", energy_charts["source_label"]),
+        ("ember", ember["source_label"]),
+    ):
+        if any(label == source_label for label in value_sources.values()):
+            sources_used.append(source_name)
+    result["sources_used"] = sources_used
+    result["source_label"] = " + ".join(
+        "Energy-Charts" if source == "energy-charts" else "Ember" for source in sources_used
+    ) or "Keine Daten"
+    result["value_sources"] = value_sources
+
+    result["quality_issues"] = [
+        {**issue, "source": "energy-charts"} for issue in energy_charts["quality_issues"]
+    ] + [{**issue, "source": "ember"} for issue in ember["quality_issues"]]
+    core_fields = (
+        "generation_twh",
+        "consumption_twh",
+        "renewable_twh",
+        "renewable_share_pct",
+        "carbon_intensity_gco2eq_kwh",
+    )
+    available_core = sum(result[field] is not None for field in core_fields)
+    result["data_status"] = (
+        "complete" if available_core == len(core_fields) else ("partial" if value_sources else "missing")
+    )
+    result["source_unavailable"] = {
+        field: "von keiner importierten Quelle geliefert"
+        for field in (
+            "generation_twh",
+            "consumption_twh",
+            "price_avg_eur_mwh",
+            "import_twh",
+            "export_twh",
+            "net_import_twh",
+            "carbon_intensity_gco2eq_kwh",
+        )
+        if result[field] is None
+    }
+    return result
+
+
+def aggregate_country(
+    connection: sqlite3.Connection,
+    country_code: str,
+    year: int,
+    month: int | None = None,
+    source: str = "energy-charts",
+) -> dict[str, Any]:
+    if source == "energy-charts":
+        return _aggregate_energy_charts_country(connection, country_code, year, month)
+    if source == "ember":
+        from .ember_aggregation import aggregate_ember_country
+
+        return aggregate_ember_country(connection, country_code, year, month)
+    if source == "combined":
+        return _combined_country(connection, country_code, year, month)
+    raise ValueError("source must be 'energy-charts', 'ember' or 'combined'")
+
+
+def aggregate_all(
+    connection: sqlite3.Connection,
+    year: int,
+    month: int | None = None,
+    source: str = "energy-charts",
+) -> list[dict[str, Any]]:
+    return [aggregate_country(connection, code, year, month, source) for code in COUNTRIES]

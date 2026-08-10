@@ -1,0 +1,6 @@
+{
+  "stats": {"number_of_records": 1, "query_parameters_used": {}},
+  "data": [
+    {"entity": "Germany", "entity_code": "DEU", "is_aggregate_entity": false, "date": "2025", "demand_twh": 700.0, "demand_mwh_per_capita": 8.4}
+  ]
+}

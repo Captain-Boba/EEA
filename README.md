@@ -17,6 +17,8 @@ Es gibt keine Laufzeit-Abhängigkeiten außerhalb der Python-Standardbibliothek.
 
 ## Datenimport
 
+Energy-Charts bleibt die Standardquelle. Ember kann ausdrücklich über `--source ember` ausgewählt werden. Der Ember-Schlüssel wird zuerst aus `EMBER_API_KEY` und andernfalls aus der lokalen, ignorierten Datei `EMBER_API_KEY.txt` gelesen.
+
 Komplettes Jahr 2025 für alle zehn Pilotländer:
 
 ```powershell
@@ -34,6 +36,25 @@ Nur einzelne Länder:
 ```powershell
 eea import --year 2025 --countries DE FR ES
 ```
+
+Ember-Monats- und Jahreswerte für alle Pilotländer:
+
+```powershell
+$env:EMBER_API_KEY="<API-Key>"
+eea import --source ember --year 2025
+```
+
+Ember für ausgewählte Länder:
+
+```powershell
+eea import --source ember --year 2025 --countries DE FR ES UK
+```
+
+Ember-Daten werden als bereits aggregierte Periodenwerte separat gespeichert und niemals mit Energy-Charts-Zeitreihen summiert. Die Weboberfläche zeigt eine gemeinsame, möglichst vollständige Ansicht: Erzeugung und Energiemix kommen geschlossen bevorzugt aus Energy-Charts und bei fehlender Abdeckung aus Ember; fehlender Verbrauch und CO₂-Intensität werden aus Ember ergänzt. Preise, Grenzflüsse und installierte Leistung kommen ausschließlich aus Energy-Charts. Ein ausklappbarer Quellenblock unter den Tabellen dokumentiert Anbieter, Endpunkte, Verarbeitung, Lizenz und Zusammenführungsregeln; die kombinierte API-Antwort enthält zusätzlich die Herkunft je Kennzahl in `value_sources`. Ember-Daten stehen unter CC BY 4.0.
+
+Ohne `source` liefern `/api/summary` und `/api/compare` diese kombinierte Ansicht. Die getrennten Rohsichten bleiben für Analyse und Nachvollziehbarkeit über `source=energy-charts` beziehungsweise `source=ember` verfügbar. `source=combined` kann auch ausdrücklich angegeben werden.
+
+Der Ember-Endpunkt für Jahresverbrauch wird weiterhin direkt abgefragt und ein API-Fehler bleibt in der Importzusammenfassung sichtbar. Fehlt nur dieser Jahreswert, kann die Jahresansicht den Verbrauch transparent aus genau zwölf vorhandenen Ember-Monatswerten summieren; Energy-Charts-Daten werden dafür nicht verwendet.
 
 Bereits vorhandene oder überdeckende Zeiträume kommen aus `api_cache` und werden nicht erneut geladen. Der erste Jahresimport erfolgt rate-limit-schonend als Jahresabruf. Existiert nur ein Teilbestand, prüft der Import Monatssegmente und lädt ausschließlich fehlende Segmente nach. `--months` ersetzt ausschließlich die genannten Monate; Kapazitätssnapshots werden bei einem Monatsimport nicht verändert. Jeder Teilbereich wird erst nach erfolgreichem Download beziehungsweise erfolgreicher Cache-Auswertung innerhalb einer atomaren Transaktion ersetzt. Bei Download-, Validierungs- oder Normalisierungsfehlern bleibt der bisherige normalisierte Teilbereich erhalten. `--refresh` lädt nur die angeforderten Zeiträume neu. Die CLI meldet erfolgreiche Teilbereiche, Fehler und die Anzahl erhaltener Altzeilen; bei mindestens einem Teilfehler endet sie mit einem Exitcode ungleich null. Die öffentliche API ist rate-limitiert; HTTP 429 wird mit begrenztem Backoff wiederholt.
 
