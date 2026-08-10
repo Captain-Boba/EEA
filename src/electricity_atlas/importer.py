@@ -273,9 +273,27 @@ class Importer:
             if not isinstance(record, dict) or "timestamp" not in record or not isinstance(record.get("values"), dict):
                 raise ValueError(f"{endpoint} record {index} is structurally invalid")
 
+    def _validate_payload_period(self, endpoint: str, payload: dict[str, Any], period: Period) -> None:
+        requested_start = date.fromisoformat(period.start)
+        requested_end = date.fromisoformat(period.end)
+        for index, record in enumerate(payload["data"]):
+            timestamp = str(record["timestamp"])
+            try:
+                parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise ValueError(f"{endpoint} record {index} has an invalid timestamp: {timestamp}") from exc
+            if parsed.tzinfo is None:
+                raise ValueError(f"{endpoint} record {index} timestamp has no timezone offset: {timestamp}")
+            if not requested_start <= parsed.date() <= requested_end:
+                raise ValueError(
+                    f"{endpoint} record {index} timestamp {timestamp} is outside requested period "
+                    f"{period.start}..{period.end}"
+                )
+
     def _import_period(self, endpoint: str, country: Country, period: Period) -> int:
         payload = self._payload(endpoint, country, period)
         self._validate_payload(endpoint, payload)
+        self._validate_payload_period(endpoint, payload, period)
 
         def replace() -> int:
             self._clear_period_scope(endpoint, country, period)
@@ -375,6 +393,7 @@ class Importer:
     def _import_price(self, country: Country, zone: str, period: Period) -> int:
         payload = self.client.get("price", "bzn", zone, period.start, period.end, refresh=self.refresh)
         self._validate_payload("price", payload)
+        self._validate_payload_period("price", payload, period)
 
         def replace() -> int:
             self._clear_period_scope("price", country, period, zone)

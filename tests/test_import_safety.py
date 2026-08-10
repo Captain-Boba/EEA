@@ -194,6 +194,36 @@ class ImportSafetyTests(unittest.TestCase):
         ).fetchone()[0]
         self.assertEqual(value, 222.0)
 
+    def test_january_refresh_rejects_valid_february_record_without_writes(self):
+        self.add_observation(1, 444.0)
+        self.connection.commit()
+
+        def dispatch(endpoint, target_name, target, start_date="", end_date="", extra=None, refresh=False):
+            if endpoint == "public_power":
+                payload = public_power_payload("2025-01-01", 60.0)
+                payload["data"].append(public_power_payload("2025-02-01", 70.0)["data"][0])
+                return payload
+            return self.dispatch_payload(endpoint, target_name, target, start_date, end_date, extra, refresh)
+
+        output = io.StringIO()
+        with patch("electricity_atlas.importer.EnergyChartsClient.get", side_effect=dispatch):
+            with contextlib.redirect_stdout(output):
+                exit_code = main([
+                    "--db", str(self.db_path), "import", "--year", "2025",
+                    "--months", "1", "--countries", "DE", "--refresh",
+                ])
+
+        rows = self.connection.execute(
+            """SELECT timestamp,value FROM observation
+               WHERE country_code='DE' AND source_endpoint='public_power'
+               ORDER BY timestamp"""
+        ).fetchall()
+        self.assertNotEqual(exit_code, 0)
+        self.assertIn("outside requested period 2025-01-01..2025-01-31", output.getvalue())
+        self.assertEqual([(row["timestamp"], row["value"]) for row in rows], [
+            ("2025-01-01T00:00:00+01:00", 444.0),
+        ])
+
     def test_successful_refresh_fully_replaces_target_without_duplicates(self):
         self.add_observation(1, 1.0, 1)
         self.add_observation(1, 2.0, 2)

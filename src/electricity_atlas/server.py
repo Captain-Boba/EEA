@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlparse
 from .aggregation import aggregate_all, aggregate_country
 from .config import COUNTRIES
 from .coverage import coverage_rows
-from .db import read_database
+from .db import database, read_database
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2] / "web"
@@ -77,9 +77,17 @@ class AtlasHandler(BaseHTTPRequestHandler):
         print(f"[http] {format % args}")
 
 
-def serve(db_path: Path, host: str = "127.0.0.1", port: int = 8000) -> None:
+def create_server(db_path: Path, host: str = "127.0.0.1", port: int = 8000) -> ThreadingHTTPServer:
+    db_path = Path(db_path)
+    if not db_path.exists():
+        with database(db_path):
+            pass
     handler = type("ConfiguredAtlasHandler", (AtlasHandler,), {"db_path": db_path})
-    server = ThreadingHTTPServer((host, port), handler)
+    return ThreadingHTTPServer((host, port), handler)
+
+
+def serve(db_path: Path, host: str = "127.0.0.1", port: int = 8000) -> None:
+    server = create_server(db_path, host, port)
     print(f"European Electricity Atlas: http://{host}:{port}")
     print(f"SQLite: {db_path}")
     try:

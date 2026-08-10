@@ -2,22 +2,19 @@ import json
 import tempfile
 import threading
 import unittest
-from http.server import ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import urlopen
 
-from electricity_atlas.db import database
-from electricity_atlas.server import AtlasHandler
+from electricity_atlas.server import create_server
 
 
 class ServerSmokeTests(unittest.TestCase):
-    def test_static_ui_and_summary_api(self):
+    def test_missing_database_is_initialized_before_read_only_summary_api(self):
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "test.sqlite3"
-            with database(db_path):
-                pass
-            handler = type("TestHandler", (AtlasHandler,), {"db_path": db_path})
-            server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            self.assertFalse(db_path.exists())
+            server = create_server(db_path, "127.0.0.1", 0)
+            self.assertTrue(db_path.is_file())
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
             try:
@@ -29,6 +26,7 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertIn("European Electricity Atlas", html)
                 self.assertEqual(len(summary), 10)
                 self.assertEqual(summary[0]["period"], "2025-07")
+                self.assertTrue(all(row["data_status"] == "missing" for row in summary))
             finally:
                 server.shutdown()
                 server.server_close()
@@ -37,4 +35,3 @@ class ServerSmokeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
