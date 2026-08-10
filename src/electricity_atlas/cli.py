@@ -6,16 +6,13 @@ import sys
 from pathlib import Path
 
 from .aggregation import aggregate_all
-from .config import DEFAULT_DB, EMBER_COUNTRIES, ENERGY_CHARTS_COUNTRIES
+from .config import DEFAULT_DB, EMBER_COUNTRIES
 from .coverage import coverage_markdown
-from .db import database, read_database, reset
+from .db import database, migrate_to_ember_only, read_database, reset
 from .ember_client import EmberKeyError, load_ember_api_key
 from .ember_importer import EmberImporter
-from .importer import Importer
-from .monthly_migration import migrate_legacy_intervals
 from .price_importer import WholesalePriceImporter
 from .server import serve
-from .validation import validation_markdown
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,17 +20,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--db", type=Path, default=DEFAULT_DB, help="SQLite database path")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    import_parser = subparsers.add_parser("import", help="Download and normalize electricity data")
-    import_parser.add_argument("--source", choices=("energy-charts", "ember"), default="energy-charts")
+    import_parser = subparsers.add_parser("import", help="Download and normalize Ember electricity data")
+    import_parser.add_argument("--source", choices=("ember",), default="ember")
     import_parser.add_argument("--year", type=int, help="Single import year; default 2025")
     import_parser.add_argument("--from-year", type=int, help="Ember history start year")
     import_parser.add_argument("--to-year", type=int, help="Ember history end year; default current year")
     import_parser.add_argument("--months", type=int, nargs="*", help="Optional months (1-12); default full year")
-    import_parser.add_argument("--countries", nargs="+", help="Atlas country codes; defaults depend on source")
+    import_parser.add_argument("--countries", nargs="+", help="Atlas country codes; default all 32 countries")
     import_parser.add_argument("--refresh", action="store_true", help="Re-download and reproducibly replace cached periods")
 
     subparsers.add_parser("import-prices", help="Download and atomically import Ember monthly wholesale prices")
-    subparsers.add_parser("migrate-monthly", help="Aggregate legacy Energy-Charts intervals to monthly values")
+    subparsers.add_parser(
+        "migrate-ember-only",
+        help="Remove non-Ember rows, caches and obsolete interval tables",
+    )
 
     serve_parser = subparsers.add_parser("serve", help="Run local debug UI")
     serve_parser.add_argument("--host", default="127.0.0.1")
@@ -64,9 +64,10 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(json.dumps(result, ensure_ascii=False))
         return 0
-    if args.command == "migrate-monthly":
+    if args.command == "migrate-ember-only":
         with database(args.db) as connection:
-            result = migrate_legacy_intervals(connection)
+            result = migrate_to_ember_only(connection)
+            connection.execute("VACUUM")
         print(json.dumps(result, ensure_ascii=False))
         return 0
     if args.command == "import":
@@ -77,22 +78,15 @@ def main(argv: list[str] | None = None) -> int:
         elif args.to_year is not None:
             print("--to-year requires --from-year.", file=sys.stderr)
             return 2
-        if args.source == "ember":
-            try:
-                load_ember_api_key()
-            except EmberKeyError as exc:
-                print(f"Ember import aborted: {exc}", file=sys.stderr)
-                return 1
+        try:
+            load_ember_api_key()
+        except EmberKeyError as exc:
+            print(f"Ember import aborted: {exc}", file=sys.stderr)
+            return 1
         exit_code = 0
-        countries = args.countries or list(
-            EMBER_COUNTRIES if args.source == "ember" else ENERGY_CHARTS_COUNTRIES
-        )
+        countries = args.countries or list(EMBER_COUNTRIES)
         with database(args.db) as connection:
-            importer = (
-                EmberImporter(connection, refresh=args.refresh)
-                if args.source == "ember"
-                else Importer(connection, refresh=args.refresh)
-            )
+            importer = EmberImporter(connection, refresh=args.refresh)
             for code in countries:
                 try:
                     if args.from_year is not None:
@@ -113,7 +107,6 @@ def main(argv: list[str] | None = None) -> int:
         args.output.mkdir(parents=True, exist_ok=True)
         with read_database(args.db) as connection:
             (args.output / "COVERAGE.generated.md").write_text(coverage_markdown(connection, args.year), encoding="utf-8")
-            (args.output / "VALIDATION.generated.md").write_text(validation_markdown(connection, args.year), encoding="utf-8")
             (args.output / "SUMMARY.generated.json").write_text(
                 json.dumps(aggregate_all(connection, args.year), ensure_ascii=False, indent=2, allow_nan=False),
                 encoding="utf-8",

@@ -62,19 +62,6 @@
       <summary>Datenquellen und Herkunft</summary>
       <div class="source-grid">
         <article>
-          <h3>Energy-Charts</h3>
-          <p><strong>Anbieter:</strong> Fraunhofer-Institut für Solare Energiesysteme ISE.</p>
-          <p><strong>API:</strong> <a href="https://energy-charts.info/api.html?l=de" target="_blank" rel="noopener noreferrer">Energy-Charts API-Dokumentation</a>, Basis <code>https://api.energy-charts.info/v2</code>.</p>
-          <ul>
-            <li><code>/public_power</code>: öffentliche Nettoerzeugung nach Technologie und Last.</li>
-            <li><code>/price</code>: Day-Ahead-Preis je verfügbarer Gebotszone.</li>
-            <li><code>/cbpf</code>: physische bilaterale Grenzflüsse für Import, Export und Saldo.</li>
-            <li><code>/installed_power</code>: installierte Leistung nach Technologie.</li>
-          </ul>
-          <p><strong>Verarbeitung:</strong> Leistungs-, Preis- und Flussantworten werden beim Import anhand ihrer realen Intervalldauer unmittelbar zu Monatswerten verdichtet. Monate sind die kleinste gespeicherte Analyseeinheit; Jahreswerte entstehen nur aus vollständigen Monaten, das laufende Jahr wird als YTD ausgewiesen. Einzelintervalle und bilaterale Gegenparteien werden nicht als Analysezeilen gespeichert. Die unveränderte Quellenantwort bleibt ausschließlich im Rohcache nachvollziehbar.</p>
-        </article>
-
-        <article>
           <h3>Ember</h3>
           <p><strong>Anbieter:</strong> Ember, kuratierte international vergleichbare Stromdaten.</p>
           <p><strong>API:</strong> <a href="https://api.ember-energy.org/v1/docs" target="_blank" rel="noopener noreferrer">Ember API-Dokumentation</a>, Basis <code>https://api.ember-energy.org/v1</code>.</p>
@@ -89,27 +76,17 @@
           <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quellenangabe: Ember.</p>
         </article>
       </div>
-
-      <section class="merge-rules" aria-labelledby="merge-rules-title">
-        <h3 id="merge-rules-title">Regeln der gemeinsamen Darstellung</h3>
-        <ul>
-          <li>Erzeugung und Energiemix kommen als zusammengehende Gruppe aus Energy-Charts; bei unvollständiger Abdeckung wird die gesamte Gruppe durch Ember ersetzt.</li>
-          <li>Verbrauch kommt bevorzugt aus Energy-Charts und wird bei fehlendem Wert durch Ember ergänzt. CO₂-Intensität kommt aus Ember.</li>
-          <li>Nationale Durchschnittspreise kommen bevorzugt aus der Ember-Preis-CSV; fehlt dort ein Zeitraum vollständig, bleibt Energy-Charts der Fallback. Grenzflüsse und installierte Leistung kommen ausschließlich aus Energy-Charts.</li>
-          <li>Werte beider Quellen werden niemals miteinander addiert. Fehlende Daten bleiben leer und werden nicht als Null interpretiert.</li>
-          <li>Importierte API-Antworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>; Ember-API-Schlüssel werden vor der Speicherung redigiert und nicht in der Datenbank abgelegt.</li>
-        </ul>
-      </section>
+      <p>Die Anwendung verwendet ausschließlich Ember. Importierte API-Antworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>; Ember-API-Schlüssel werden vor der Speicherung redigiert und nicht in der Datenbank abgelegt.</p>
     </details>
 
     <details>
       <summary>Definitions- und Coverage-Hinweise</summary>
       <ul>
-        <li>Erzeugung und Energiemix: bevorzugt öffentliche Nettoerzeugung von Energy-Charts; bei fehlender Abdeckung geschlossene Ember-Periodenwerte.</li>
-        <li>Verbrauch: Energy-Charts, bei fehlendem Wert Ember. CO₂-Intensität: Ember.</li>
-        <li>Preise: nationale Monatswerte von Ember, bei vollständigen Jahren kalendertäglich gewichtet. Handel: Energy-Charts; physische Grenzflüsse, positive Flüsse sind Importe.</li>
+        <li>Erzeugung, Energiemix, Verbrauch und CO₂-Intensität stammen aus Embers kuratierten Monats- und Jahresdaten.</li>
+        <li>Preise sind nationale Monatswerte von Ember und werden bei vollständigen Jahren kalendertäglich gewichtet.</li>
+        <li>Bruttoimport, Bruttoexport, negative Preisstunden und operative Intervallwerte sind nicht Teil dieses Monatsatlas.</li>
         <li>Der laufende Monat ist vorläufig. Das laufende Jahr wird nur aus abgeschlossenen Monaten als YTD ausgewiesen.</li>
-        <li>Ein leerer Wert bedeutet, dass keine der importierten Quellen die Kennzahl liefert.</li>
+        <li>Ein leerer Wert bedeutet, dass Ember für Land und Zeitraum keine Kennzahl liefert.</li>
       </ul>
       <div id="coverage"></div>
     </details>

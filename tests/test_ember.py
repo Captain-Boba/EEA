@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from electricity_atlas.aggregation import aggregate_country
 from electricity_atlas.cli import main
-from electricity_atlas.config import EMBER_ISO3, SOURCE_NAME
+from electricity_atlas.config import EMBER_ISO3
 from electricity_atlas.db import initialize
 from electricity_atlas.ember_client import EmberApiError, EmberClient, load_ember_api_key
 from electricity_atlas.ember_importer import EmberImporter
@@ -288,14 +288,13 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         self.assertEqual([row["value"] for row in old], [99.0])
         self.assertEqual(february, 0)
 
-    def test_sources_are_strictly_separated(self):
+    def test_non_ember_rows_are_ignored_and_other_sources_are_rejected(self):
         self.connection.execute(
             """INSERT INTO period_observation
                (country_code,period_start,period_end,granularity,source,source_endpoint,
-                source_series,metric,value,unit,quality_status)
-               VALUES ('DE','2025-01-01','2025-01-31','monthly',?,'public_power','',
-                       'generation_total',0.0001,'TWh','observed')""",
-            (SOURCE_NAME,),
+                 source_series,metric,value,unit,quality_status)
+               VALUES ('DE','2025-01-01','2025-01-31','monthly','legacy','legacy','',
+                       'generation_total',999,'TWh','observed')"""
         )
         self.connection.execute(
             """INSERT INTO period_observation
@@ -304,86 +303,11 @@ class EmberImportAndAggregationTests(unittest.TestCase):
                VALUES ('DE','2025-01-01','2025-01-31','monthly','ember',
                        'electricity-generation/monthly','Solar','generation_solar',50,'TWh','observed')"""
         )
-        energy_charts = aggregate_country(self.connection, "DE", 2025, 1)
-        ember = aggregate_country(self.connection, "DE", 2025, 1, source="ember")
-        self.assertAlmostEqual(energy_charts["generation_twh"], 0.0001)
+        ember = aggregate_country(self.connection, "DE", 2025, 1)
         self.assertEqual(ember["generation_twh"], 50.0)
         self.assertIsNone(ember["price_avg_eur_mwh"])
-        self.assertIsNone(ember["import_twh"])
-
-    def test_combined_view_prefers_energy_charts_generation_and_fills_ember_gaps(self):
-        self.connection.execute(
-            """INSERT INTO period_observation
-               (country_code,period_start,period_end,granularity,source,source_endpoint,
-                source_series,metric,value,unit,quality_status)
-               VALUES ('DE','2025-01-01','2025-01-31','monthly',?,'public_power','',
-                       'generation_total',0.0001,'TWh','observed')""",
-            (SOURCE_NAME,),
-        )
-        self.connection.executemany(
-            """INSERT INTO period_observation
-               (country_code,period_start,period_end,granularity,source,source_endpoint,
-                source_series,metric,value,unit,quality_status)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-            [
-                ("DE", "2025-01-01", "2025-01-31", "monthly", "ember",
-                 "electricity-generation/monthly", "Solar", "generation_solar", 50, "TWh", "observed"),
-                ("DE", "2025-01-01", "2025-01-31", "monthly", "ember",
-                 "electricity-demand/monthly", "", "consumption", 500, "TWh", "observed"),
-                ("DE", "2025-01-01", "2025-01-31", "monthly", "ember",
-                 "carbon-intensity/monthly", "", "carbon_intensity", 200, "gCO2/kWh", "observed"),
-            ],
-        )
-
-        combined = aggregate_country(self.connection, "DE", 2025, 1, source="combined")
-
-        self.assertAlmostEqual(combined["generation_twh"], 0.0001)
-        self.assertEqual(combined["renewable_twh"], 0.0)
-        self.assertEqual(combined["consumption_twh"], 500.0)
-        self.assertEqual(combined["carbon_intensity_gco2eq_kwh"], 200.0)
-        self.assertEqual(combined["generation_source"], "energy-charts")
-        self.assertEqual(combined["sources_used"], ["energy-charts", "ember"])
-        self.assertEqual(combined["value_sources"]["generation_twh"], "Energy-Charts.info")
-        self.assertEqual(combined["value_sources"]["consumption_twh"], "Ember, CC BY 4.0")
-
-    def test_combined_view_uses_ember_generation_without_losing_energy_charts_trade(self):
-        rows = []
-        for metric, value in (("import_total", 200), ("export_total", 50)):
-            rows.append((
-                "UK", "2025-01-01", "2025-01-31", "monthly", SOURCE_NAME,
-                "cbpf", "", metric, value / 1_000_000, "TWh", "observed",
-            ))
-        self.connection.executemany(
-            """INSERT INTO period_observation
-               (country_code,period_start,period_end,granularity,source,source_endpoint,
-                source_series,metric,value,unit,quality_status)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-            rows,
-        )
-        self.connection.executemany(
-            """INSERT INTO period_observation
-               (country_code,period_start,period_end,granularity,source,source_endpoint,
-                source_series,metric,value,unit,quality_status)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-            [
-                ("UK", "2025-01-01", "2025-01-31", "monthly", "ember",
-                 "electricity-generation/monthly", "Solar", "generation_solar", 50, "TWh", "observed"),
-                ("UK", "2025-01-01", "2025-01-31", "monthly", "ember",
-                 "electricity-demand/monthly", "", "consumption", 60, "TWh", "observed"),
-                ("UK", "2025-01-01", "2025-01-31", "monthly", "ember",
-                 "carbon-intensity/monthly", "", "carbon_intensity", 150, "gCO2/kWh", "observed"),
-            ],
-        )
-
-        combined = aggregate_country(self.connection, "UK", 2025, 1, source="combined")
-
-        self.assertEqual(combined["generation_twh"], 50.0)
-        self.assertEqual(combined["generation_source"], "ember")
-        self.assertAlmostEqual(combined["import_twh"], 0.0002)
-        self.assertAlmostEqual(combined["export_twh"], 0.00005)
-        self.assertAlmostEqual(combined["net_import_twh"], 0.00015)
-        self.assertEqual(combined["value_sources"]["generation_twh"], "Ember, CC BY 4.0")
-        self.assertEqual(combined["value_sources"]["import_twh"], "Energy-Charts.info")
+        with self.assertRaisesRegex(ValueError, "source must be 'ember'"):
+            aggregate_country(self.connection, "DE", 2025, 1, source="legacy")
 
     def test_missing_values_remain_none_instead_of_invented_zeroes(self):
         self.connection.execute(
@@ -462,7 +386,7 @@ class EmberCliTests(unittest.TestCase):
             "electricity_atlas.cli.EmberImporter.import_range", return_value=result
         ) as import_range, patch("sys.stdout", new=io.StringIO()):
             exit_code = main([
-                "import", "--source", "ember", "--from-year", "2015", "--countries", "DE"
+                "import", "--from-year", "2015", "--countries", "DE"
             ])
 
         self.assertEqual(exit_code, 0)
@@ -476,7 +400,7 @@ class EmberCliTests(unittest.TestCase):
             try:
                 os.chdir(directory)
                 with patch.dict(os.environ, {}, clear=True), contextlib.redirect_stderr(stderr):
-                    exit_code = main(["--db", str(db_path), "import", "--source", "ember", "--year", "2025"])
+                    exit_code = main(["--db", str(db_path), "import", "--year", "2025"])
             finally:
                 os.chdir(previous)
         self.assertNotEqual(exit_code, 0)

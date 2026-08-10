@@ -10,9 +10,6 @@ const columns = [
   ["nuclear_twh", "Kernkraft TWh", "number"],
   ["fossil_twh", "Fossil TWh", "number"],
   ["price_avg_eur_mwh", "Ø Preis EUR/MWh", "number"],
-  ["import_twh", "Import TWh", "number"],
-  ["export_twh", "Export TWh", "number"],
-  ["net_import_twh", "Saldo TWh", "number"],
   ["carbon_intensity_gco2eq_kwh", "CO₂ gCO₂eq/kWh", "number"],
 ];
 
@@ -21,7 +18,7 @@ const compareMetrics = [
   ["renewable_twh", "EE", "TWh"], ["renewable_share_pct", "EE", "%"],
   ["wind_twh", "Wind", "TWh"], ["solar_twh", "Solar", "TWh"],
   ["nuclear_twh", "Kernkraft", "TWh"], ["fossil_twh", "Fossil", "TWh"],
-  ["price_avg_eur_mwh", "Ø Preis", "EUR/MWh"], ["net_import_twh", "Nettohandel", "TWh"],
+  ["price_avg_eur_mwh", "Ø Preis", "EUR/MWh"],
   ["carbon_intensity_gco2eq_kwh", "CO₂", "gCO₂eq/kWh"],
 ];
 
@@ -48,7 +45,7 @@ function selectedYear() {
 }
 
 const periodQuery = () => {
-  const params = new URLSearchParams({year: selectedYear(), source: "combined"});
+  const params = new URLSearchParams({year: selectedYear()});
   if ($("period-type").value === "month") params.set("month", $("month").value);
   return params;
 };
@@ -139,7 +136,7 @@ async function loadSummary() {
       ? " Laufender Monat: vorläufig."
       : (periodStatus === "ytd" ? " Laufendes Jahr: YTD." : "");
     $("status").textContent = data.some(row => Object.values(row).some(value => typeof value === "number"))
-      ? `Kombinierte Daten geladen.${periodNote}` : `Noch keine Daten importiert.${periodNote}`;
+      ? `Ember-Daten geladen.${periodNote}` : `Noch keine Ember-Daten importiert.${periodNote}`;
   } catch (error) {
     $("status").textContent = `Fehler: ${error.message}`;
     $("status").className = "error";
@@ -159,7 +156,7 @@ async function compare() {
 }
 
 async function loadCoverage() {
-  $("coverage").innerHTML = "<p>Energy-Charts und Ember bleiben in der Datenbank getrennt. Herkunft, Verarbeitung und Prioritätsregeln sind im Quellenabschnitt unter den Tabellen dokumentiert.</p>";
+  $("coverage").innerHTML = "<p>Ember ist die einzige Datenquelle. Fehlende Werte bleiben leer und werden nicht aus anderen Quellen ergänzt.</p>";
 }
 
 function syncPeriodControls() {

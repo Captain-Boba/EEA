@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 
 SCHEMA = """
@@ -37,78 +37,6 @@ CREATE TABLE IF NOT EXISTS source_cache (
     PRIMARY KEY(source, endpoint)
 ) WITHOUT ROWID;
 
-CREATE TABLE IF NOT EXISTS import_period (
-    endpoint TEXT NOT NULL,
-    target TEXT NOT NULL,
-    start_date TEXT NOT NULL,
-    end_date TEXT NOT NULL,
-    imported_at TEXT NOT NULL,
-    record_count INTEGER NOT NULL,
-    available_from TEXT,
-    available_until TEXT,
-    resolution TEXT,
-    interval_minutes INTEGER,
-    unit TEXT,
-    license TEXT,
-    PRIMARY KEY(endpoint, target, start_date, end_date)
-);
-
-CREATE TABLE IF NOT EXISTS observation (
-    country_code TEXT NOT NULL,
-    country_name TEXT NOT NULL,
-    bidding_zone TEXT NOT NULL DEFAULT '',
-    timestamp TEXT NOT NULL,
-    timestamp_utc TEXT NOT NULL,
-    source TEXT NOT NULL,
-    source_endpoint TEXT NOT NULL,
-    source_resolution TEXT NOT NULL,
-    interval_minutes INTEGER,
-    metric TEXT NOT NULL,
-    value REAL NOT NULL,
-    unit TEXT NOT NULL,
-    quality_status TEXT NOT NULL DEFAULT 'observed',
-    PRIMARY KEY(country_code, bidding_zone, timestamp_utc, metric, source_endpoint)
-) WITHOUT ROWID;
-
-CREATE INDEX IF NOT EXISTS observation_period_idx
-ON observation(country_code, timestamp, metric);
-
-CREATE TABLE IF NOT EXISTS bilateral_flow (
-    country_code TEXT NOT NULL,
-    counterparty TEXT NOT NULL,
-    timestamp TEXT NOT NULL,
-    timestamp_utc TEXT NOT NULL,
-    source TEXT NOT NULL,
-    source_resolution TEXT NOT NULL,
-    interval_minutes INTEGER NOT NULL,
-    flow_mw REAL NOT NULL,
-    PRIMARY KEY(country_code, counterparty, timestamp_utc, source)
-) WITHOUT ROWID;
-
-CREATE TABLE IF NOT EXISTS installed_capacity (
-    country_code TEXT NOT NULL,
-    country_name TEXT NOT NULL,
-    timestamp TEXT NOT NULL,
-    source TEXT NOT NULL,
-    source_resolution TEXT NOT NULL,
-    category TEXT NOT NULL,
-    value_mw REAL NOT NULL,
-    quality_status TEXT NOT NULL DEFAULT 'observed',
-    PRIMARY KEY(country_code, timestamp, category, source)
-) WITHOUT ROWID;
-
-CREATE TABLE IF NOT EXISTS quality_issue (
-    id INTEGER PRIMARY KEY,
-    country_code TEXT NOT NULL,
-    endpoint TEXT NOT NULL,
-    period_start TEXT NOT NULL,
-    period_end TEXT NOT NULL,
-    issue_type TEXT NOT NULL,
-    severity TEXT NOT NULL,
-    details TEXT NOT NULL,
-    UNIQUE(country_code, endpoint, period_start, period_end, issue_type, details)
-);
-
 CREATE TABLE IF NOT EXISTS period_observation (
     country_code TEXT NOT NULL,
     period_start TEXT NOT NULL,
@@ -129,6 +57,15 @@ CREATE TABLE IF NOT EXISTS period_observation (
 """
 
 
+OBSOLETE_TABLES = (
+    "bilateral_flow",
+    "import_period",
+    "installed_capacity",
+    "observation",
+    "quality_issue",
+)
+
+
 def connect(path: Path | str) -> sqlite3.Connection:
     db_path = Path(path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -142,6 +79,43 @@ def connect(path: Path | str) -> sqlite3.Connection:
 def initialize(connection: sqlite3.Connection) -> None:
     connection.executescript(SCHEMA)
     connection.commit()
+
+
+def migrate_to_ember_only(connection: sqlite3.Connection) -> dict[str, Any]:
+    existing_tables = {
+        row[0]
+        for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    }
+    period_rows_removed = connection.execute(
+        "SELECT COUNT(*) FROM period_observation WHERE source<>'ember'"
+    ).fetchone()[0]
+    api_cache_rows_removed = connection.execute(
+        "SELECT COUNT(*) FROM api_cache WHERE endpoint NOT LIKE 'ember/%'"
+    ).fetchone()[0]
+    source_cache_rows_removed = connection.execute(
+        "SELECT COUNT(*) FROM source_cache WHERE source<>'ember'"
+    ).fetchone()[0]
+    dropped = [table for table in OBSOLETE_TABLES if table in existing_tables]
+
+    connection.execute("SAVEPOINT ember_only_migration")
+    try:
+        connection.execute("DELETE FROM period_observation WHERE source<>'ember'")
+        connection.execute("DELETE FROM api_cache WHERE endpoint NOT LIKE 'ember/%'")
+        connection.execute("DELETE FROM source_cache WHERE source<>'ember'")
+        for table in dropped:
+            connection.execute(f'DROP TABLE "{table}"')
+        connection.execute("RELEASE SAVEPOINT ember_only_migration")
+    except Exception:
+        connection.execute("ROLLBACK TO SAVEPOINT ember_only_migration")
+        connection.execute("RELEASE SAVEPOINT ember_only_migration")
+        raise
+    connection.commit()
+    return {
+        "period_rows_removed": period_rows_removed,
+        "api_cache_rows_removed": api_cache_rows_removed,
+        "source_cache_rows_removed": source_cache_rows_removed,
+        "tables_dropped": dropped,
+    }
 
 
 @contextmanager

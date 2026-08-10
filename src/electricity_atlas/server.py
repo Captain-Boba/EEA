@@ -44,9 +44,9 @@ class AtlasHandler(BaseHTTPRequestHandler):
             year = int(query.get("year", ["2025"])[0])
             month_value = query.get("month", [""])[0]
             month = int(month_value) if month_value else None
-            source = query.get("source", ["combined"])[0]
-            if source not in {"energy-charts", "ember", "combined"}:
-                raise ValueError("source must be 'energy-charts', 'ember' or 'combined'")
+            source = query.get("source", ["ember"])[0]
+            if source != "ember":
+                raise ValueError("source must be 'ember'")
             with read_database(self.db_path) as connection:
                 if path == "/api/health":
                     payload = {"status": "ok", "database": str(self.db_path)}
@@ -57,7 +57,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
                 elif path == "/api/compare":
                     codes = [code.upper() for code in query.get("countries", [""])[0].split(",") if code]
                     if not 2 <= len(codes) <= 4 or any(code not in COUNTRIES for code in codes):
-                        raise ValueError("countries must contain 2 to 4 pilot country codes")
+                        raise ValueError("countries must contain 2 to 4 Atlas country codes")
                     payload = [aggregate_country(connection, code, year, month, source) for code in codes]
                 elif path == "/api/coverage":
                     payload = coverage_rows(connection, year)

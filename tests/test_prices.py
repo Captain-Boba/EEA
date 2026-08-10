@@ -13,13 +13,9 @@ from electricity_atlas.config import (
     ATLAS_COUNTRIES,
     EMBER_COUNTRIES,
     EMBER_PRICE_ENDPOINT,
-    EMBER_PRICE_SOURCE_LABEL,
-    ENERGY_CHARTS_COUNTRIES,
-    SOURCE_NAME,
 )
 from electricity_atlas.db import initialize
 from electricity_atlas.ember_aggregation import _price_summary
-from electricity_atlas.importer import Importer
 from electricity_atlas.price_importer import (
     PriceDownload,
     PriceImportError,
@@ -199,57 +195,7 @@ class WholesalePriceImportTests(unittest.TestCase):
         self.assertEqual(result["price_coverage"], "ytd")
         self.assertEqual(result["price_months_complete"], 3)
 
-    def test_combined_view_prefers_ember_price(self):
-        self.importer().import_prices()
-        timestamp = "2025-01-01T00:00:00+01:00"
-        self.connection.execute(
-            """INSERT INTO observation
-               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
-                source_resolution,interval_minutes,metric,value,unit,quality_status)
-               VALUES ('DE','Deutschland','DE-LU',?,?,?,?,?,60,'day_ahead_price',999,'EUR/MWh','observed')""",
-            (timestamp, timestamp, SOURCE_NAME, "price", "PT1H"),
-        )
-        combined = aggregate_country(self.connection, "DE", 2025, source="combined")
-        self.assertNotEqual(combined["price_avg_eur_mwh"], 999.0)
-        self.assertEqual(combined["price_source_label"], EMBER_PRICE_SOURCE_LABEL)
-        self.assertEqual(combined["value_sources"]["price_avg_eur_mwh"], EMBER_PRICE_SOURCE_LABEL)
-
-
-class CountryCapabilityTests(unittest.TestCase):
-    def test_energy_charts_history_range_dispatches_to_monthly_importer(self):
-        result = {"errors": 0, "successes": [], "failures": [], "skipped": []}
-        with patch("electricity_atlas.cli.database"), patch(
-            "electricity_atlas.cli.Importer.import_range", return_value=result
-        ) as import_range, patch("sys.stdout", new=io.StringIO()):
-            exit_code = main([
-                "import", "--source", "energy-charts", "--from-year", "2015", "--countries", "DE"
-            ])
-        self.assertEqual(exit_code, 0)
-        import_range.assert_called_once_with("DE", 2015, None)
-
-    def test_default_energy_charts_import_calls_only_the_original_ten_countries(self):
-        result = {"errors": 0, "successes": [], "failures": []}
-        with patch("electricity_atlas.cli.database"), patch(
-            "electricity_atlas.cli.Importer.import_country", return_value=result
-        ) as import_country, patch("sys.stdout", new=io.StringIO()):
-            exit_code = main(["import", "--year", "2025"])
-        self.assertEqual(exit_code, 0)
-        self.assertEqual([call.args[0] for call in import_country.call_args_list], list(ENERGY_CHARTS_COUNTRIES))
-        self.assertEqual(len(import_country.call_args_list), 10)
-
-    def test_energy_charts_rejects_new_atlas_country_before_network_access(self):
-        connection = sqlite3.connect(":memory:")
-        connection.row_factory = sqlite3.Row
-        initialize(connection)
-        try:
-            importer = Importer(connection)
-            with patch.object(importer.client, "get") as get:
-                with self.assertRaises(ValueError):
-                    importer.import_country("AL", 2025)
-            get.assert_not_called()
-        finally:
-            connection.close()
-
+class PriceCliTests(unittest.TestCase):
     def test_import_prices_cli_uses_dedicated_importer(self):
         result = {"rows": 10, "countries": 32}
         with patch("electricity_atlas.cli.database"), patch(

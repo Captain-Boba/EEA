@@ -3,6 +3,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import urlopen
 
 from electricity_atlas.server import create_server
@@ -27,6 +28,7 @@ class ServerSmokeTests(unittest.TestCase):
                     ember_summary = json.load(response)
                 self.assertIn("European Electricity Atlas", html)
                 self.assertIn("Datenquellen und Herkunft", html)
+                self.assertNotIn("Energy-Charts", html)
                 self.assertIn('id="year" type="number" min="2015"', html)
                 self.assertEqual(len(summary), 32)
                 self.assertEqual(
@@ -34,11 +36,15 @@ class ServerSmokeTests(unittest.TestCase):
                     {"AL", "AT", "BE", "BG", "CH", "CZ", "DE", "DK", "ES", "EE", "FI", "FR", "UK", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "ME", "MK", "NL", "NO", "PL", "PT", "RO", "RS", "SK", "SI", "SE"},
                 )
                 self.assertEqual(summary[0]["period"], "2025-07")
-                self.assertTrue(all(row["source"] == "combined" for row in summary))
+                self.assertTrue(all(row["source"] == "ember" for row in summary))
                 self.assertTrue(all(row["data_status"] == "missing" for row in summary))
                 self.assertEqual(len(ember_summary), 32)
                 self.assertTrue(all(row["source"] == "ember" for row in ember_summary))
                 self.assertTrue(all(row["data_status"] == "missing" for row in ember_summary))
+                with self.assertRaises(HTTPError) as error:
+                    urlopen(base + "/api/summary?year=2025&source=combined", timeout=5)
+                self.assertEqual(error.exception.code, 400)
+                error.exception.close()
             finally:
                 server.shutdown()
                 server.server_close()
