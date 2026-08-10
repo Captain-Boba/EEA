@@ -3,9 +3,10 @@ from __future__ import annotations
 import calendar
 import sqlite3
 from dataclasses import dataclass
+from datetime import date
 from typing import Any, Callable, Iterable
 
-from .config import COUNTRIES, EMBER_ISO3, EMBER_SOURCE_NAME
+from .config import ATLAS_MIN_YEAR, EMBER_COUNTRIES, EMBER_ISO3, EMBER_SOURCE_NAME
 from .ember_client import EmberClient
 
 
@@ -74,8 +75,7 @@ class EmberImporter:
 
     def import_country(self, country_code: str, year: int, months: Iterable[int] | None = None) -> dict[str, Any]:
         code = country_code.upper()
-        if code not in COUNTRIES or code not in EMBER_ISO3:
-            raise ValueError(f"Unsupported pilot country: {country_code}")
+        self._validate_country(code)
         selected_months = None if months is None else list(months)
         units: list[tuple[str, str, str, str]] = []
         for dataset in ("electricity-generation", "electricity-demand", "carbon-intensity"):
@@ -86,6 +86,62 @@ class EmberImporter:
                 for month in selected_months:
                     token = _month_token(year, month)
                     units.append((dataset, "monthly", token, token))
+
+        return self._import_units(code, units)
+
+    def import_range(
+        self,
+        country_code: str,
+        start_year: int,
+        end_year: int | None = None,
+        today: date | None = None,
+    ) -> dict[str, Any]:
+        code = country_code.upper()
+        self._validate_country(code)
+        current = today or date.today()
+        last_year = current.year if end_year is None else end_year
+        if start_year < ATLAS_MIN_YEAR:
+            raise ValueError(f"Ember history starts at the Atlas limit {ATLAS_MIN_YEAR}")
+        if last_year < start_year:
+            raise ValueError("History end year must not precede the start year")
+        if last_year > current.year:
+            raise ValueError(f"History end year must not exceed {current.year}")
+
+        completed_year_end = min(last_year, current.year - 1)
+        units: list[tuple[str, str, str, str]] = []
+        for dataset in ("electricity-generation", "electricity-demand", "carbon-intensity"):
+            if completed_year_end >= start_year:
+                units.append(
+                    (
+                        dataset,
+                        "monthly",
+                        f"{start_year:04d}-01",
+                        f"{completed_year_end:04d}-12",
+                    )
+                )
+                if dataset != "electricity-demand":
+                    units.append(
+                        (dataset, "yearly", str(start_year), str(completed_year_end))
+                    )
+            if last_year == current.year:
+                units.append(
+                    (
+                        dataset,
+                        "monthly",
+                        f"{current.year:04d}-01",
+                        f"{current.year:04d}-{current.month:02d}",
+                    )
+                )
+        return self._import_units(code, units)
+
+    @staticmethod
+    def _validate_country(code: str) -> None:
+        if code not in EMBER_COUNTRIES or code not in EMBER_ISO3:
+            raise ValueError(f"Unsupported Ember country: {code}")
+
+    def _import_units(
+        self, code: str, units: Iterable[tuple[str, str, str, str]]
+    ) -> dict[str, Any]:
 
         summary: dict[str, Any] = {
             "source": EMBER_SOURCE_NAME,

@@ -75,6 +75,18 @@ th[data-key] { cursor: pointer; text-decoration: underline dotted; text-underlin
 tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .unit { display: block; margin-top: .15rem; color: var(--muted); font-size: .75rem; font-weight: 500; }
 .missing { color: var(--muted); }
+.period-flag {
+  display: inline-block;
+  margin-left: .35rem;
+  padding: .08rem .35rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.period-flag.provisional { color: #ffd08a; border-color: #8a6230; }
+.period-flag.ytd { color: #9fd0ff; border-color: #356b9e; }
 #status.error { color: var(--danger); }
 details { margin-top: 1.5rem; padding: .9rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
 details summary { cursor: pointer; font-weight: 650; }

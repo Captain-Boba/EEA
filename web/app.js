@@ -34,8 +34,21 @@ let compareSortDirection = 1;
 const selected = new Set();
 
 const $ = id => document.getElementById(id);
+const MIN_YEAR = 2015;
+const currentYear = new Date().getFullYear();
+
+function selectedYear() {
+  const input = $("year");
+  input.min = String(MIN_YEAR);
+  input.max = String(currentYear);
+  const parsed = Number.parseInt(input.value, 10);
+  const year = Number.isFinite(parsed) ? Math.min(currentYear, Math.max(MIN_YEAR, parsed)) : 2025;
+  input.value = String(year);
+  return year;
+}
+
 const periodQuery = () => {
-  const params = new URLSearchParams({year: $("year").value, source: "combined"});
+  const params = new URLSearchParams({year: selectedYear(), source: "combined"});
   if ($("period-type").value === "month") params.set("month", $("month").value);
   return params;
 };
@@ -44,6 +57,16 @@ function format(value) {
   if (value === null || value === undefined) return '<span class="missing">—</span>';
   if (typeof value === "number") return new Intl.NumberFormat("de-DE", {maximumFractionDigits: 2}).format(value);
   return String(value);
+}
+
+function formatCell(row, key) {
+  if (key !== "data_status") return format(row[key]);
+  const status = {complete: "vollständig", partial: "teilweise", missing: "fehlend"}[row.data_status]
+    || row.data_status;
+  const period = row.period_status === "provisional_current_month"
+    ? '<span class="period-flag provisional">vorläufig</span>'
+    : (row.period_status === "ytd" ? '<span class="period-flag ytd">YTD</span>' : "");
+  return `${status}${period}`;
 }
 
 function sortRows(rows, key, direction) {
@@ -72,7 +95,7 @@ function render() {
   const sorted = sortRows(data, sortKey, sortDirection);
   $("summary-body").innerHTML = sorted.map(row => `<tr>
     <td><input type="checkbox" aria-label="${row.country_name} auswählen" data-country="${row.country_code}" ${selected.has(row.country_code) ? "checked" : ""}></td>
-    ${columns.map(([key]) => `<td>${format(row[key])}</td>`).join("")}
+    ${columns.map(([key]) => `<td>${formatCell(row, key)}</td>`).join("")}
   </tr>`).join("");
   document.querySelectorAll("input[data-country]").forEach(input => input.addEventListener("change", event => {
     const code = event.target.dataset.country;
@@ -94,7 +117,7 @@ function renderComparison() {
   }));
   const sorted = sortRows(comparisonData, compareSortKey, compareSortDirection);
   $("compare-body").innerHTML = sorted.map(row =>
-    `<tr><th scope="row">${row.country_name}</th>${compareMetrics.map(([key]) => `<td>${format(row[key])}</td>`).join("")}</tr>`
+    `<tr><th scope="row">${row.country_name}</th>${compareMetrics.map(([key]) => `<td>${formatCell(row, key)}</td>`).join("")}</tr>`
   ).join("");
 }
 
@@ -111,8 +134,12 @@ async function loadSummary() {
     if (!response.ok) throw new Error((await response.json()).error || response.statusText);
     data = await response.json();
     render();
-    $("status").textContent = data.some(row => row.generation_twh != null)
-      ? "Kombinierte Daten geladen." : "Noch keine Daten importiert.";
+    const periodStatus = data[0]?.period_status;
+    const periodNote = periodStatus === "provisional_current_month"
+      ? " Laufender Monat: vorläufig."
+      : (periodStatus === "ytd" ? " Laufendes Jahr: YTD." : "");
+    $("status").textContent = data.some(row => Object.values(row).some(value => typeof value === "number"))
+      ? `Kombinierte Daten geladen.${periodNote}` : `Noch keine Daten importiert.${periodNote}`;
   } catch (error) {
     $("status").textContent = `Fehler: ${error.message}`;
     $("status").className = "error";
@@ -142,6 +169,7 @@ function syncPeriodControls() {
 }
 
 $("period-type").addEventListener("change", syncPeriodControls);
+$("year").max = String(currentYear);
 $("load").addEventListener("click", loadSummary);
 $("compare").addEventListener("click", compare);
 syncPeriodControls();

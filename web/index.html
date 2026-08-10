@@ -14,7 +14,7 @@
     </header>
 
     <section class="controls" aria-label="Zeitraum">
-      <label>Jahr <input id="year" type="number" min="2000" max="2100" value="2025"></label>
+      <label>Jahr <input id="year" type="number" min="2015" value="2025"></label>
       <label>Zeitraum
         <select id="period-type">
           <option value="year">Jahr</option>
@@ -71,7 +71,7 @@
             <li><code>/cbpf</code>: physische bilaterale Grenzflüsse für Import, Export und Saldo.</li>
             <li><code>/installed_power</code>: installierte Leistung nach Technologie.</li>
           </ul>
-          <p><strong>Verarbeitung:</strong> Leistungs- und Flusszeitreihen werden anhand ihrer realen Intervalldauer von MW in TWh integriert. Preise werden zeitgewichtet. Die von Energy-Charts je Antwort beziehungsweise Preiszone gelieferten Lizenzangaben werden mit den Importmetadaten gespeichert.</p>
+          <p><strong>Verarbeitung:</strong> Leistungs-, Preis- und Flussantworten werden beim Import anhand ihrer realen Intervalldauer unmittelbar zu Monatswerten verdichtet. Monate sind die kleinste gespeicherte Analyseeinheit; Jahreswerte entstehen nur aus vollständigen Monaten, das laufende Jahr wird als YTD ausgewiesen. Einzelintervalle und bilaterale Gegenparteien werden nicht als Analysezeilen gespeichert. Die unveränderte Quellenantwort bleibt ausschließlich im Rohcache nachvollziehbar.</p>
         </article>
 
         <article>
@@ -82,8 +82,10 @@
             <li><code>/electricity-generation/monthly</code> und <code>/yearly</code>: Erzeugung und Energiemix.</li>
             <li><code>/electricity-demand/monthly</code> und <code>/yearly</code>: Stromverbrauch.</li>
             <li><code>/carbon-intensity/monthly</code> und <code>/yearly</code>: CO₂-Intensität.</li>
+            <li><a href="https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/price/outputs/european_wholesale_electricity_price_data_monthly.csv" target="_blank" rel="noopener noreferrer">European Wholesale Electricity Price Data Monthly CSV</a>: nationale monatliche Day-Ahead-Großhandelspreise.</li>
           </ul>
-          <p><strong>Verarbeitung:</strong> Bereits aggregierte TWh- und gCO₂/kWh-Periodenwerte werden unverändert als Periodenwerte gespeichert. Der Jahresverbrauch wird nur bei genau zwölf vorhandenen Ember-Monaten aus diesen Monatswerten gebildet.</p>
+          <p><strong>Verarbeitung:</strong> Bereits aggregierte TWh-, gCO₂/kWh- und EUR/MWh-Periodenwerte werden als Periodenwerte gespeichert. Jahrespreise werden nach der tatsächlichen Monatsdauer gewichtet und nur mit zwölf abgeschlossenen Monaten als vollständig ausgewiesen. Laufende Monate sind vorläufig, laufende Jahre YTD.</p>
+          <p><strong>Preisquellenangabe:</strong> Ember Wholesale Electricity Price Data, CC BY 4.0.</p>
           <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quellenangabe: Ember.</p>
         </article>
       </div>
@@ -93,7 +95,7 @@
         <ul>
           <li>Erzeugung und Energiemix kommen als zusammengehende Gruppe aus Energy-Charts; bei unvollständiger Abdeckung wird die gesamte Gruppe durch Ember ersetzt.</li>
           <li>Verbrauch kommt bevorzugt aus Energy-Charts und wird bei fehlendem Wert durch Ember ergänzt. CO₂-Intensität kommt aus Ember.</li>
-          <li>Preise, Grenzflüsse und installierte Leistung kommen ausschließlich aus Energy-Charts.</li>
+          <li>Nationale Durchschnittspreise kommen bevorzugt aus der Ember-Preis-CSV; fehlt dort ein Zeitraum vollständig, bleibt Energy-Charts der Fallback. Grenzflüsse und installierte Leistung kommen ausschließlich aus Energy-Charts.</li>
           <li>Werte beider Quellen werden niemals miteinander addiert. Fehlende Daten bleiben leer und werden nicht als Null interpretiert.</li>
           <li>Importierte API-Antworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>; Ember-API-Schlüssel werden vor der Speicherung redigiert und nicht in der Datenbank abgelegt.</li>
         </ul>
@@ -105,8 +107,8 @@
       <ul>
         <li>Erzeugung und Energiemix: bevorzugt öffentliche Nettoerzeugung von Energy-Charts; bei fehlender Abdeckung geschlossene Ember-Periodenwerte.</li>
         <li>Verbrauch: Energy-Charts, bei fehlendem Wert Ember. CO₂-Intensität: Ember.</li>
-        <li>Preise und Handel: ausschließlich Energy-Charts; physische Grenzflüsse, positive Flüsse sind Importe.</li>
-        <li>Mehrzonenländer erhalten ohne belastbare Gewichte keinen nationalen Preis.</li>
+        <li>Preise: nationale Monatswerte von Ember, bei vollständigen Jahren kalendertäglich gewichtet. Handel: Energy-Charts; physische Grenzflüsse, positive Flüsse sind Importe.</li>
+        <li>Der laufende Monat ist vorläufig. Das laufende Jahr wird nur aus abgeschlossenen Monaten als YTD ausgewiesen.</li>
         <li>Ein leerer Wert bedeutet, dass keine der importierten Quellen die Kennzahl liefert.</li>
       </ul>
       <div id="coverage"></div>

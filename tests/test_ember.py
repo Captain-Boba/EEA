@@ -7,6 +7,7 @@ import os
 import sqlite3
 import tempfile
 import unittest
+from datetime import date
 from io import BytesIO
 from pathlib import Path
 from urllib.error import HTTPError
@@ -138,6 +139,35 @@ class EmberClientTests(unittest.TestCase):
         self.assertEqual(result["data"], ["DEU", "GBR"])
         self.assertIn("/options/electricity-generation/monthly/entity_code?", requested[0])
 
+    def test_covering_history_cache_is_sliced_without_network_request(self):
+        cached_payload = {
+            "data": [
+                {"entity_code": "DEU", "date": "2015-01", "series": "Solar"},
+                {"entity_code": "DEU", "date": "2026-07", "series": "Solar"},
+            ]
+        }
+        self.connection.execute(
+            """INSERT INTO api_cache
+               (endpoint,target,start_date,end_date,request_url,fetched_at,status_code,sha256,response_json)
+               VALUES (?,?,?,?,?,?,?,?,?)""",
+            (
+                "ember/electricity-generation/monthly", "DEU", "2015-01", "2026-09",
+                "https://example.invalid?api_key=REDACTED", "2026-08-10T00:00:00+00:00",
+                200, "test", json.dumps(cached_payload),
+            ),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            key_file = Path(directory) / "EMBER_API_KEY.txt"
+            key_file.write_text("test-only-value", encoding="utf-8")
+            client = EmberClient(self.connection, key_file=key_file)
+            with patch("electricity_atlas.ember_client.urlopen") as urlopen_mock:
+                result = client.get(
+                    "electricity-generation/monthly", "DEU", "2015-01", "2026-01"
+                )
+
+        urlopen_mock.assert_not_called()
+        self.assertEqual([row["date"] for row in result["data"]], ["2015-01"])
+
 
 class EmberImportAndAggregationTests(unittest.TestCase):
     def setUp(self):
@@ -149,10 +179,10 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         self.connection.close()
 
     def test_iso2_to_iso3_mapping_includes_all_pilot_countries_and_uk(self):
-        self.assertEqual(EMBER_ISO3, {
-            "DE": "DEU", "FR": "FRA", "ES": "ESP", "IT": "ITA", "PL": "POL",
-            "UK": "GBR", "NO": "NOR", "SE": "SWE", "DK": "DNK", "NL": "NLD",
-        })
+        self.assertEqual(len(EMBER_ISO3), 32)
+        self.assertEqual(EMBER_ISO3["UK"], "GBR")
+        self.assertNotIn("RU", EMBER_ISO3)
+        self.assertNotIn("TR", EMBER_ISO3)
         client = FixtureEmberClient()
         client.get = lambda endpoint, entity_code, start_date, end_date, extra=None, refresh=False: (
             client.calls.append((endpoint, entity_code, start_date, end_date, extra, refresh)) or {"data": []}
@@ -187,6 +217,42 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual((wind["metric"], wind["unit"]), ("generation_wind", "TWh"))
         self.assertEqual(share["unit"], "%")
+
+    def test_history_range_separates_completed_history_from_current_year(self):
+        client = FixtureEmberClient()
+        result = EmberImporter(self.connection, client=client).import_range(
+            "DE", 2015, today=date(2026, 8, 10)
+        )
+
+        self.assertEqual(result["errors"], 0)
+        self.assertEqual(len(client.calls), 8)
+        monthly_calls = [call for call in client.calls if call[0].endswith("/monthly")]
+        yearly_calls = [call for call in client.calls if call[0].endswith("/yearly")]
+        self.assertEqual(
+            {call[2:4] for call in monthly_calls},
+            {("2015-01", "2026-01"), ("2026-01", "2026-09")},
+        )
+        self.assertEqual({call[2:4] for call in yearly_calls}, {("2015", "2025")})
+        self.assertEqual(
+            {call[0] for call in yearly_calls},
+            {"electricity-generation/yearly", "carbon-intensity/yearly"},
+        )
+
+    def test_history_range_rejects_years_outside_atlas_window(self):
+        importer = EmberImporter(self.connection, client=FixtureEmberClient())
+        with self.assertRaises(ValueError):
+            importer.import_range("DE", 2014, today=date(2026, 8, 10))
+        with self.assertRaises(ValueError):
+            importer.import_range("DE", 2015, 2027, today=date(2026, 8, 10))
+
+    def test_empty_ember_country_period_is_coverage_not_import_error(self):
+        client = FixtureEmberClient()
+        client.get = lambda *args, **kwargs: {"data": []}
+        result = EmberImporter(self.connection, client=client).import_country("AL", 2025, [1])
+        self.assertEqual(result["errors"], 0)
+        self.assertEqual(result["rows"], 0)
+        aggregate = aggregate_country(self.connection, "AL", 2025, 1, source="ember")
+        self.assertEqual(aggregate["data_status"], "missing")
 
     def test_invalid_response_preserves_existing_period_atomically(self):
         self.connection.execute(
@@ -223,36 +289,36 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         self.assertEqual(february, 0)
 
     def test_sources_are_strictly_separated(self):
-        timestamp = "2025-01-01T00:00:00+01:00"
         self.connection.execute(
-            """INSERT INTO observation
-               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
-                source_resolution,interval_minutes,metric,value,unit,quality_status)
-               VALUES ('DE','Deutschland','',?,?,?,?,?,60,'generation_total',100,'MW','observed')""",
-            (timestamp, timestamp, SOURCE_NAME, "public_power", "PT1H"),
+            """INSERT INTO period_observation
+               (country_code,period_start,period_end,granularity,source,source_endpoint,
+                source_series,metric,value,unit,quality_status)
+               VALUES ('DE','2025-01-01','2025-01-31','monthly',?,'public_power','',
+                       'generation_total',0.0001,'TWh','observed')""",
+            (SOURCE_NAME,),
         )
         self.connection.execute(
             """INSERT INTO period_observation
                (country_code,period_start,period_end,granularity,source,source_endpoint,
                 source_series,metric,value,unit,quality_status)
-               VALUES ('DE','2025-01-01','2025-12-31','yearly','ember',
-                       'electricity-generation/yearly','Solar','generation_solar',50,'TWh','observed')"""
+               VALUES ('DE','2025-01-01','2025-01-31','monthly','ember',
+                       'electricity-generation/monthly','Solar','generation_solar',50,'TWh','observed')"""
         )
-        energy_charts = aggregate_country(self.connection, "DE", 2025)
-        ember = aggregate_country(self.connection, "DE", 2025, source="ember")
+        energy_charts = aggregate_country(self.connection, "DE", 2025, 1)
+        ember = aggregate_country(self.connection, "DE", 2025, 1, source="ember")
         self.assertAlmostEqual(energy_charts["generation_twh"], 0.0001)
         self.assertEqual(ember["generation_twh"], 50.0)
         self.assertIsNone(ember["price_avg_eur_mwh"])
         self.assertIsNone(ember["import_twh"])
 
     def test_combined_view_prefers_energy_charts_generation_and_fills_ember_gaps(self):
-        timestamp = "2025-01-01T00:00:00+01:00"
         self.connection.execute(
-            """INSERT INTO observation
-               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
-                source_resolution,interval_minutes,metric,value,unit,quality_status)
-               VALUES ('DE','Deutschland','',?,?,?,?,?,60,'generation_total',100,'MW','observed')""",
-            (timestamp, timestamp, SOURCE_NAME, "public_power", "PT1H"),
+            """INSERT INTO period_observation
+               (country_code,period_start,period_end,granularity,source,source_endpoint,
+                source_series,metric,value,unit,quality_status)
+               VALUES ('DE','2025-01-01','2025-01-31','monthly',?,'public_power','',
+                       'generation_total',0.0001,'TWh','observed')""",
+            (SOURCE_NAME,),
         )
         self.connection.executemany(
             """INSERT INTO period_observation
@@ -260,16 +326,16 @@ class EmberImportAndAggregationTests(unittest.TestCase):
                 source_series,metric,value,unit,quality_status)
                VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             [
-                ("DE", "2025-01-01", "2025-12-31", "yearly", "ember",
-                 "electricity-generation/yearly", "Solar", "generation_solar", 50, "TWh", "observed"),
-                ("DE", "2025-01-01", "2025-12-31", "yearly", "ember",
-                 "electricity-demand/yearly", "", "consumption", 500, "TWh", "observed"),
-                ("DE", "2025-01-01", "2025-12-31", "yearly", "ember",
-                 "carbon-intensity/yearly", "", "carbon_intensity", 200, "gCO2/kWh", "observed"),
+                ("DE", "2025-01-01", "2025-01-31", "monthly", "ember",
+                 "electricity-generation/monthly", "Solar", "generation_solar", 50, "TWh", "observed"),
+                ("DE", "2025-01-01", "2025-01-31", "monthly", "ember",
+                 "electricity-demand/monthly", "", "consumption", 500, "TWh", "observed"),
+                ("DE", "2025-01-01", "2025-01-31", "monthly", "ember",
+                 "carbon-intensity/monthly", "", "carbon_intensity", 200, "gCO2/kWh", "observed"),
             ],
         )
 
-        combined = aggregate_country(self.connection, "DE", 2025, source="combined")
+        combined = aggregate_country(self.connection, "DE", 2025, 1, source="combined")
 
         self.assertAlmostEqual(combined["generation_twh"], 0.0001)
         self.assertEqual(combined["renewable_twh"], 0.0)
@@ -281,18 +347,17 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         self.assertEqual(combined["value_sources"]["consumption_twh"], "Ember, CC BY 4.0")
 
     def test_combined_view_uses_ember_generation_without_losing_energy_charts_trade(self):
-        timestamp = "2025-01-01T00:00:00+01:00"
         rows = []
         for metric, value in (("import_total", 200), ("export_total", 50)):
             rows.append((
-                "UK", "Vereinigtes Königreich", "", timestamp, timestamp, SOURCE_NAME,
-                "cbpf", "PT1H", 60, metric, value, "MW", "observed",
+                "UK", "2025-01-01", "2025-01-31", "monthly", SOURCE_NAME,
+                "cbpf", "", metric, value / 1_000_000, "TWh", "observed",
             ))
         self.connection.executemany(
-            """INSERT INTO observation
-               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
-                source_resolution,interval_minutes,metric,value,unit,quality_status)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO period_observation
+               (country_code,period_start,period_end,granularity,source,source_endpoint,
+                source_series,metric,value,unit,quality_status)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             rows,
         )
         self.connection.executemany(
@@ -301,16 +366,16 @@ class EmberImportAndAggregationTests(unittest.TestCase):
                 source_series,metric,value,unit,quality_status)
                VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             [
-                ("UK", "2025-01-01", "2025-12-31", "yearly", "ember",
-                 "electricity-generation/yearly", "Solar", "generation_solar", 50, "TWh", "observed"),
-                ("UK", "2025-01-01", "2025-12-31", "yearly", "ember",
-                 "electricity-demand/yearly", "", "consumption", 60, "TWh", "observed"),
-                ("UK", "2025-01-01", "2025-12-31", "yearly", "ember",
-                 "carbon-intensity/yearly", "", "carbon_intensity", 150, "gCO2/kWh", "observed"),
+                ("UK", "2025-01-01", "2025-01-31", "monthly", "ember",
+                 "electricity-generation/monthly", "Solar", "generation_solar", 50, "TWh", "observed"),
+                ("UK", "2025-01-01", "2025-01-31", "monthly", "ember",
+                 "electricity-demand/monthly", "", "consumption", 60, "TWh", "observed"),
+                ("UK", "2025-01-01", "2025-01-31", "monthly", "ember",
+                 "carbon-intensity/monthly", "", "carbon_intensity", 150, "gCO2/kWh", "observed"),
             ],
         )
 
-        combined = aggregate_country(self.connection, "UK", 2025, source="combined")
+        combined = aggregate_country(self.connection, "UK", 2025, 1, source="combined")
 
         self.assertEqual(combined["generation_twh"], 50.0)
         self.assertEqual(combined["generation_source"], "ember")
@@ -356,8 +421,53 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         self.assertEqual(result["consumption_twh"], 78.0)
         self.assertEqual(result["quality_issues"][0]["issue_type"], "yearly_demand_derived_from_monthly")
 
+    def test_current_year_is_aggregated_ytd_from_available_months(self):
+        year = date.today().year
+        rows = []
+        for month, generation, demand, carbon in ((1, 10.0, 20.0, 100.0), (2, 30.0, 40.0, 200.0)):
+            last_day = calendar.monthrange(year, month)[1]
+            start = f"{year}-{month:02d}-01"
+            end = f"{year}-{month:02d}-{last_day:02d}"
+            rows.extend(
+                [
+                    ("DE", start, end, "monthly", "ember", "electricity-generation/monthly", "Solar", "generation_solar", generation, "TWh", "observed"),
+                    ("DE", start, end, "monthly", "ember", "electricity-demand/monthly", "", "consumption", demand, "TWh", "observed"),
+                    ("DE", start, end, "monthly", "ember", "carbon-intensity/monthly", "", "carbon_intensity", carbon, "gCO2/kWh", "observed"),
+                ]
+            )
+        self.connection.executemany(
+            """INSERT INTO period_observation
+               (country_code,period_start,period_end,granularity,source,source_endpoint,
+                source_series,metric,value,unit,quality_status)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            rows,
+        )
+
+        result = aggregate_country(self.connection, "DE", year, source="ember")
+
+        self.assertEqual(result["period_status"], "ytd")
+        self.assertEqual(result["generation_twh"], 40.0)
+        self.assertEqual(result["consumption_twh"], 60.0)
+        self.assertEqual(result["carbon_intensity_gco2eq_kwh"], 175.0)
+        self.assertEqual(result["data_status"], "partial")
+        self.assertEqual(result["quality_issues"][0]["issue_type"], "current_year_derived_from_monthly")
+
 
 class EmberCliTests(unittest.TestCase):
+    def test_history_range_cli_dispatches_to_ember_range_import(self):
+        result = {"errors": 0, "rows": 1, "successes": [], "failures": []}
+        with patch("electricity_atlas.cli.load_ember_api_key"), patch(
+            "electricity_atlas.cli.database"
+        ), patch(
+            "electricity_atlas.cli.EmberImporter.import_range", return_value=result
+        ) as import_range, patch("sys.stdout", new=io.StringIO()):
+            exit_code = main([
+                "import", "--source", "ember", "--from-year", "2015", "--countries", "DE"
+            ])
+
+        self.assertEqual(exit_code, 0)
+        import_range.assert_called_once_with("DE", 2015, None)
+
     def test_missing_key_aborts_before_database_creation(self):
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "must-not-exist.sqlite3"

@@ -14,18 +14,47 @@ class Country:
     notes: str = ""
 
 
-COUNTRIES: dict[str, Country] = {
+ATLAS_COUNTRIES: dict[str, Country] = {
+    "AL": Country("AL", "Albanien", "Europe/Tirane", (), "ember_only"),
+    "AT": Country("AT", "Österreich", "Europe/Vienna", (), "ember_only"),
+    "BE": Country("BE", "Belgien", "Europe/Brussels", (), "ember_only"),
+    "BG": Country("BG", "Bulgarien", "Europe/Sofia", (), "ember_only"),
+    "CH": Country("CH", "Schweiz", "Europe/Zurich", (), "ember_only"),
+    "CZ": Country("CZ", "Tschechien", "Europe/Prague", (), "ember_only"),
     "DE": Country("DE", "Deutschland", "Europe/Berlin", ("DE-LU",), "single_zone", "DE-LU umfasst auch Luxemburg."),
-    "FR": Country("FR", "Frankreich", "Europe/Paris", ("FR",), "single_zone"),
-    "ES": Country("ES", "Spanien", "Europe/Madrid", ("ES",), "single_zone"),
-    "IT": Country("IT", "Italien", "Europe/Rome", ("IT-North", "IT-Centre-North", "IT-Centre-South", "IT-South", "IT-Calabria", "IT-Sicily", "IT-Sardinia"), "unavailable_multi_zone", "Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte."),
-    "PL": Country("PL", "Polen", "Europe/Warsaw", ("PL",), "single_zone"),
-    "UK": Country("UK", "Vereinigtes Königreich", "Europe/London", (), "unavailable", "Keine UK-Gebotszone im Energy-Charts-v2-Preisendpoint."),
-    "NO": Country("NO", "Norwegen", "Europe/Oslo", ("NO1", "NO2", "NO3", "NO4", "NO5"), "unavailable_multi_zone", "Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte."),
-    "SE": Country("SE", "Schweden", "Europe/Stockholm", ("SE1", "SE2", "SE3", "SE4"), "unavailable_multi_zone", "Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte."),
     "DK": Country("DK", "Dänemark", "Europe/Copenhagen", ("DK1", "DK2"), "unavailable_multi_zone", "Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte."),
+    "ES": Country("ES", "Spanien", "Europe/Madrid", ("ES",), "single_zone"),
+    "EE": Country("EE", "Estland", "Europe/Tallinn", (), "ember_only"),
+    "FI": Country("FI", "Finnland", "Europe/Helsinki", (), "ember_only"),
+    "FR": Country("FR", "Frankreich", "Europe/Paris", ("FR",), "single_zone"),
+    "UK": Country("UK", "Vereinigtes Königreich", "Europe/London", (), "unavailable", "Keine UK-Gebotszone im Energy-Charts-v2-Preisendpoint."),
+    "GR": Country("GR", "Griechenland", "Europe/Athens", (), "ember_only"),
+    "HR": Country("HR", "Kroatien", "Europe/Zagreb", (), "ember_only"),
+    "HU": Country("HU", "Ungarn", "Europe/Budapest", (), "ember_only"),
+    "IE": Country("IE", "Irland", "Europe/Dublin", (), "ember_only"),
+    "IT": Country("IT", "Italien", "Europe/Rome", ("IT-North", "IT-Centre-North", "IT-Centre-South", "IT-South", "IT-Calabria", "IT-Sicily", "IT-Sardinia"), "unavailable_multi_zone", "Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte."),
+    "LT": Country("LT", "Litauen", "Europe/Vilnius", (), "ember_only"),
+    "LU": Country("LU", "Luxemburg", "Europe/Luxembourg", (), "ember_only"),
+    "LV": Country("LV", "Lettland", "Europe/Riga", (), "ember_only"),
+    "ME": Country("ME", "Montenegro", "Europe/Podgorica", (), "ember_only"),
+    "MK": Country("MK", "Nordmazedonien", "Europe/Skopje", (), "ember_only"),
     "NL": Country("NL", "Niederlande", "Europe/Amsterdam", ("NL",), "single_zone"),
+    "NO": Country("NO", "Norwegen", "Europe/Oslo", ("NO1", "NO2", "NO3", "NO4", "NO5"), "unavailable_multi_zone", "Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte."),
+    "PL": Country("PL", "Polen", "Europe/Warsaw", ("PL",), "single_zone"),
+    "PT": Country("PT", "Portugal", "Europe/Lisbon", (), "ember_only"),
+    "RO": Country("RO", "Rumänien", "Europe/Bucharest", (), "ember_only"),
+    "RS": Country("RS", "Serbien", "Europe/Belgrade", (), "ember_only"),
+    "SK": Country("SK", "Slowakei", "Europe/Bratislava", (), "ember_only"),
+    "SI": Country("SI", "Slowenien", "Europe/Ljubljana", (), "ember_only"),
+    "SE": Country("SE", "Schweden", "Europe/Stockholm", ("SE1", "SE2", "SE3", "SE4"), "unavailable_multi_zone", "Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte."),
 }
+
+# Capability catalogs are deliberately separate: adding Atlas countries must
+# never expand the Energy-Charts import target list implicitly.
+EMBER_COUNTRIES = tuple(ATLAS_COUNTRIES)
+ENERGY_CHARTS_COUNTRIES = ("DE", "FR", "ES", "IT", "PL", "UK", "NO", "SE", "DK", "NL")
+COUNTRIES = ATLAS_COUNTRIES
+ATLAS_MIN_YEAR = 2015
 
 RENEWABLE_METRICS = frozenset(
     {
@@ -75,15 +104,44 @@ INSTALLED_CAPACITY_MAX_AGE_YEARS = 2
 EMBER_API_BASE_URL = "https://api.ember-energy.org/v1"
 EMBER_SOURCE_NAME = "ember"
 EMBER_SOURCE_LABEL = "Ember, CC BY 4.0"
+EMBER_PRICE_SOURCE_LABEL = "Ember Wholesale Electricity Price Data, CC BY 4.0"
+EMBER_PRICE_ENDPOINT = "wholesale-electricity-price/monthly-csv"
+EMBER_PRICE_CSV_URL = (
+    "https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/price/outputs/"
+    "european_wholesale_electricity_price_data_monthly.csv"
+)
 EMBER_ISO3: dict[str, str] = {
+    "AL": "ALB",
+    "AT": "AUT",
+    "BE": "BEL",
+    "BG": "BGR",
+    "CH": "CHE",
+    "CZ": "CZE",
     "DE": "DEU",
-    "FR": "FRA",
-    "ES": "ESP",
-    "IT": "ITA",
-    "PL": "POL",
-    "UK": "GBR",
-    "NO": "NOR",
-    "SE": "SWE",
     "DK": "DNK",
+    "ES": "ESP",
+    "EE": "EST",
+    "FI": "FIN",
+    "FR": "FRA",
+    "UK": "GBR",
+    "GR": "GRC",
+    "HR": "HRV",
+    "HU": "HUN",
+    "IE": "IRL",
+    "IT": "ITA",
+    "LT": "LTU",
+    "LU": "LUX",
+    "LV": "LVA",
+    "ME": "MNE",
+    "MK": "MKD",
     "NL": "NLD",
+    "NO": "NOR",
+    "PL": "POL",
+    "PT": "PRT",
+    "RO": "ROU",
+    "RS": "SRB",
+    "SK": "SVK",
+    "SI": "SVN",
+    "SE": "SWE",
 }
+EMBER_ISO3_TO_ATLAS = {iso3: code for code, iso3 in EMBER_ISO3.items()}

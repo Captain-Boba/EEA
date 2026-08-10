@@ -85,6 +85,31 @@ class EnergyChartsClient:
                     retry_after = int(exc.headers.get("Retry-After", "0") or 0)
                     time.sleep(max(retry_after, 2 ** attempt))
                     continue
+                if exc.code == 404:
+                    payload = {"data": [], "coverage_status": "not_available"}
+                    raw = json.dumps(payload, separators=(",", ":"))
+                    self.connection.execute(
+                        """INSERT INTO api_cache
+                           (endpoint,target,start_date,end_date,request_url,fetched_at,status_code,sha256,response_json)
+                           VALUES (?,?,?,?,?,?,?,?,?)
+                           ON CONFLICT(endpoint,target,start_date,end_date) DO UPDATE SET
+                             request_url=excluded.request_url,fetched_at=excluded.fetched_at,
+                             status_code=excluded.status_code,sha256=excluded.sha256,
+                             response_json=excluded.response_json""",
+                        (
+                            endpoint,
+                            target,
+                            start_date,
+                            end_date,
+                            url,
+                            datetime.now(UTC).isoformat(),
+                            404,
+                            hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+                            raw,
+                        ),
+                    )
+                    self.connection.commit()
+                    return payload
                 detail = exc.read().decode("utf-8", errors="replace")
                 raise ApiError(f"Energy-Charts {endpoint} returned HTTP {exc.code}: {detail}") from exc
             except URLError as exc:

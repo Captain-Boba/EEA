@@ -1,14 +1,15 @@
 # Ember 2025 source comparison
 
-Status: local probe import on 2026-08-10 for all ten pilot countries.
+Status: local probe import on 2026-08-10, expanded from the original ten-country comparison to all 32 Atlas countries.
 
 ## Probe result
 
-- All ten countries have 12 Ember months with generation, demand and carbon intensity.
-- All ten annual Ember summaries are complete.
-- The Ember yearly demand endpoint returned HTTP 500 for every tested country. The import reports these failures and exits non-zero. Annual demand is therefore transparently summed from exactly 12 Ember monthly values.
+- 31 countries have 12 Ember months with generation, demand and carbon intensity. Albania has no 2025 monthly records, but the API currently provides yearly generation and carbon intensity; missing monthly values remain empty.
+- 28 combined annual summaries are complete. Albania is partial because 2025 consumption and price are unavailable; Switzerland, Montenegro and North Macedonia are partial because their historical price years are incomplete.
+- The Ember yearly demand endpoint returned HTTP 500 for every tested country. The import reports these failures and exits non-zero. Annual demand is therefore transparently summed only where exactly 12 Ember monthly values exist.
 - The Ember cache contains no occurrence of the local API key. All stored Ember request URLs contain `api_key=REDACTED`.
-- In the source-specific Ember API view, price, gross imports, gross exports and net trade remain unavailable.
+- Prices are now supplied independently by Ember's monthly European Wholesale Electricity Price CSV. Gross imports, gross exports and net trade remain unavailable in the source-specific Ember view.
+- The 2025 national annual price is complete for 28 countries. Albania has no 2025 price rows; Switzerland and Montenegro have January through September only; North Macedonia has January, February and June only. These four annual prices remain empty rather than presenting incomplete historical averages.
 
 ## Annual values
 
@@ -32,4 +33,4 @@ Values are TWh except renewable share (percentage points) and carbon intensity (
 - ES: Ember generation is 28.89 TWh higher, renewables 9.69 TWh higher, solar 10.40 TWh higher and fossil generation 19.32 TWh higher. The renewable share differs by -2.49 percentage points.
 - UK: Energy-Charts has no usable 2025 annual generation or demand summary in the current local dataset. Ember supplies generation, demand, mix and carbon intensity for all 12 months and the annual view.
 
-The differences are not treated as errors. Energy-Charts represents operational public-net-generation data, while Ember publishes curated nationally comparable period totals with its own source coverage and technology classifications. Storage and source-specific API views remain separate. The combined UI prefers a coherent Energy-Charts generation/mix group, falls back to a coherent Ember generation/mix group when needed, fills missing consumption and carbon intensity from Ember, and never sums values from the two sources.
+The differences are not treated as errors. Energy-Charts represents operational public-net-generation data, while Ember publishes curated nationally comparable period totals with its own source coverage and technology classifications. Storage and source-specific API views remain separate. The combined UI prefers a coherent Energy-Charts generation/mix group, falls back to a coherent Ember generation/mix group when needed, fills missing consumption and carbon intensity from Ember, prefers Ember's national wholesale price, and never sums values from the two sources.

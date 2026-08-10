@@ -5,7 +5,7 @@
 - dependency-freier Python-Datenkern mit SQLite
 - Rohdaten-Cache samt Prüfsumme, Request- und Lizenzmetadaten
 - quellenunabhängiges Long-Format für kanonische Messgrößen
-- normalisierte Erzeugung, Last, Preise, physische Im-/Exporte, bilaterale Flüsse und installierte Leistung
+- monatlich normalisierte Erzeugung, Last, Preise, physische Im-/Exporte und installierte Leistung
 - Monats- und Jahresaggregation mit TWh, Mix, zentralem EE-Anteil, zeitgewichteten Preisstatistiken und Handelsbilanz
 - automatische Coverage-, Summary- und Validierungsberichte
 - schlichtes lokales UI mit sortierbarer Gesamttabelle und Vergleich von 2–4 Ländern

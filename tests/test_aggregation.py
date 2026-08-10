@@ -38,13 +38,13 @@ class DatabaseAggregationTests(unittest.TestCase):
     def tearDown(self):
         self.connection.close()
 
-    def add_observation(self, metric, value, interval=60, endpoint="public_power", zone="", timestamp="2025-01-01T00:00:00+01:00", unit="MW"):
+    def add_period(self, metric, value, endpoint="public_power", zone="", unit="TWh"):
         self.connection.execute(
-            """INSERT INTO observation
-               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
-                source_resolution,interval_minutes,metric,value,unit,quality_status)
-               VALUES ('DE','Deutschland',?,?,?,?,?,'PT1H',?,?,?,?, 'observed')""",
-            (zone, timestamp, timestamp, SOURCE_NAME, endpoint, interval, metric, value, unit),
+            """INSERT INTO period_observation
+               (country_code,period_start,period_end,granularity,source,source_endpoint,
+                source_series,metric,value,unit,quality_status)
+               VALUES ('DE','2025-01-01','2025-01-31','monthly',?,?,?,?,?,?,'observed')""",
+            (SOURCE_NAME, endpoint, zone, metric, value, unit),
         )
 
     def add_capacity(self, category, value, timestamp="2025-01-01T00:00:00+01:00", code="DE"):
@@ -58,14 +58,23 @@ class DatabaseAggregationTests(unittest.TestCase):
 
     def test_time_aggregation_and_trade(self):
         for metric, value in {
-            "generation_total": 1000, "generation_solar": 200, "generation_wind_onshore": 300,
+            "generation_total": 0.001, "generation_solar": 0.0002, "generation_wind_onshore": 0.0003,
             "generation_wind_offshore": 0, "generation_hydro": 0, "generation_biomass": 0,
-            "generation_nuclear": 100, "generation_gas": 400, "generation_coal": 0,
+            "generation_nuclear": 0.0001, "generation_gas": 0.0004, "generation_coal": 0,
             "generation_lignite": 0, "generation_oil": 0, "generation_other": 0,
-            "consumption": 900, "import_total": 50, "export_total": 150, "net_import": -100,
+            "consumption": 0.0009, "import_total": 0.00005, "export_total": 0.00015, "net_import": -0.0001,
         }.items():
-            self.add_observation(metric, value, endpoint="cbpf" if metric in {"import_total", "export_total", "net_import"} else "public_power")
-        self.add_observation("day_ahead_price", -10, endpoint="price", zone="DE-LU", unit="EUR/MWh")
+            self.add_period(metric, value, endpoint="cbpf" if metric in {"import_total", "export_total", "net_import"} else "public_power")
+        for metric, value, unit in (
+            ("day_ahead_price", -10, "EUR/MWh"),
+            ("day_ahead_price_median", -10, "EUR/MWh"),
+            ("day_ahead_price_min", -10, "EUR/MWh"),
+            ("day_ahead_price_max", -10, "EUR/MWh"),
+            ("negative_price_intervals", 1, "count"),
+            ("negative_price_hours", 1, "hours"),
+            ("price_weight_hours", 1, "hours"),
+        ):
+            self.add_period(metric, value, endpoint="price", zone="DE-LU", unit=unit)
         result = aggregate_country(self.connection, "DE", 2025, 1)
         self.assertAlmostEqual(result["generation_twh"], 0.001)
         self.assertAlmostEqual(result["renewable_twh"], 0.0005)
@@ -91,7 +100,7 @@ class DatabaseAggregationTests(unittest.TestCase):
         self.assertEqual(issue["details"], "1")
 
     def test_incomplete_source_does_not_emit_precise_generation_total(self):
-        self.add_observation("generation_total", 1000)
+        self.add_period("generation_total", 0.001)
         self.connection.execute(
             """INSERT INTO quality_issue
                (country_code,endpoint,period_start,period_end,issue_type,severity,details)

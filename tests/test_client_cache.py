@@ -1,6 +1,8 @@
 import json
 import sqlite3
 import unittest
+from io import BytesIO
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 from electricity_atlas.client import EnergyChartsClient
@@ -51,6 +53,26 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(len(result["data"]), 1)
         self.assertEqual(result["data"][0]["values"]["x"], 1)
         mocked.assert_not_called()
+
+    def test_no_content_is_cached_as_regular_coverage_gap(self):
+        client = EnergyChartsClient(self.connection)
+        error = HTTPError(
+            "https://example.invalid", 404, "Not Found", {}, BytesIO(b"no content available")
+        )
+        with patch("electricity_atlas.client.urlopen", side_effect=error) as mocked:
+            first = client.get("price", "bzn", "DE-LU", "2015-01-01", "2015-12-31")
+        error.close()
+        with patch("electricity_atlas.client.urlopen") as second_mock:
+            second = client.get("price", "bzn", "DE-LU", "2015-01-01", "2015-12-31")
+
+        self.assertEqual(first["coverage_status"], "not_available")
+        self.assertEqual(second, first)
+        self.assertEqual(mocked.call_count, 1)
+        second_mock.assert_not_called()
+        cached = self.connection.execute(
+            "SELECT status_code FROM api_cache WHERE endpoint='price' AND target='DE-LU'"
+        ).fetchone()
+        self.assertEqual(cached["status_code"], 404)
 
 
 if __name__ == "__main__":

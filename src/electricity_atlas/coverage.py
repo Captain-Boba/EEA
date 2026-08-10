@@ -10,7 +10,9 @@ from .config import COUNTRIES, SOURCE_NAME
 
 def _has_metric(connection: sqlite3.Connection, code: str, metric: str) -> bool:
     return connection.execute(
-        "SELECT 1 FROM observation WHERE country_code=? AND metric=? LIMIT 1", (code, metric)
+        """SELECT 1 FROM period_observation
+           WHERE country_code=? AND source=? AND metric=? LIMIT 1""",
+        (code, SOURCE_NAME, metric),
     ).fetchone() is not None
 
 
@@ -18,13 +20,11 @@ def coverage_rows(connection: sqlite3.Connection, year: int = 2025) -> list[dict
     rows: list[dict[str, Any]] = []
     for code, country in COUNTRIES.items():
         first = connection.execute(
-            "SELECT MIN(substr(timestamp,1,4)) AS year FROM observation WHERE country_code=?", (code,)
+            """SELECT MIN(substr(period_start,1,4)) AS year FROM period_observation
+               WHERE country_code=? AND source=?""",
+            (code, SOURCE_NAME),
         ).fetchone()["year"]
-        resolutions = connection.execute(
-            """SELECT GROUP_CONCAT(DISTINCT source_resolution) AS resolutions
-               FROM observation WHERE country_code=?""",
-            (code,),
-        ).fetchone()["resolutions"]
+        resolutions = "monthly" if first else None
         issue_rows = connection.execute(
             """SELECT issue_type, details
                FROM quality_issue WHERE country_code=? ORDER BY issue_type, details""",

@@ -23,6 +23,20 @@ CREATE TABLE IF NOT EXISTS api_cache (
     UNIQUE(endpoint, target, start_date, end_date)
 );
 
+CREATE TABLE IF NOT EXISTS source_cache (
+    source TEXT NOT NULL,
+    endpoint TEXT NOT NULL,
+    request_url TEXT NOT NULL,
+    fetched_at TEXT NOT NULL,
+    status_code INTEGER NOT NULL,
+    content_type TEXT,
+    etag TEXT,
+    last_modified TEXT,
+    sha256 TEXT NOT NULL,
+    payload_text TEXT NOT NULL,
+    PRIMARY KEY(source, endpoint)
+) WITHOUT ROWID;
+
 CREATE TABLE IF NOT EXISTS import_period (
     endpoint TEXT NOT NULL,
     target TEXT NOT NULL,

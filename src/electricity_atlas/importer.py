@@ -3,12 +3,13 @@ from __future__ import annotations
 import calendar
 import json
 import sqlite3
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Any, Callable, Iterable
 
 from .client import EnergyChartsClient
-from .config import COUNTRIES, EXPECTED_PUBLIC_POWER_SERIES, SOURCE_NAME, Country
+from .config import ATLAS_MIN_YEAR, COUNTRIES, ENERGY_CHARTS_COUNTRIES, EXPECTED_PUBLIC_POWER_SERIES, SOURCE_NAME, Country
 from .normalization import iso_to_utc, normalize_public_power_record, power_to_mw, split_physical_flows
 
 
@@ -16,6 +17,30 @@ from .normalization import iso_to_utc, normalize_public_power_record, power_to_m
 class Period:
     start: str
     end: str
+
+
+def _month_bounds(token: str) -> tuple[str, str]:
+    year, month = (int(part) for part in token.split("-"))
+    return f"{token}-01", f"{token}-{calendar.monthrange(year, month)[1]:02d}"
+
+
+def _period_quality(token: str) -> str:
+    return "provisional_current_month" if token == date.today().strftime("%Y-%m") else "observed"
+
+
+def _weighted_median(pairs: list[tuple[float, int]]) -> float | None:
+    usable = sorted((float(value), int(weight)) for value, weight in pairs if weight > 0)
+    if not usable:
+        return None
+    midpoint = sum(weight for _, weight in usable) / 2
+    cumulative = 0
+    for index, (value, weight) in enumerate(usable):
+        cumulative += weight
+        if cumulative == midpoint and index + 1 < len(usable):
+            return (value + usable[index + 1][0]) / 2
+        if cumulative > midpoint:
+            return value
+    return usable[-1][0]
 
 
 def monthly_periods(year: int, months: Iterable[int] | None = None) -> list[Period]:
@@ -37,8 +62,8 @@ class Importer:
 
     def import_country(self, country_code: str, year: int, months: Iterable[int] | None = None) -> dict[str, Any]:
         code = country_code.upper()
-        if code not in COUNTRIES:
-            raise ValueError(f"Unsupported pilot country: {country_code}")
+        if code not in ENERGY_CHARTS_COUNTRIES:
+            raise ValueError(f"Energy-Charts does not support Atlas country: {country_code}")
         country = COUNTRIES[code]
         summary: dict[str, Any] = {
             "public_power": 0,
@@ -105,6 +130,71 @@ class Importer:
             )
         return summary
 
+    def import_range(
+        self,
+        country_code: str,
+        start_year: int,
+        end_year: int | None = None,
+        today: date | None = None,
+    ) -> dict[str, Any]:
+        current = today or date.today()
+        last_year = current.year if end_year is None else end_year
+        if start_year < ATLAS_MIN_YEAR:
+            raise ValueError(f"Energy-Charts history starts at the Atlas limit {ATLAS_MIN_YEAR}")
+        if last_year < start_year:
+            raise ValueError("History end year must not precede the start year")
+        if last_year > current.year:
+            raise ValueError(f"History end year must not exceed {current.year}")
+
+        summary: dict[str, Any] = {
+            "source": SOURCE_NAME,
+            "years": [],
+            "errors": 0,
+            "successes": [],
+            "failures": [],
+            "skipped": [],
+        }
+        code = country_code.upper()
+        if code not in ENERGY_CHARTS_COUNTRIES:
+            raise ValueError(f"Energy-Charts does not support Atlas country: {country_code}")
+        country = COUNTRIES[code]
+        for year in range(start_year, last_year + 1):
+            if year < current.year and not self.refresh and self._year_is_complete(country, year):
+                summary["skipped"].append({"year": year, "reason": "monthly_periods_already_complete"})
+                continue
+            months = range(1, current.month + 1) if year == current.year else None
+            result = self.import_country(country_code, year, months)
+            summary["years"].append(year)
+            summary["errors"] += result["errors"]
+            summary["successes"].extend(
+                {**item, "year": year} for item in result["successes"]
+            )
+            summary["failures"].extend(
+                {**item, "year": year} for item in result["failures"]
+            )
+        return summary
+
+    def _year_is_complete(self, country: Country, year: int) -> bool:
+        required = [("public_power", country.code.lower()), ("cbpf", country.code.lower())]
+        if country.price_strategy == "single_zone":
+            required.append(("price", country.price_zones[0]))
+        start = f"{year:04d}-01-01"
+        end = f"{year:04d}-12-31"
+        for endpoint, target in required:
+            imported = self.connection.execute(
+                """SELECT 1 FROM import_period
+                   WHERE endpoint=? AND target=? AND start_date=? AND end_date=?""",
+                (endpoint, target, start, end),
+            ).fetchone()
+            unavailable = self.connection.execute(
+                """SELECT 1 FROM api_cache
+                   WHERE endpoint=? AND target=? AND start_date=? AND end_date=? AND status_code=404""",
+                (endpoint, target, start, end),
+            ).fetchone()
+            if not imported and not unavailable:
+                return False
+        return True
+
     def _record_success(
         self,
         summary: dict[str, Any],
@@ -162,24 +252,17 @@ class Importer:
                 "SELECT COUNT(*) FROM installed_capacity WHERE country_code=?",
                 (country.code,),
             ).fetchone()[0]
-        params: list[Any] = [country.code, endpoint, period.start, period.end]
+        params: list[Any] = [country.code, SOURCE_NAME, endpoint, period.start, period.end]
         zone_clause = ""
         if endpoint == "price":
-            zone_clause = " AND bidding_zone=?"
+            zone_clause = " AND source_series=?"
             params.append(zone)
-        count = self.connection.execute(
-            f"""SELECT COUNT(*) FROM observation
-                WHERE country_code=? AND source_endpoint=?
-                  AND substr(timestamp,1,10)>=? AND substr(timestamp,1,10)<=?{zone_clause}""",
+        return self.connection.execute(
+            f"""SELECT COUNT(*) FROM period_observation
+                WHERE country_code=? AND source=? AND source_endpoint=?
+                  AND granularity='monthly' AND period_start>=? AND period_start<=?{zone_clause}""",
             params,
         ).fetchone()[0]
-        if endpoint == "cbpf":
-            count += self.connection.execute(
-                """SELECT COUNT(*) FROM bilateral_flow
-                   WHERE country_code=? AND substr(timestamp,1,10)>=? AND substr(timestamp,1,10)<=?""",
-                (country.code, period.start, period.end),
-            ).fetchone()[0]
-        return count
 
     def _atomic_replace(self, operation: Callable[[], int]) -> int:
         self.connection.execute("SAVEPOINT import_unit")
@@ -193,23 +276,17 @@ class Importer:
             raise
 
     def _clear_period_scope(self, endpoint: str, country: Country, period: Period, zone: str = "") -> None:
-        params: list[Any] = [country.code, endpoint, period.start, period.end]
+        params: list[Any] = [country.code, SOURCE_NAME, endpoint, period.start, period.end]
         zone_clause = ""
         if endpoint == "price":
-            zone_clause = " AND bidding_zone=?"
+            zone_clause = " AND source_series=?"
             params.append(zone)
         self.connection.execute(
-            f"""DELETE FROM observation
-                WHERE country_code=? AND source_endpoint=?
-                  AND substr(timestamp,1,10)>=? AND substr(timestamp,1,10)<=?{zone_clause}""",
+            f"""DELETE FROM period_observation
+                WHERE country_code=? AND source=? AND source_endpoint=?
+                  AND granularity='monthly' AND period_start>=? AND period_start<=?{zone_clause}""",
             params,
         )
-        if endpoint == "cbpf":
-            self.connection.execute(
-                """DELETE FROM bilateral_flow
-                   WHERE country_code=? AND substr(timestamp,1,10)>=? AND substr(timestamp,1,10)<=?""",
-                (country.code, period.start, period.end),
-            )
         self._replace_quality_issue_scope(country.code, endpoint, period)
 
     def _replace_quality_issue_scope(self, code: str, endpoint: str, period: Period) -> None:
@@ -292,6 +369,13 @@ class Importer:
 
     def _import_period(self, endpoint: str, country: Country, period: Period) -> int:
         payload = self._payload(endpoint, country, period)
+        if payload.get("coverage_status") == "not_available":
+            def clear_unavailable() -> int:
+                self._clear_period_scope(endpoint, country, period)
+                self._store_period(endpoint, country.code.lower(), period, payload, 0)
+                return 0
+
+            return self._atomic_replace(clear_unavailable)
         self._validate_payload(endpoint, payload)
         self._validate_payload_period(endpoint, payload, period)
 
@@ -311,9 +395,8 @@ class Importer:
 
     def _store_public_power(self, country: Country, payload: dict[str, Any]) -> int:
         interval = int(payload["interval_minutes"])
-        resolution = str(payload["resolution"])
         unit = str(payload.get("unit", "MW"))
-        rows = 0
+        totals: dict[tuple[str, str], float] = defaultdict(float)
         all_unmapped: set[str] = set()
         series_items = payload["series"] if isinstance(payload["series"], list) else [payload["series"]]
         series_ids = {str(item["id"]) for item in series_items}
@@ -342,22 +425,9 @@ class Importer:
             metrics, unmapped = normalize_public_power_record(record["values"], payload["series"])
             all_unmapped.update(unmapped)
             for metric, value in metrics.items():
-                self._upsert_observation(country, "", timestamp, "public_power", resolution, interval, metric, power_to_mw(value, unit), "MW")
-                rows += 1
-            reported_share = record["values"].get("renewable_share_of_generation")
-            if reported_share is not None:
-                self._upsert_observation(
-                    country,
-                    "",
-                    timestamp,
-                    "public_power",
-                    resolution,
-                    interval,
-                    "source_renewable_share_generation",
-                    float(reported_share),
-                    "%",
+                totals[(timestamp[:7], metric)] += (
+                    power_to_mw(value, unit) * interval / 60 / 1_000_000
                 )
-                rows += 1
         if all_unmapped:
             self._issue(
                 country.code,
@@ -367,31 +437,32 @@ class Importer:
                 "warning",
                 json.dumps(sorted(all_unmapped)),
             )
-        return rows
+        for (token, metric), value in sorted(totals.items()):
+            self._insert_period_value(country.code, token, "public_power", "", metric, value, "TWh")
+        return len(totals)
 
     def _store_flows(self, country: Country, payload: dict[str, Any]) -> int:
         interval = int(payload["interval_minutes"])
-        resolution = str(payload["resolution"])
         unit = str(payload.get("unit", "GW"))
-        rows = 0
+        totals: dict[tuple[str, str], float] = defaultdict(float)
         for record in payload.get("data", []):
             timestamp = str(record["timestamp"])
-            imports, exports, net, bilateral = split_physical_flows(record["values"], unit)
+            imports, exports, net, _ = split_physical_flows(record["values"], unit)
             for metric, value in (("import_total", imports), ("export_total", exports), ("net_import", net)):
-                self._upsert_observation(country, "", timestamp, "cbpf", resolution, interval, metric, value, "MW")
-                rows += 1
-            for counterparty, value in bilateral.items():
-                self.connection.execute(
-                    """INSERT INTO bilateral_flow
-                       (country_code,counterparty,timestamp,timestamp_utc,source,source_resolution,interval_minutes,flow_mw)
-                       VALUES (?,?,?,?,?,?,?,?)
-                       ON CONFLICT(country_code,counterparty,timestamp_utc,source) DO UPDATE SET flow_mw=excluded.flow_mw""",
-                    (country.code, counterparty, timestamp, iso_to_utc(timestamp), SOURCE_NAME, resolution, interval, value),
-                )
-        return rows
+                totals[(timestamp[:7], metric)] += value * interval / 60 / 1_000_000
+        for (token, metric), value in sorted(totals.items()):
+            self._insert_period_value(country.code, token, "cbpf", "", metric, value, "TWh")
+        return len(totals)
 
     def _import_price(self, country: Country, zone: str, period: Period) -> int:
         payload = self.client.get("price", "bzn", zone, period.start, period.end, refresh=self.refresh)
+        if payload.get("coverage_status") == "not_available":
+            def clear_unavailable() -> int:
+                self._clear_period_scope("price", country, period, zone)
+                self._store_period("price", zone, period, payload, 0)
+                return 0
+
+            return self._atomic_replace(clear_unavailable)
         self._validate_payload("price", payload)
         self._validate_payload_period("price", payload, period)
 
@@ -414,15 +485,33 @@ class Importer:
                     "warning",
                     json.dumps(unusual),
                 )
-            resolution = str(payload.get("resolution") or "mixed:" + ",".join(f"PT{x}M" for x in observed_durations))
             unit = str(payload.get("unit", "EUR/MWh"))
-            rows = 0
+            month_pairs: dict[str, list[tuple[float, int]]] = defaultdict(list)
             for record, interval in zip(records, durations):
                 value = record["values"].get("day_ahead_price")
                 if value is None:
                     continue
-                self._upsert_observation(country, zone, str(record["timestamp"]), "price", resolution, interval, "day_ahead_price", float(value), unit)
-                rows += 1
+                month_pairs[str(record["timestamp"])[:7]].append((float(value), interval))
+            rows = 0
+            for token, pairs in sorted(month_pairs.items()):
+                total_minutes = sum(weight for _, weight in pairs)
+                average = sum(value * weight for value, weight in pairs) / total_minutes
+                negative = [(value, weight) for value, weight in pairs if value < 0]
+                metrics = (
+                    ("day_ahead_price", average, unit),
+                    ("day_ahead_price_median", _weighted_median(pairs), unit),
+                    ("day_ahead_price_min", min(value for value, _ in pairs), unit),
+                    ("day_ahead_price_max", max(value for value, _ in pairs), unit),
+                    ("negative_price_intervals", float(len(negative)), "count"),
+                    ("negative_price_hours", sum(weight for _, weight in negative) / 60, "hours"),
+                    ("price_weight_hours", total_minutes / 60, "hours"),
+                )
+                for metric, value, metric_unit in metrics:
+                    if value is not None:
+                        self._insert_period_value(
+                            country.code, token, "price", zone, metric, value, metric_unit
+                        )
+                        rows += 1
             self._store_period("price", zone, period, payload, rows)
             return rows
 
@@ -471,39 +560,26 @@ class Importer:
 
         return self._atomic_replace(replace)
 
-    def _upsert_observation(
-        self,
-        country: Country,
-        zone: str,
-        timestamp: str,
-        endpoint: str,
-        resolution: str,
-        interval: int,
-        metric: str,
-        value: float,
-        unit: str,
+    def _insert_period_value(
+        self, code: str, token: str, endpoint: str, series: str, metric: str, value: float, unit: str
     ) -> None:
+        period_start, period_end = _month_bounds(token)
         self.connection.execute(
-            """INSERT INTO observation
-               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
-                source_resolution,interval_minutes,metric,value,unit,quality_status)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-               ON CONFLICT(country_code,bidding_zone,timestamp_utc,metric,source_endpoint)
-               DO UPDATE SET value=excluded.value,unit=excluded.unit,quality_status=excluded.quality_status""",
+            """INSERT INTO period_observation
+               (country_code,period_start,period_end,granularity,source,source_endpoint,
+                source_series,metric,value,unit,quality_status)
+               VALUES (?,?,?,'monthly',?,?,?,?,?,?,?)""",
             (
-                country.code,
-                country.name,
-                zone,
-                timestamp,
-                iso_to_utc(timestamp),
+                code,
+                period_start,
+                period_end,
                 SOURCE_NAME,
                 endpoint,
-                resolution,
-                interval,
+                series,
                 metric,
                 value,
                 unit,
-                "observed",
+                _period_quality(token),
             ),
         )
 

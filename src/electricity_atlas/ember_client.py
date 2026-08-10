@@ -115,6 +115,17 @@ class EmberClient:
             ).fetchone()
             if row:
                 return json.loads(row["response_json"])
+            covering = self.connection.execute(
+                """SELECT response_json FROM api_cache
+                   WHERE endpoint=? AND target=? AND start_date<=? AND end_date>=?
+                   ORDER BY start_date DESC, end_date ASC
+                   LIMIT 1""",
+                (cache_endpoint, target, start_date, end_date),
+            ).fetchone()
+            if covering:
+                return self._slice_cached_payload(
+                    json.loads(covering["response_json"]), normalized_endpoint, start_date, end_date
+                )
 
         request_params = dict(params)
         request_params["api_key"] = self._api_key
@@ -165,4 +176,27 @@ class EmberClient:
             ),
         )
         self.connection.commit()
+        return payload
+
+    @staticmethod
+    def _slice_cached_payload(
+        payload: dict[str, Any], endpoint: str, start_date: str, end_date: str
+    ) -> dict[str, Any]:
+        rows = payload.get("data")
+        if not isinstance(rows, list) or not start_date or not end_date:
+            return payload
+        if endpoint.endswith("/monthly"):
+            payload["data"] = [
+                row
+                for row in rows
+                if isinstance(row, dict)
+                and start_date <= str(row.get("date", ""))[:7] < end_date
+            ]
+        elif endpoint.endswith("/yearly"):
+            payload["data"] = [
+                row
+                for row in rows
+                if isinstance(row, dict)
+                and start_date <= str(row.get("date", ""))[:4] <= end_date
+            ]
         return payload

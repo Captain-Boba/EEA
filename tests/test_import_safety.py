@@ -1,4 +1,5 @@
 import contextlib
+import calendar
 import io
 import json
 import tempfile
@@ -87,13 +88,16 @@ class ImportSafetyTests(unittest.TestCase):
         self.tempdir.cleanup()
 
     def add_observation(self, month: int, value: float, day: int = 1):
-        timestamp = f"2025-{month:02d}-{day:02d}T00:00:00+01:00"
+        start = f"2025-{month:02d}-01"
+        end = f"2025-{month:02d}-{calendar.monthrange(2025, month)[1]:02d}"
         self.connection.execute(
-            """INSERT INTO observation
-               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
-                source_resolution,interval_minutes,metric,value,unit,quality_status)
-               VALUES ('DE','Deutschland','',?,?,?,?, 'PT1H',60,'generation_total',?,'MW','observed')""",
-            (timestamp, timestamp, SOURCE_NAME, "public_power", value),
+            """INSERT INTO period_observation
+               (country_code,period_start,period_end,granularity,source,source_endpoint,
+                source_series,metric,value,unit,quality_status)
+               VALUES ('DE',?,?,'monthly',?,'public_power','','generation_total',?,'TWh','observed')
+               ON CONFLICT(country_code,period_start,period_end,granularity,source,source_endpoint,source_series,metric)
+               DO UPDATE SET value=excluded.value""",
+            (start, end, SOURCE_NAME, value),
         )
 
     @staticmethod
@@ -118,8 +122,8 @@ class ImportSafetyTests(unittest.TestCase):
         values = {
             int(row["month"]): row["value"]
             for row in self.connection.execute(
-                """SELECT CAST(substr(timestamp,6,2) AS INTEGER) AS month, value
-                   FROM observation
+                """SELECT CAST(substr(period_start,6,2) AS INTEGER) AS month, value
+                   FROM period_observation
                    WHERE country_code='DE' AND source_endpoint='public_power'
                      AND metric='generation_total'"""
             )
@@ -144,7 +148,7 @@ class ImportSafetyTests(unittest.TestCase):
         with patch.object(importer.client, "get", side_effect=dispatch):
             result = importer.import_country("DE", 2025, [1])
         value = self.connection.execute(
-            """SELECT value FROM observation
+            """SELECT value FROM period_observation
                WHERE country_code='DE' AND source_endpoint='public_power' AND metric='generation_total'"""
         ).fetchone()[0]
         self.assertEqual(value, 123.0)
@@ -172,11 +176,11 @@ class ImportSafetyTests(unittest.TestCase):
                 importer._import_period("public_power", COUNTRIES["DE"], Period("2025-01-01", "2025-01-31"))
         rows = list(
             self.connection.execute(
-                """SELECT timestamp,value FROM observation
+                """SELECT period_start,value FROM period_observation
                    WHERE country_code='DE' AND source_endpoint='public_power' AND metric='generation_total'"""
             )
         )
-        self.assertEqual([(row["timestamp"], row["value"]) for row in rows], [("2025-01-01T00:00:00+01:00", 321.0)])
+        self.assertEqual([(row["period_start"], row["value"]) for row in rows], [("2025-01-01", 321.0)])
         self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM api_cache").fetchone()[0], 1)
 
     def test_validation_failure_preserves_old_data(self):
@@ -189,7 +193,7 @@ class ImportSafetyTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 importer._import_period("public_power", COUNTRIES["DE"], Period("2025-01-01", "2025-01-31"))
         value = self.connection.execute(
-            """SELECT value FROM observation
+            """SELECT value FROM period_observation
                WHERE country_code='DE' AND source_endpoint='public_power' AND metric='generation_total'"""
         ).fetchone()[0]
         self.assertEqual(value, 222.0)
@@ -214,33 +218,33 @@ class ImportSafetyTests(unittest.TestCase):
                 ])
 
         rows = self.connection.execute(
-            """SELECT timestamp,value FROM observation
+            """SELECT period_start,value FROM period_observation
                WHERE country_code='DE' AND source_endpoint='public_power'
-               ORDER BY timestamp"""
+               ORDER BY period_start"""
         ).fetchall()
         self.assertNotEqual(exit_code, 0)
         self.assertIn("outside requested period 2025-01-01..2025-01-31", output.getvalue())
-        self.assertEqual([(row["timestamp"], row["value"]) for row in rows], [
-            ("2025-01-01T00:00:00+01:00", 444.0),
+        self.assertEqual([(row["period_start"], row["value"]) for row in rows], [
+            ("2025-01-01", 444.0),
         ])
 
     def test_successful_refresh_fully_replaces_target_without_duplicates(self):
         self.add_observation(1, 1.0, 1)
-        self.add_observation(1, 2.0, 2)
         self.connection.commit()
         importer = Importer(self.connection, refresh=True)
         with patch.object(importer.client, "get", return_value=public_power_payload("2025-01-01", 40.0)):
             importer._import_period("public_power", COUNTRIES["DE"], Period("2025-01-01", "2025-01-31"))
         total_rows = self.connection.execute(
-            """SELECT COUNT(*) FROM observation
+            """SELECT COUNT(*) FROM period_observation
                WHERE country_code='DE' AND source_endpoint='public_power' AND metric='generation_total'"""
         ).fetchone()[0]
         distinct_rows = self.connection.execute(
-            """SELECT COUNT(DISTINCT timestamp_utc) FROM observation
+            """SELECT COUNT(DISTINCT period_start) FROM period_observation
                WHERE country_code='DE' AND source_endpoint='public_power' AND metric='generation_total'"""
         ).fetchone()[0]
         self.assertEqual(total_rows, 1)
         self.assertEqual(distinct_rows, 1)
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM observation").fetchone()[0], 0)
 
     def test_quality_issues_outside_target_period_are_preserved(self):
         self.connection.execute(

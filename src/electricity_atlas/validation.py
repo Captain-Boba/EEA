@@ -4,7 +4,7 @@ import sqlite3
 from typing import Any
 
 from .aggregation import aggregate_country, period_bounds
-from .config import RENEWABLE_METRICS
+from .config import SOURCE_NAME
 
 
 OFFICIAL_2025: dict[str, dict[str, Any]] = {
@@ -43,19 +43,18 @@ def validate_country(connection: sqlite3.Connection, code: str, year: int = 2025
     start, end = period_bounds(year)
     aggregate = aggregate_country(connection, code, year)
     rows = connection.execute(
-        """SELECT timestamp_utc, metric, value
-           FROM observation
-           WHERE country_code=? AND bidding_zone='' AND source_endpoint='public_power'
-             AND timestamp>=? AND timestamp<?
-           ORDER BY timestamp_utc""",
-        (code, start, end),
+        """SELECT period_start,metric,value
+           FROM period_observation
+           WHERE country_code=? AND source=? AND source_endpoint='public_power'
+             AND granularity='monthly' AND period_start>=? AND period_start<?
+           ORDER BY period_start""",
+        (code, SOURCE_NAME, start, end),
     )
     intervals: dict[str, dict[str, float]] = {}
     for row in rows:
-        intervals.setdefault(row["timestamp_utc"], {})[row["metric"]] = row["value"]
+        intervals.setdefault(row["period_start"], {})[row["metric"]] = row["value"]
 
     generation_deltas: list[float] = []
-    share_deltas: list[float] = []
     for values in intervals.values():
         if "generation_total" not in values:
             continue
@@ -65,9 +64,6 @@ def validate_country(connection: sqlite3.Connection, code: str, year: int = 2025
             "generation_coal", "generation_lignite", "generation_oil", "generation_other",
         ))
         generation_deltas.append(abs(category_sum - values["generation_total"]))
-        if values["generation_total"] > 0 and "source_renewable_share_generation" in values:
-            own_share = sum(values.get(metric, 0.0) for metric in RENEWABLE_METRICS) / values["generation_total"] * 100
-            share_deltas.append(abs(own_share - values["source_renewable_share_generation"]))
 
     return {
         "country_code": code,
@@ -80,16 +76,13 @@ def validate_country(connection: sqlite3.Connection, code: str, year: int = 2025
         "wind_twh": aggregate["wind_twh"],
         "solar_twh": aggregate["solar_twh"],
         "nuclear_twh": aggregate["nuclear_twh"],
-        "intervals_checked": len(generation_deltas),
-        "max_generation_identity_delta_mw": max(generation_deltas) if generation_deltas else None,
-        "mean_abs_share_delta_percentage_points": (
-            sum(share_deltas) / len(share_deltas) if share_deltas else None
-        ),
-        "result": "INTERNAL_PASS" if generation_deltas and max(generation_deltas) < 1e-6 else "INCOMPLETE",
+        "periods_checked": len(generation_deltas),
+        "max_generation_identity_delta_twh": max(generation_deltas) if generation_deltas else None,
+        "result": "INTERNAL_PASS" if generation_deltas and max(generation_deltas) < 1e-9 else "INCOMPLETE",
         "method": (
-            "Die Jahreswerte werden aus den offiziellen 15-/60-Minuten-Leistungswerten integriert. "
-            "Zusätzlich werden je Intervall Kategoriensumme und der von Energy-Charts gemeldete "
-            "EE-Anteil geprüft. Dies validiert Transformation und Aggregation, ist aber keine unabhängige Zweitquelle."
+            "Energy-Charts-Quellantworten werden beim Import unmittelbar in Monatsenergie integriert. "
+            "Je Monat wird die Kategoriensumme gegen die gespeicherte Gesamterzeugung geprüft. "
+            "Dies validiert Transformation und Monatsaggregation, ist aber keine unabhängige Zweitquelle."
         ),
     }
 
@@ -99,16 +92,16 @@ def validation_markdown(connection: sqlite3.Connection, year: int = 2025) -> str
     lines = [
         f"# Validierungsbericht DE/FR/ES {year}",
         "",
-        "| Land | Erzeugung TWh | Verbrauch TWh | EE TWh | EE % | Intervalle | max. Identitätsabweichung MW | mittl. EE-Abweichung %-Pkt. | Ergebnis |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| Land | Erzeugung TWh | Verbrauch TWh | EE TWh | EE % | Monate | max. Identitätsabweichung TWh | Ergebnis |",
+        "|---|---:|---:|---:|---:|---:|---:|---|",
     ]
     for item in validations:
         fmt = lambda value, digits=3: "—" if value is None else f"{value:.{digits}f}"
         lines.append(
             f"| {item['country_code']} | {fmt(item['generation_twh'])} | {fmt(item['consumption_twh'])} | "
             f"{fmt(item['renewable_twh'])} | {fmt(item['renewable_share_pct'], 2)} | "
-            f"{item['intervals_checked']} | {fmt(item['max_generation_identity_delta_mw'], 6)} | "
-            f"{fmt(item['mean_abs_share_delta_percentage_points'], 3)} | {item['result']} |"
+            f"{item['periods_checked']} | {fmt(item['max_generation_identity_delta_twh'], 9)} | "
+            f"{item['result']} |"
         )
     lines.extend(
         [
@@ -116,7 +109,7 @@ def validation_markdown(connection: sqlite3.Connection, year: int = 2025) -> str
             "## Methode und Grenze",
             "",
             validations[0]["method"],
-            "Die mittlere EE-Abweichung von rund 1 bis 1,6 Prozentpunkten ist kein Rundungsfehler, sondern ein Definitionssignal: Der Atlas zählt gemäß Arbeitsauftrag die gesamte gemeldete Wasserkrafterzeugung einschließlich Pumpspeicher als erneuerbar; Energy-Charts und nationale Berichte behandeln Speicher und weitere Kategorien anders.",
+            "Die Monatsaggregation bewahrt die Energieidentität der von Energy-Charts gelieferten Erzeugungskategorien; Unterschiede zu nationalen Berichten bleiben Definitionsunterschiede und werden nicht wegkorrigiert.",
             "",
             "## Vergleich mit unabhängigen offiziellen Jahresdarstellungen",
             "",
