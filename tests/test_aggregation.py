@@ -1,0 +1,95 @@
+import sqlite3
+import unittest
+
+from electricity_atlas.aggregation import (
+    aggregate_country,
+    net_import_balance,
+    renewable_share,
+    weighted_mean,
+    weighted_median,
+)
+from electricity_atlas.config import SOURCE_NAME
+from electricity_atlas.db import initialize
+from electricity_atlas.importer import Importer, Period
+
+
+class AggregationFunctionTests(unittest.TestCase):
+    def test_renewable_share(self):
+        self.assertEqual(renewable_share(25, 100), 25)
+        self.assertIsNone(renewable_share(0, 0))
+
+    def test_price_weighting_across_mixed_intervals(self):
+        pairs = [(100, 60), (0, 15), (0, 15), (0, 15), (0, 15)]
+        self.assertEqual(weighted_mean(pairs), 50)
+        self.assertEqual(weighted_median(pairs), 50)
+
+    def test_import_export_balance(self):
+        self.assertEqual(net_import_balance(12, 20), -8)
+
+
+class DatabaseAggregationTests(unittest.TestCase):
+    def setUp(self):
+        self.connection = sqlite3.connect(":memory:")
+        self.connection.row_factory = sqlite3.Row
+        initialize(self.connection)
+
+    def tearDown(self):
+        self.connection.close()
+
+    def add_observation(self, metric, value, interval=60, endpoint="public_power", zone="", timestamp="2025-01-01T00:00:00+01:00", unit="MW"):
+        self.connection.execute(
+            """INSERT INTO observation
+               (country_code,country_name,bidding_zone,timestamp,timestamp_utc,source,source_endpoint,
+                source_resolution,interval_minutes,metric,value,unit,quality_status)
+               VALUES ('DE','Deutschland',?,?,?,?,?,'PT1H',?,?,?,?, 'observed')""",
+            (zone, timestamp, timestamp, SOURCE_NAME, endpoint, interval, metric, value, unit),
+        )
+
+    def test_time_aggregation_and_trade(self):
+        for metric, value in {
+            "generation_total": 1000, "generation_solar": 200, "generation_wind_onshore": 300,
+            "generation_wind_offshore": 0, "generation_hydro": 0, "generation_biomass": 0,
+            "generation_nuclear": 100, "generation_gas": 400, "generation_coal": 0,
+            "generation_lignite": 0, "generation_oil": 0, "generation_other": 0,
+            "consumption": 900, "import_total": 50, "export_total": 150, "net_import": -100,
+        }.items():
+            self.add_observation(metric, value, endpoint="cbpf" if metric in {"import_total", "export_total", "net_import"} else "public_power")
+        self.add_observation("day_ahead_price", -10, endpoint="price", zone="DE-LU", unit="EUR/MWh")
+        result = aggregate_country(self.connection, "DE", 2025, 1)
+        self.assertAlmostEqual(result["generation_twh"], 0.001)
+        self.assertAlmostEqual(result["renewable_twh"], 0.0005)
+        self.assertEqual(result["renewable_share_pct"], 50)
+        self.assertAlmostEqual(result["net_import_twh"], -0.0001)
+        self.assertEqual(result["negative_price_intervals"], 1)
+        self.assertEqual(result["negative_price_hours"], 1)
+
+    def test_missing_interval_is_recorded(self):
+        importer = Importer(self.connection)
+        payload = {
+            "interval_minutes": 15,
+            "data": [
+                {"timestamp": "2025-01-01T00:00:00+01:00"},
+                {"timestamp": "2025-01-01T00:15:00+01:00"},
+                {"timestamp": "2025-01-01T00:45:00+01:00"},
+            ],
+        }
+        from electricity_atlas.config import COUNTRIES
+        importer._check_intervals("public_power", COUNTRIES["DE"], Period("2025-01-01", "2025-01-01"), payload)
+        issue = self.connection.execute("SELECT * FROM quality_issue").fetchone()
+        self.assertEqual(issue["issue_type"], "missing_intervals")
+        self.assertEqual(issue["details"], "1")
+
+    def test_incomplete_source_does_not_emit_precise_generation_total(self):
+        self.add_observation("generation_total", 1000)
+        self.connection.execute(
+            """INSERT INTO quality_issue
+               (country_code,endpoint,period_start,period_end,issue_type,severity,details)
+               VALUES ('DE','public_power','2025-01-01','2025-01-31','missing_expected_series','error','[\"solar\"]')"""
+        )
+        result = aggregate_country(self.connection, "DE", 2025, 1)
+        self.assertIsNone(result["generation_twh"])
+        self.assertEqual(result["data_status"], "partial")
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>European Electricity Atlas – Data Core</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>European Electricity Atlas</h1>
+      <p>Internes Analyse-UI · öffentliche Nettoerzeugung · Datenquelle: Energy-Charts.info</p>
+    </header>
+
+    <section class="controls" aria-label="Zeitraum">
+      <label>Jahr <input id="year" type="number" min="2000" max="2100" value="2025"></label>
+      <label>Zeitraum
+        <select id="period-type">
+          <option value="year">Jahr</option>
+          <option value="month">Monat</option>
+        </select>
+      </label>
+      <label id="month-label" hidden>Monat
+        <select id="month">
+          <option value="1">Januar</option><option value="2">Februar</option>
+          <option value="3">März</option><option value="4">April</option>
+          <option value="5">Mai</option><option value="6">Juni</option>
+          <option value="7" selected>Juli</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">Oktober</option>
+          <option value="11">November</option><option value="12">Dezember</option>
+        </select>
+      </label>
+      <button id="load">Auswerten</button>
+      <button id="compare" disabled>Vergleichen (<span id="selected-count">0</span>)</button>
+    </section>
+
+    <p id="status" role="status">Daten werden geladen …</p>
+
+    <section>
+      <h2>Gesamttabelle</h2>
+      <p class="hint">Spaltenkopf anklicken zum Sortieren. Zwei bis vier Länder über die erste Spalte auswählen.</p>
+      <div class="table-wrap">
+        <table id="summary-table">
+          <thead><tr id="summary-head"></tr></thead>
+          <tbody id="summary-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="comparison" hidden>
+      <h2>Ländervergleich</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr id="compare-head"></tr></thead>
+          <tbody id="compare-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <details>
+      <summary>Definitions- und Coverage-Hinweise</summary>
+      <ul>
+        <li>Erzeugung: öffentliche Nettoerzeugung; industrielle Eigenerzeugung kann fehlen.</li>
+        <li>EE: Solar, Wind Onshore/Offshore, Wasser und Biomasse.</li>
+        <li>Handel: physische Grenzflüsse, positive Flüsse sind Importe.</li>
+        <li>Mehrzonenländer erhalten ohne belastbare Gewichte keinen nationalen Preis.</li>
+        <li>CO₂-Intensität ist in v0.1 nicht verfügbar und wird nicht geschätzt.</li>
+      </ul>
+      <div id="coverage"></div>
+    </details>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
+

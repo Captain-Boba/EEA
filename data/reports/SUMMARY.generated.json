@@ -1,0 +1,1472 @@
+[
+  {
+    "country_code": "DE",
+    "country_name": "Deutschland",
+    "period": "2025",
+    "generation_twh": 425.1281358249967,
+    "consumption_twh": 465.81767275000027,
+    "renewable_twh": 263.96556715000145,
+    "renewable_share_pct": 62.090825072717,
+    "wind_twh": 131.1670003500007,
+    "solar_twh": 70.12348582500053,
+    "nuclear_twh": 0.0,
+    "fossil_twh": 150.2880070499997,
+    "import_twh": 63.99504425,
+    "export_twh": 45.7632685,
+    "net_import_twh": 18.23177575,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 308502.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 70.12348582500053,
+        "pct": 16.494670645338502
+      },
+      "generation_wind_onshore": {
+        "twh": 105.09999990000082,
+        "pct": 24.721958168222738
+      },
+      "generation_wind_offshore": {
+        "twh": 26.067000449999874,
+        "pct": 6.13156322844045
+      },
+      "generation_hydro": {
+        "twh": 26.61756317499989,
+        "pct": 6.2610683537438145
+      },
+      "generation_biomass": {
+        "twh": 36.05751780000037,
+        "pct": 8.481564676971507
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 53.68990082500001,
+        "pct": 12.629110214220535
+      },
+      "generation_coal": {
+        "twh": 26.595773724999923,
+        "pct": 6.255942969615172
+      },
+      "generation_lignite": {
+        "twh": 67.18480392499974,
+        "pct": 15.803424488624357
+      },
+      "generation_oil": {
+        "twh": 2.817528575000004,
+        "pct": 0.6627480840646677
+      },
+      "generation_other": {
+        "twh": 10.874561625000002,
+        "pct": 2.5579491707593065
+      }
+    },
+    "price_avg_eur_mwh": 89.32172260273973,
+    "price_median_eur_mwh": 92.32499999999999,
+    "price_min_eur_mwh": -250.32,
+    "price_max_eur_mwh": 583.4,
+    "negative_price_intervals": 724,
+    "negative_price_hours": 574.75,
+    "quality_issues": [
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"geothermal\", \"others\", \"waste\"]"
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "FR",
+    "country_name": "Frankreich",
+    "period": "2025",
+    "generation_twh": 533.906918800001,
+    "consumption_twh": null,
+    "renewable_twh": 141.49216882500014,
+    "renewable_share_pct": 26.501280249938556,
+    "wind_twh": 48.58227814999998,
+    "solar_twh": 30.261694675000147,
+    "nuclear_twh": 371.45540172500097,
+    "fossil_twh": 17.82648559999992,
+    "import_twh": 10.012107,
+    "export_twh": 101.0513875,
+    "net_import_twh": -91.0392805,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 123600.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 30.261694675000147,
+        "pct": 5.667972002126468
+      },
+      "generation_wind_onshore": {
+        "twh": 42.92974489999998,
+        "pct": 8.040679636909006
+      },
+      "generation_wind_offshore": {
+        "twh": 5.652533249999991,
+        "pct": 1.0587113691473633
+      },
+      "generation_hydro": {
+        "twh": 59.974053050000066,
+        "pct": 11.23305410328763
+      },
+      "generation_biomass": {
+        "twh": 2.674142949999956,
+        "pct": 0.5008631384680889
+      },
+      "generation_nuclear": {
+        "twh": 371.45540172500097,
+        "pct": 69.57306388909083
+      },
+      "generation_gas": {
+        "twh": 16.34360512499997,
+        "pct": 3.061133794956909
+      },
+      "generation_coal": {
+        "twh": 0.509489900000001,
+        "pct": 0.0954267274050542
+      },
+      "generation_lignite": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": 0.9733905749999459,
+        "pct": 0.18231465836549185
+      },
+      "generation_other": {
+        "twh": 3.1328626500000043,
+        "pct": 0.5867806802431718
+      }
+    },
+    "price_avg_eur_mwh": 61.075740899725275,
+    "price_median_eur_mwh": 60.0,
+    "price_min_eur_mwh": -118.01,
+    "price_max_eur_mwh": 473.28,
+    "negative_price_intervals": 558,
+    "negative_price_hours": 509.25,
+    "quality_issues": [
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 4/2972"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 15/2976"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"waste\"]"
+      }
+    ],
+    "data_status": "partial"
+  },
+  {
+    "country_code": "ES",
+    "country_name": "Spanien",
+    "period": "2025",
+    "generation_twh": 259.030501,
+    "consumption_twh": null,
+    "renewable_twh": 151.119542,
+    "renewable_share_pct": 58.34044308164311,
+    "wind_twh": 55.573776,
+    "solar_twh": 52.524194,
+    "nuclear_twh": 51.910852,
+    "fossil_twh": 53.685214,
+    "import_twh": 7.81604425,
+    "export_twh": 17.659244,
+    "net_import_twh": -9.84319975,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 91390.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 52.524194,
+        "pct": 20.27722364633808
+      },
+      "generation_wind_onshore": {
+        "twh": 55.573776,
+        "pct": 21.454529789138615
+      },
+      "generation_wind_offshore": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_hydro": {
+        "twh": 39.345857,
+        "pct": 15.189661776548855
+      },
+      "generation_biomass": {
+        "twh": 3.675715,
+        "pct": 1.4190278696175629
+      },
+      "generation_nuclear": {
+        "twh": 51.910852,
+        "pct": 20.04043994803531
+      },
+      "generation_gas": {
+        "twh": 52.13141,
+        "pct": 20.125587449641692
+      },
+      "generation_coal": {
+        "twh": 1.311129,
+        "pct": 0.5061678045397441
+      },
+      "generation_lignite": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": 0.242675,
+        "pct": 0.09368587832828228
+      },
+      "generation_other": {
+        "twh": 2.314893,
+        "pct": 0.8936758378118568
+      }
+    },
+    "price_avg_eur_mwh": 65.28777311643834,
+    "price_median_eur_mwh": 70.0,
+    "price_min_eur_mwh": -15.0,
+    "price_max_eur_mwh": 240.0,
+    "negative_price_intervals": 601,
+    "negative_price_hours": 551.5,
+    "quality_issues": [
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 142/2880"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
+      }
+    ],
+    "data_status": "partial"
+  },
+  {
+    "country_code": "IT",
+    "country_name": "Italien",
+    "period": "2025",
+    "generation_twh": 221.710393,
+    "consumption_twh": 277.246845,
+    "renewable_twh": 93.737531,
+    "renewable_share_pct": 42.27926789160488,
+    "wind_twh": 21.241063,
+    "solar_twh": 33.945208,
+    "nuclear_twh": 0.0,
+    "fossil_twh": 109.795466,
+    "import_twh": 49.8451995,
+    "export_twh": 2.73417975,
+    "net_import_twh": 47.11101975,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 84760.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 33.945208,
+        "pct": 15.31060747341691
+      },
+      "generation_wind_onshore": {
+        "twh": 21.193508,
+        "pct": 9.559095409659033
+      },
+      "generation_wind_offshore": {
+        "twh": 0.047555,
+        "pct": 0.021449152363371617
+      },
+      "generation_hydro": {
+        "twh": 32.525258,
+        "pct": 14.670154862789856
+      },
+      "generation_biomass": {
+        "twh": 6.026002,
+        "pct": 2.7179609933757143
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 106.037033,
+        "pct": 47.82682109088138
+      },
+      "generation_coal": {
+        "twh": 3.176784,
+        "pct": 1.4328529921463808
+      },
+      "generation_lignite": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": 0.581649,
+        "pct": 0.26234629424882216
+      },
+      "generation_other": {
+        "twh": 18.177396,
+        "pct": 8.19871173111853
+      }
+    },
+    "price_avg_eur_mwh": null,
+    "price_median_eur_mwh": null,
+    "price_min_eur_mwh": null,
+    "price_max_eur_mwh": null,
+    "negative_price_intervals": null,
+    "negative_price_hours": null,
+    "quality_issues": [
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "PL",
+    "country_name": "Polen",
+    "period": "2025",
+    "generation_twh": 159.00580012500015,
+    "consumption_twh": 158.41400110000077,
+    "renewable_twh": 46.51026840000025,
+    "renewable_share_pct": 29.25067410335778,
+    "wind_twh": 21.893915625000187,
+    "solar_twh": 19.228633400000042,
+    "nuclear_twh": 0.0,
+    "fossil_twh": 106.78409852499975,
+    "import_twh": 15.20103075,
+    "export_twh": 14.0871095,
+    "net_import_twh": 1.11392125,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 47200.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 19.228633400000042,
+        "pct": 12.093038986555035
+      },
+      "generation_wind_onshore": {
+        "twh": 21.893915625000187,
+        "pct": 13.769255969146155
+      },
+      "generation_wind_offshore": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_hydro": {
+        "twh": 2.520269350000023,
+        "pct": 1.5850172434079441
+      },
+      "generation_biomass": {
+        "twh": 2.867450025000001,
+        "pct": 1.8033619042486473
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 22.485212225000105,
+        "pct": 14.141127057832906
+      },
+      "generation_coal": {
+        "twh": 52.192134824999826,
+        "pct": 32.82404464740891
+      },
+      "generation_lignite": {
+        "twh": 30.618811249999823,
+        "pct": 19.25641154343381
+      },
+      "generation_oil": {
+        "twh": 1.4879402249999971,
+        "pct": 0.9357773262549379
+      },
+      "generation_other": {
+        "twh": 5.711433200000011,
+        "pct": 3.5919653217115655
+      }
+    },
+    "price_avg_eur_mwh": 104.29175570776255,
+    "price_median_eur_mwh": 104.17,
+    "price_min_eur_mwh": -132.95,
+    "price_max_eur_mwh": 509.88,
+    "negative_price_intervals": 328,
+    "negative_price_hours": 310.75,
+    "quality_issues": [
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"others\"]"
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "UK",
+    "country_name": "Vereinigtes Königreich",
+    "period": "2025",
+    "generation_twh": null,
+    "consumption_twh": null,
+    "renewable_twh": null,
+    "renewable_share_pct": null,
+    "wind_twh": null,
+    "solar_twh": null,
+    "nuclear_twh": null,
+    "fossil_twh": null,
+    "import_twh": 44.21500325,
+    "export_twh": 13.12359775,
+    "net_import_twh": 31.0914055,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 95350.0,
+    "mix": {
+      "generation_solar": {
+        "twh": null,
+        "pct": 0.0
+      },
+      "generation_wind_onshore": {
+        "twh": null,
+        "pct": 61.13153532627923
+      },
+      "generation_wind_offshore": {
+        "twh": null,
+        "pct": 0.0
+      },
+      "generation_hydro": {
+        "twh": null,
+        "pct": 0.0
+      },
+      "generation_biomass": {
+        "twh": null,
+        "pct": 0.0
+      },
+      "generation_nuclear": {
+        "twh": null,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": null,
+        "pct": 38.6945848497227
+      },
+      "generation_coal": {
+        "twh": null,
+        "pct": 0.0
+      },
+      "generation_lignite": {
+        "twh": null,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": null,
+        "pct": 0.17001541146991644
+      },
+      "generation_other": {
+        "twh": null,
+        "pct": 0.003864412528647616
+      }
+    },
+    "price_avg_eur_mwh": null,
+    "price_median_eur_mwh": null,
+    "price_min_eur_mwh": null,
+    "price_max_eur_mwh": null,
+    "negative_price_intervals": null,
+    "negative_price_hours": null,
+    "quality_issues": [
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_expected_series",
+        "severity": "error",
+        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 1092/1488"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 1104/1344"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 476/1486"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 10/1488"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 32/1488"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 48/1440"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 422/1490"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 1440/1440"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 1488/1488"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      }
+    ],
+    "data_status": "partial"
+  },
+  {
+    "country_code": "NO",
+    "country_name": "Norwegen",
+    "period": "2025",
+    "generation_twh": 159.46441729999913,
+    "consumption_twh": 136.7708442000001,
+    "renewable_twh": 157.57704419999965,
+    "renewable_share_pct": 98.81642993969699,
+    "wind_twh": 13.495230800000005,
+    "solar_twh": 0.009065200000000044,
+    "nuclear_twh": 0.0,
+    "fossil_twh": 1.0883306999999904,
+    "import_twh": 9.44325525,
+    "export_twh": 31.8935355,
+    "net_import_twh": -22.45028025,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 33660.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 0.009065200000000044,
+        "pct": 0.00568477918365058
+      },
+      "generation_wind_onshore": {
+        "twh": 13.487455000000004,
+        "pct": 8.457971520145566
+      },
+      "generation_wind_offshore": {
+        "twh": 0.007775799999999982,
+        "pct": 0.004876197544039829
+      },
+      "generation_hydro": {
+        "twh": 144.07266109999966,
+        "pct": 90.34784282248806
+      },
+      "generation_biomass": {
+        "twh": 8.709999999999987e-05,
+        "pct": 5.4620335667824464e-05
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 1.0883306999999904,
+        "pct": 0.6824912531756364
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_lignite": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other": {
+        "twh": 0.7990424000000007,
+        "pct": 0.5010788071277172
+      }
+    },
+    "price_avg_eur_mwh": null,
+    "price_median_eur_mwh": null,
+    "price_min_eur_mwh": null,
+    "price_max_eur_mwh": null,
+    "negative_price_intervals": null,
+    "negative_price_hours": null,
+    "quality_issues": [
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"other_renewables\", \"waste\"]"
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "SE",
+    "country_name": "Schweden",
+    "period": "2025",
+    "generation_twh": 159.8548329999996,
+    "consumption_twh": 129.544342,
+    "renewable_twh": 109.49620830000032,
+    "renewable_share_pct": 68.49727733912219,
+    "wind_twh": 38.79639090000007,
+    "solar_twh": 2.2812391000000476,
+    "nuclear_twh": 44.582254299999995,
+    "fossil_twh": 0.015680199999999967,
+    "import_twh": 5.16946375,
+    "export_twh": 38.8167885,
+    "net_import_twh": -33.64732475,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 48000.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 2.2812391000000476,
+        "pct": 1.4270692084736991
+      },
+      "generation_wind_onshore": {
+        "twh": 38.79639090000007,
+        "pct": 24.26976411779816
+      },
+      "generation_wind_offshore": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_hydro": {
+        "twh": 68.4185783000002,
+        "pct": 42.80044401285033
+      },
+      "generation_biomass": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_nuclear": {
+        "twh": 44.582254299999995,
+        "pct": 27.88921264582605
+      },
+      "generation_gas": {
+        "twh": 0.015680199999999967,
+        "pct": 0.009809024666773766
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_lignite": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other": {
+        "twh": 5.760690200000015,
+        "pct": 3.6037009903854647
+      }
+    },
+    "price_avg_eur_mwh": null,
+    "price_median_eur_mwh": null,
+    "price_min_eur_mwh": null,
+    "price_max_eur_mwh": null,
+    "negative_price_intervals": null,
+    "negative_price_hours": null,
+    "quality_issues": [
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\"]"
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "DK",
+    "country_name": "Dänemark",
+    "period": "2025",
+    "generation_twh": 33.7341853999999,
+    "consumption_twh": null,
+    "renewable_twh": 29.195275599999935,
+    "renewable_share_pct": 86.54507365101522,
+    "wind_twh": 20.1594996,
+    "solar_twh": 4.4786842999999505,
+    "nuclear_twh": 0.0,
+    "fossil_twh": 2.893141499999975,
+    "import_twh": 26.3406995,
+    "export_twh": 18.88590825,
+    "net_import_twh": 7.45479125,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 12270.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 4.4786842999999505,
+        "pct": 13.276396767535296
+      },
+      "generation_wind_onshore": {
+        "twh": 10.196484200000008,
+        "pct": 30.22596834367323
+      },
+      "generation_wind_offshore": {
+        "twh": 9.963015399999993,
+        "pct": 29.53388463917087
+      },
+      "generation_hydro": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_biomass": {
+        "twh": 4.557091699999985,
+        "pct": 13.50882390063582
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 1.0565639999999974,
+        "pct": 3.1320276078164926
+      },
+      "generation_coal": {
+        "twh": 1.673274499999978,
+        "pct": 4.960174612664526
+      },
+      "generation_lignite": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": 0.16330299999999975,
+        "pct": 0.4840875748551505
+      },
+      "generation_other": {
+        "twh": 1.6457682999999954,
+        "pct": 4.878636553648633
+      }
+    },
+    "price_avg_eur_mwh": null,
+    "price_median_eur_mwh": null,
+    "price_min_eur_mwh": null,
+    "price_max_eur_mwh": null,
+    "negative_price_intervals": null,
+    "negative_price_hours": null,
+    "quality_issues": [
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 1/744"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 1/672"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 5/744"
+      },
+      {
+        "issue_type": "missing_metric_values",
+        "severity": "warning",
+        "details": "load: 4/745"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"waste\"]"
+      }
+    ],
+    "data_status": "partial"
+  },
+  {
+    "country_code": "NL",
+    "country_name": "Niederlande",
+    "period": "2025",
+    "generation_twh": 117.95278782500003,
+    "consumption_twh": 116.90329612499949,
+    "renewable_twh": 24.251612975000075,
+    "renewable_share_pct": 20.56044068325103,
+    "wind_twh": 22.73358245000008,
+    "solar_twh": 0.4975987500000043,
+    "nuclear_twh": 3.804152675000032,
+    "fossil_twh": 48.096285775000105,
+    "import_twh": 11.27763175,
+    "export_twh": 24.9272605,
+    "net_import_twh": -13.64962875,
+    "carbon_intensity_gco2eq_kwh": null,
+    "installed_capacity_mw": 36030.0,
+    "mix": {
+      "generation_solar": {
+        "twh": 0.4975987500000043,
+        "pct": 0.42186264451694333
+      },
+      "generation_wind_onshore": {
+        "twh": 7.075160450000043,
+        "pct": 5.998298624782878
+      },
+      "generation_wind_offshore": {
+        "twh": 15.658422000000034,
+        "pct": 13.275160586481057
+      },
+      "generation_hydro": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_biomass": {
+        "twh": 1.020431774999995,
+        "pct": 0.8651188274701507
+      },
+      "generation_nuclear": {
+        "twh": 3.804152675000032,
+        "pct": 3.225148591353382
+      },
+      "generation_gas": {
+        "twh": 35.73869722500012,
+        "pct": 30.299154334549193
+      },
+      "generation_coal": {
+        "twh": 12.35758854999999,
+        "pct": 10.476724440234726
+      },
+      "generation_lignite": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_oil": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other": {
+        "twh": 41.80073640000025,
+        "pct": 35.438531950612024
+      }
+    },
+    "price_avg_eur_mwh": 86.81152825342465,
+    "price_median_eur_mwh": 90.24,
+    "price_min_eur_mwh": -350.0,
+    "price_max_eur_mwh": 523.47,
+    "negative_price_intervals": 711,
+    "negative_price_hours": 581.25,
+    "quality_issues": [
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      },
+      {
+        "issue_type": "unmapped_generation_categories",
+        "severity": "warning",
+        "details": "[\"others\", \"waste\"]"
+      }
+    ],
+    "data_status": "complete"
+  }
+]

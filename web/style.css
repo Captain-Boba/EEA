@@ -1,0 +1,22 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { margin: 0; background: Canvas; color: CanvasText; }
+main { max-width: 1500px; margin: 0 auto; padding: 1.25rem; }
+header { border-bottom: 1px solid GrayText; margin-bottom: 1rem; }
+h1 { margin-bottom: .2rem; }
+header p, .hint { color: GrayText; }
+.controls { display: flex; flex-wrap: wrap; gap: .8rem; align-items: end; padding: 1rem; border: 1px solid GrayText; }
+label { display: grid; gap: .25rem; }
+button, select, input { font: inherit; padding: .45rem .65rem; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.table-wrap { overflow-x: auto; border: 1px solid GrayText; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: .55rem .65rem; border-bottom: 1px solid color-mix(in srgb, GrayText 35%, transparent); text-align: right; white-space: nowrap; }
+th { position: sticky; top: 0; background: Canvas; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+th[data-key] { cursor: pointer; text-decoration: underline dotted; text-underline-offset: .2rem; }
+tr:hover td { background: color-mix(in srgb, Highlight 10%, transparent); }
+.missing { color: GrayText; }
+#status.error { color: #b42318; }
+details { margin-top: 1.5rem; padding: .8rem; border: 1px solid GrayText; }
+

@@ -1,0 +1,108 @@
+# European Electricity Atlas – Data Core v0.1
+
+Lokale, nachvollziehbare Datenpipeline für zehn europäische Pilotländer. Die Anwendung lädt Daten aus der Fraunhofer-ISE-Energy-Charts-API, hält die unveränderten JSON-Antworten in SQLite vor, normalisiert sie in ein quellenunabhängiges Modell und stellt Jahres-/Monatsaggregationen über ein schlichtes Analyse-UI bereit.
+
+## Voraussetzungen und Installation (Windows)
+
+- Python 3.11 oder neuer
+- Internetzugang nur für den Datenimport
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e .
+```
+
+Es gibt keine Laufzeit-Abhängigkeiten außerhalb der Python-Standardbibliothek.
+
+## Datenimport
+
+Komplettes Jahr 2025 für alle zehn Pilotländer:
+
+```powershell
+eea import --year 2025
+```
+
+Nur die Testmonate Januar und Juli:
+
+```powershell
+eea import --year 2025 --months 1 7
+```
+
+Nur einzelne Länder:
+
+```powershell
+eea import --year 2025 --countries DE FR ES
+```
+
+Bereits vorhandene oder überdeckende Zeiträume kommen aus `api_cache` und werden nicht erneut geladen. Der erste Jahresimport erfolgt rate-limit-schonend als Jahresabruf. Existiert nur ein Teilbestand, prüft der Import Monatssegmente und lädt ausschließlich fehlende Segmente nach. `--refresh` lädt angeforderte Zeiträume reproduzierbar neu und ersetzt Cache sowie normalisierte Werte. Die öffentliche API ist rate-limitiert; HTTP 429 wird mit begrenztem Backoff wiederholt.
+
+## Start
+
+```powershell
+eea serve
+```
+
+Danach [http://127.0.0.1:8000](http://127.0.0.1:8000) öffnen. Das UI greift ausschließlich auf SQLite zu, nie direkt auf Energy-Charts.
+
+## Berichte
+
+```powershell
+eea report --year 2025
+```
+
+Erzeugt in `data/reports/`:
+
+- `COVERAGE.generated.md`
+- `VALIDATION.generated.md`
+- `SUMMARY.generated.json`
+
+## Datenbank zurücksetzen
+
+```powershell
+eea reset-db
+```
+
+Dies löscht nur die konfigurierte lokale SQLite-Datei (Standard: `data/atlas.sqlite3`).
+
+## Tests
+
+Nach Installation:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Ohne Installation aus dem Checkout:
+
+```powershell
+$env:PYTHONPATH = "$PWD\src"
+python -m unittest discover -s tests -v
+```
+
+## Kanonisches Modell und Einheiten
+
+`observation` speichert die Dimensionen `country_code`, `country_name`, `bidding_zone`, lokalen Timestamp mit Offset, UTC-Timestamp, Quelle, Endpoint, Quellauflösung und Intervalllänge. `metric` enthält die kanonischen Größen (`generation_*`, `consumption`, `import_total`, `export_total`, `net_import`, `day_ahead_price`, künftig `carbon_intensity`).
+
+- Leistung und Flüsse intern: MW
+- integrierte Energie: MWh, Ausgabe TWh
+- Preis: EUR/MWh
+- CO₂-Intensität (vorgesehen): gCO2eq/kWh
+- installierte Leistung: MW; Bestandswert am Ende des gemeldeten Zeitraums
+
+Erneuerbar sind zentral in `config.RENEWABLE_METRICS` ausschließlich Solar, Wind Onshore, Wind Offshore, Wasser und Biomasse. Geothermie, Abfall und „other renewables“ bleiben in v0.1 bewusst `generation_other`, bis K1 die Klassifikation entscheidet.
+
+## Bekannte Einschränkungen
+
+- Erzeugung ist **öffentliche Nettoerzeugung**, nicht zwingend die gesamte nationale Erzeugung; industrielle Eigenerzeugung und Eigenverbrauch können fehlen.
+- Energy-Charts v2 stellt keine CO₂-Intensitätszeitreihe bereit. Es wird nichts geschätzt.
+- Die UK-Erzeugungs- und Lastreihen sind 2025 unvollständig (fehlende Technologien und viele Nullwerte) und werden als teilweise statt als vergleichbar markiert.
+- FR, ES und DK enthalten 2025 einzelne oder monatsweise Lastlücken. Unvollständige Periodenwerte werden nicht als scheinbar vollständige Verbrauchssumme ausgegeben; Details stehen im Coverage Report.
+- IT, NO, SE und DK besitzen mehrere Preiszonen. Ohne belastbare Zonen-/Lastgewichte wird kein nationaler Preis gebildet. UK fehlt im Preiszonen-Katalog. DE verwendet DE-LU.
+- Physische Flüsse (`cbpf`) sind keine Handelsfahrpläne (`cbet`).
+- Pumpspeichererzeugung liegt unter Wasser und zählt nach der derzeitigen Mindestdefinition als erneuerbar; das weicht von offiziellen Anteilsdefinitionen ab.
+- Der v2-Preisdatensatz 2025 wechselt von Stunden- zu Viertelstundenwerten. Die Aggregation leitet die reale Dauer aus UTC-Zeitstempeln ab und gewichtet zeitlich.
+- Die länderweise historische Startgrenze von `public_power` ist in der API-Dokumentation nicht fest angegeben. Der automatisierte Report weist deshalb nur das früheste **lokal importierte** Jahr aus.
+- Preis-Lizenzen unterscheiden sich je Gebotszone. Die API-Antwort samt Lizenz wird im Importmetadatensatz gespeichert.
+
+Weitere Details: [API-Untersuchung](docs/API_RESEARCH.md), [Ergebnisbericht](docs/RESULT_REPORT.md), [K1-Entscheidungen](docs/K1_DECISIONS.md).
