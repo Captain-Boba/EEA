@@ -81,33 +81,47 @@ def initialize(connection: sqlite3.Connection) -> None:
     connection.commit()
 
 
-def migrate_to_ember_only(connection: sqlite3.Connection) -> dict[str, Any]:
+SUPPORTED_SOURCES = ("ember", "eurostat", "jrc")
+
+
+def migrate_atlas_catalog(connection: sqlite3.Connection) -> dict[str, Any]:
     existing_tables = {
         row[0]
         for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
     }
+    placeholders = ",".join("?" for _ in SUPPORTED_SOURCES)
     period_rows_removed = connection.execute(
-        "SELECT COUNT(*) FROM period_observation WHERE source<>'ember'"
+        f"SELECT COUNT(*) FROM period_observation WHERE source NOT IN ({placeholders}) OR country_code='AL'",
+        SUPPORTED_SOURCES,
     ).fetchone()[0]
     api_cache_rows_removed = connection.execute(
-        "SELECT COUNT(*) FROM api_cache WHERE endpoint NOT LIKE 'ember/%'"
+        "SELECT COUNT(*) FROM api_cache WHERE endpoint NOT LIKE 'ember/%' OR target='ALB' OR target LIKE 'ALB|%'"
     ).fetchone()[0]
     source_cache_rows_removed = connection.execute(
-        "SELECT COUNT(*) FROM source_cache WHERE source<>'ember'"
+        f"SELECT COUNT(*) FROM source_cache WHERE source NOT IN ({placeholders})",
+        SUPPORTED_SOURCES,
     ).fetchone()[0]
     dropped = [table for table in OBSOLETE_TABLES if table in existing_tables]
 
-    connection.execute("SAVEPOINT ember_only_migration")
+    connection.execute("SAVEPOINT atlas_catalog_migration")
     try:
-        connection.execute("DELETE FROM period_observation WHERE source<>'ember'")
-        connection.execute("DELETE FROM api_cache WHERE endpoint NOT LIKE 'ember/%'")
-        connection.execute("DELETE FROM source_cache WHERE source<>'ember'")
+        connection.execute(
+            f"DELETE FROM period_observation WHERE source NOT IN ({placeholders}) OR country_code='AL'",
+            SUPPORTED_SOURCES,
+        )
+        connection.execute(
+            "DELETE FROM api_cache WHERE endpoint NOT LIKE 'ember/%' OR target='ALB' OR target LIKE 'ALB|%'"
+        )
+        connection.execute(
+            f"DELETE FROM source_cache WHERE source NOT IN ({placeholders})",
+            SUPPORTED_SOURCES,
+        )
         for table in dropped:
             connection.execute(f'DROP TABLE "{table}"')
-        connection.execute("RELEASE SAVEPOINT ember_only_migration")
+        connection.execute("RELEASE SAVEPOINT atlas_catalog_migration")
     except Exception:
-        connection.execute("ROLLBACK TO SAVEPOINT ember_only_migration")
-        connection.execute("RELEASE SAVEPOINT ember_only_migration")
+        connection.execute("ROLLBACK TO SAVEPOINT atlas_catalog_migration")
+        connection.execute("RELEASE SAVEPOINT atlas_catalog_migration")
         raise
     connection.commit()
     return {
@@ -116,6 +130,11 @@ def migrate_to_ember_only(connection: sqlite3.Connection) -> dict[str, Any]:
         "source_cache_rows_removed": source_cache_rows_removed,
         "tables_dropped": dropped,
     }
+
+
+def migrate_to_ember_only(connection: sqlite3.Connection) -> dict[str, Any]:
+    """Backward-compatible alias for databases created before auxiliary sources."""
+    return migrate_atlas_catalog(connection)
 
 
 @contextmanager

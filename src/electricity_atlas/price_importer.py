@@ -18,6 +18,7 @@ from .config import (
     EMBER_PRICE_CSV_URL,
     EMBER_PRICE_ENDPOINT,
     EMBER_SOURCE_NAME,
+    EXCLUDED_VENDOR_ISO3,
 )
 
 
@@ -198,6 +199,8 @@ class WholesalePriceImporter:
             iso3 = record["ISO3 Code"].strip()
             if not country_name:
                 raise PriceImportError(f"Ember price CSV row {line_number} has no country name")
+            if iso3 in EXCLUDED_VENDOR_ISO3:
+                continue
             if iso3 not in EMBER_ISO3_TO_ATLAS:
                 raise PriceImportError(f"Ember price CSV row {line_number} has unknown ISO3 code {iso3!r}")
             if iso3 in country_names and country_names[iso3] != country_name:
@@ -245,5 +248,7 @@ class WholesalePriceImporter:
         expected_iso3 = set(EMBER_ISO3_TO_ATLAS)
         if seen_iso3 != expected_iso3:
             missing = ", ".join(sorted(expected_iso3 - seen_iso3)) or "none"
-            raise PriceImportError(f"Ember price CSV does not contain the full 32-country catalog; missing: {missing}")
+            raise PriceImportError(
+                f"Ember price CSV does not contain the full {len(expected_iso3)}-country catalog; missing: {missing}"
+            )
         return rows

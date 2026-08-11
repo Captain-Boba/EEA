@@ -66,11 +66,31 @@ th, td {
 }
 th { position: sticky; top: 0; overflow-wrap: anywhere; background: var(--surface-raised); }
 #summary-table th:first-child { width: 4.75rem; }
-#summary-table th:nth-child(2) { width: 10rem; }
+#summary-table th:nth-child(2) { width: 11.5rem; }
 #compare-table th:first-child { width: 11rem; }
+#storage-table { max-width: 70rem; }
+#storage-table th:first-child { width: 14rem; }
 #summary-table th:first-child, #summary-table td:first-child,
 #summary-table th:nth-child(2), #summary-table td:nth-child(2),
 #compare-table th:first-child, #compare-table td:first-child { text-align: left; }
+#storage-table th:first-child, #storage-table td:first-child { text-align: left; }
+.storage-wrap { max-width: 70rem; }
+#storage-table .status-badge { display: block; width: fit-content; }
+.country-name { display: block; }
+.status-badge {
+  display: inline-block;
+  margin-top: .28rem;
+  padding: .08rem .38rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.status-badge.complete { color: #9ce6bd; border-color: #2e7650; }
+.status-badge.partial { color: #ffd08a; border-color: #8a6230; }
+.status-badge.missing { color: #c0cad7; border-color: #4a5668; }
 th[data-key] { cursor: pointer; text-decoration: underline dotted; text-underline-offset: .2rem; }
 tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .unit { display: block; margin-top: .15rem; color: var(--muted); font-size: .75rem; font-weight: 500; }
@@ -92,7 +112,7 @@ details { margin-top: 1.5rem; padding: .9rem; border: 1px solid var(--border); b
 details summary { cursor: pointer; font-weight: 650; }
 .source-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }

@@ -60,20 +60,24 @@ class WholesalePriceImportTests(unittest.TestCase):
         text = fixture_text() if payload is None else payload
         return WholesalePriceImporter(self.connection, FixturePriceClient(text), today=today)
 
-    def test_complete_csv_import_keeps_raw_payload_and_maps_all_32_countries(self):
+    def test_complete_csv_import_keeps_raw_payload_and_maps_all_31_countries(self):
         payload = fixture_text()
         result = self.importer(payload).import_prices()
 
-        self.assertEqual(result["countries"], 32)
-        self.assertEqual(result["countries_with_values"], 32)
-        self.assertEqual(len(ATLAS_COUNTRIES), 32)
+        self.assertEqual(result["countries"], 31)
+        self.assertEqual(result["countries_with_values"], 31)
+        self.assertEqual(len(ATLAS_COUNTRIES), 31)
         self.assertEqual(set(EMBER_COUNTRIES), set(ATLAS_COUNTRIES))
         rows = self.connection.execute(
             """SELECT COUNT(*) AS count,COUNT(DISTINCT country_code) AS countries
                FROM period_observation WHERE source_endpoint=?""",
             (EMBER_PRICE_ENDPOINT,),
         ).fetchone()
-        self.assertEqual((rows["count"], rows["countries"]), (43, 32))
+        self.assertEqual((rows["count"], rows["countries"]), (42, 31))
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM period_observation WHERE country_code='AL'").fetchone()[0],
+            0,
+        )
         uk = self.connection.execute(
             "SELECT country_code FROM period_observation WHERE source_endpoint=? AND country_code='UK'",
             (EMBER_PRICE_ENDPOINT,),
@@ -90,8 +94,8 @@ class WholesalePriceImportTests(unittest.TestCase):
     def test_damaged_header_duplicate_and_non_numeric_price_are_rejected(self):
         invalid_payloads = (
             fixture_text().replace("Price (EUR/MWhe)", "Price (EUR/MWh)", 1),
-            fixture_text() + "Albania,ALB,2025-01-01,50.00\n",
-            fixture_text().replace("Albania,ALB,2025-01-01,50.00", "Albania,ALB,2025-01-01,not-a-number"),
+            fixture_text() + "Germany,DEU,2025-01-01,50.00\n",
+            fixture_text().replace("Germany,DEU,2025-01-01,1.00", "Germany,DEU,2025-01-01,not-a-number"),
         )
         for payload in invalid_payloads:
             with self.subTest(payload=payload.splitlines()[0]):
@@ -115,8 +119,8 @@ class WholesalePriceImportTests(unittest.TestCase):
             "North Macedonia,MKD,2025-01-01,",
         )
         result = self.importer(payload).import_prices()
-        self.assertEqual(result["countries"], 32)
-        self.assertEqual(result["countries_with_values"], 31)
+        self.assertEqual(result["countries"], 31)
+        self.assertEqual(result["countries_with_values"], 30)
         stored = self.connection.execute(
             """SELECT COUNT(*) FROM period_observation
                WHERE source_endpoint=? AND country_code='MK'""",
@@ -140,7 +144,7 @@ class WholesalePriceImportTests(unittest.TestCase):
         self.importer().import_prices()
         before_price = self.connection.execute(
             """SELECT value FROM period_observation
-               WHERE source_endpoint=? AND country_code='AL'""",
+               WHERE source_endpoint=? AND country_code='DE' AND period_start='2025-01-01'""",
             (EMBER_PRICE_ENDPOINT,),
         ).fetchone()[0]
         before_hash = self.connection.execute("SELECT sha256 FROM source_cache").fetchone()[0]
@@ -151,7 +155,7 @@ class WholesalePriceImportTests(unittest.TestCase):
 
         after_price = self.connection.execute(
             """SELECT value FROM period_observation
-               WHERE source_endpoint=? AND country_code='AL'""",
+               WHERE source_endpoint=? AND country_code='DE' AND period_start='2025-01-01'""",
             (EMBER_PRICE_ENDPOINT,),
         ).fetchone()[0]
         after_hash = self.connection.execute("SELECT sha256 FROM source_cache").fetchone()[0]
@@ -197,7 +201,7 @@ class WholesalePriceImportTests(unittest.TestCase):
 
 class PriceCliTests(unittest.TestCase):
     def test_import_prices_cli_uses_dedicated_importer(self):
-        result = {"rows": 10, "countries": 32}
+        result = {"rows": 10, "countries": 31}
         with patch("electricity_atlas.cli.database"), patch(
             "electricity_atlas.cli.WholesalePriceImporter.import_prices", return_value=result
         ) as import_prices, patch("sys.stdout", new=io.StringIO()):

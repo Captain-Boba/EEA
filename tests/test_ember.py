@@ -168,6 +168,33 @@ class EmberClientTests(unittest.TestCase):
         urlopen_mock.assert_not_called()
         self.assertEqual([row["date"] for row in result["data"]], ["2015-01"])
 
+    def test_legacy_generation_cache_is_reused_only_for_explicit_non_aggregate_request(self):
+        cached_payload = {"data": [
+            {"entity_code": "DEU", "date": "2025-01", "series": "Solar", "is_aggregate_series": False}
+        ]}
+        self.connection.execute(
+            """INSERT INTO api_cache
+               (endpoint,target,start_date,end_date,request_url,fetched_at,status_code,sha256,response_json)
+               VALUES (?,?,?,?,?,?,?,?,?)""",
+            (
+                "ember/electricity-generation/monthly", "DEU", "2025-01", "2026-01",
+                "https://example.invalid?api_key=REDACTED", "2026-08-10T00:00:00+00:00",
+                200, "test", json.dumps(cached_payload),
+            ),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            key_file = Path(directory) / "EMBER_API_KEY.txt"
+            key_file.write_text("test-only-value", encoding="utf-8")
+            client = EmberClient(self.connection, key_file=key_file)
+            with patch("electricity_atlas.ember_client.urlopen") as urlopen_mock:
+                result = client.get(
+                    "electricity-generation/monthly", "DEU", "2025-01", "2026-01",
+                    extra={"is_aggregate_series": "false"},
+                )
+
+        urlopen_mock.assert_not_called()
+        self.assertEqual(result, cached_payload)
+
 
 class EmberImportAndAggregationTests(unittest.TestCase):
     def setUp(self):
@@ -178,9 +205,10 @@ class EmberImportAndAggregationTests(unittest.TestCase):
     def tearDown(self):
         self.connection.close()
 
-    def test_iso2_to_iso3_mapping_includes_all_pilot_countries_and_uk(self):
-        self.assertEqual(len(EMBER_ISO3), 32)
+    def test_iso2_to_iso3_mapping_includes_all_atlas_countries_and_uk(self):
+        self.assertEqual(len(EMBER_ISO3), 31)
         self.assertEqual(EMBER_ISO3["UK"], "GBR")
+        self.assertNotIn("AL", EMBER_ISO3)
         self.assertNotIn("RU", EMBER_ISO3)
         self.assertNotIn("TR", EMBER_ISO3)
         client = FixtureEmberClient()
@@ -218,6 +246,41 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         self.assertEqual((wind["metric"], wind["unit"]), ("generation_wind", "TWh"))
         self.assertEqual(share["unit"], "%")
 
+    def test_aggregate_series_supply_totals_and_net_import_share_without_double_counting(self):
+        class AggregateClient:
+            def get(self, endpoint, entity_code, start_date, end_date, extra=None, refresh=False):
+                if endpoint == "electricity-generation/monthly":
+                    if extra == {"is_aggregate_series": "true"}:
+                        series = [
+                            ("Total generation", 100.0), ("Renewables", 60.0),
+                            ("Fossil", 30.0), ("Demand", 95.0), ("Net imports", 5.0),
+                        ]
+                        return {"data": [
+                            {"entity_code": "DEU", "date": "2025-01", "series": name,
+                             "is_aggregate_series": True, "generation_twh": value}
+                            for name, value in series
+                        ]}
+                    return {"data": [
+                        {"entity_code": "DEU", "date": "2025-01", "series": name,
+                         "is_aggregate_series": False, "generation_twh": value}
+                        for name, value in (("Solar", 10.0), ("Wind", 20.0), ("Nuclear", 10.0))
+                    ]}
+                if endpoint == "electricity-demand/monthly":
+                    return {"data": [{"entity_code": "DEU", "date": "2025-01", "demand_twh": 95.0}]}
+                if endpoint == "carbon-intensity/monthly":
+                    return {"data": [{"entity_code": "DEU", "date": "2025-01", "emissions_intensity_gco2_per_kwh": 200.0}]}
+                return {"data": []}
+
+        result = EmberImporter(self.connection, client=AggregateClient()).import_country("DE", 2025, [1])
+        self.assertEqual(result["errors"], 0)
+        summary = aggregate_country(self.connection, "DE", 2025, 1)
+        self.assertEqual(summary["generation_twh"], 100.0)
+        self.assertEqual(summary["renewable_twh"], 60.0)
+        self.assertEqual(summary["fossil_twh"], 30.0)
+        self.assertEqual(summary["nuclear_twh"], 10.0)
+        self.assertEqual(summary["net_imports_twh"], 5.0)
+        self.assertAlmostEqual(summary["net_import_share_pct"], 5 / 95 * 100)
+
     def test_history_range_separates_completed_history_from_current_year(self):
         client = FixtureEmberClient()
         result = EmberImporter(self.connection, client=client).import_range(
@@ -225,7 +288,7 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         )
 
         self.assertEqual(result["errors"], 0)
-        self.assertEqual(len(client.calls), 8)
+        self.assertEqual(len(client.calls), 11)
         monthly_calls = [call for call in client.calls if call[0].endswith("/monthly")]
         yearly_calls = [call for call in client.calls if call[0].endswith("/yearly")]
         self.assertEqual(
@@ -237,6 +300,11 @@ class EmberImportAndAggregationTests(unittest.TestCase):
             {call[0] for call in yearly_calls},
             {"electricity-generation/yearly", "carbon-intensity/yearly"},
         )
+        generation_calls = [call for call in client.calls if call[0].startswith("electricity-generation/")]
+        self.assertEqual(
+            {call[4]["is_aggregate_series"] for call in generation_calls},
+            {"true", "false"},
+        )
 
     def test_history_range_rejects_years_outside_atlas_window(self):
         importer = EmberImporter(self.connection, client=FixtureEmberClient())
@@ -245,14 +313,20 @@ class EmberImportAndAggregationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             importer.import_range("DE", 2015, 2027, today=date(2026, 8, 10))
 
-    def test_empty_ember_country_period_is_coverage_not_import_error(self):
+    def test_empty_supported_country_period_is_coverage_not_import_error(self):
         client = FixtureEmberClient()
         client.get = lambda *args, **kwargs: {"data": []}
-        result = EmberImporter(self.connection, client=client).import_country("AL", 2025, [1])
+        result = EmberImporter(self.connection, client=client).import_country("ME", 2025, [1])
         self.assertEqual(result["errors"], 0)
         self.assertEqual(result["rows"], 0)
-        aggregate = aggregate_country(self.connection, "AL", 2025, 1, source="ember")
+        aggregate = aggregate_country(self.connection, "ME", 2025, 1, source="ember")
         self.assertEqual(aggregate["data_status"], "missing")
+
+    def test_albania_is_not_an_atlas_country(self):
+        with self.assertRaisesRegex(ValueError, "Unsupported Ember country"):
+            EmberImporter(self.connection, client=FixtureEmberClient()).import_country("AL", 2025, [1])
+        with self.assertRaisesRegex(ValueError, "Unsupported pilot country"):
+            aggregate_country(self.connection, "AL", 2025, 1, source="ember")
 
     def test_invalid_response_preserves_existing_period_atomically(self):
         self.connection.execute(

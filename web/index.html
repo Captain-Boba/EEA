@@ -39,7 +39,7 @@
 
     <section>
       <h2>Gesamttabelle</h2>
-      <p class="hint">Spaltenkopf anklicken zum Sortieren. Zwei bis vier Länder über die erste Spalte auswählen.</p>
+      <p class="hint">Spaltenkopf anklicken zum Sortieren. Der Datenstatus steht als Badge am Land; Details zeigt der Tooltip. Zwei bis vier Länder über die erste Spalte auswählen.</p>
       <div class="table-wrap">
         <table id="summary-table">
           <thead><tr id="summary-head"></tr></thead>
@@ -54,6 +54,18 @@
         <table id="compare-table">
           <thead><tr id="compare-head"></tr></thead>
           <tbody id="compare-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="storage" hidden>
+      <h2>Elektrische Speicher</h2>
+      <p id="storage-note" class="hint"></p>
+      <p class="hint">Betriebsbereite mechanische und elektrochemische Speicher. Die Speicherdauer ist aus Energie ÷ Leistung abgeleitet.</p>
+      <div class="table-wrap storage-wrap">
+        <table id="storage-table">
+          <thead><tr id="storage-head"></tr></thead>
+          <tbody id="storage-body"></tbody>
         </table>
       </div>
     </section>
@@ -75,8 +87,23 @@
           <p><strong>Preisquellenangabe:</strong> Ember Wholesale Electricity Price Data, CC BY 4.0.</p>
           <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quellenangabe: Ember.</p>
         </article>
+        <article>
+          <h3>Eurostat</h3>
+          <p><strong>Anbieter:</strong> Statistisches Amt der Europäischen Union.</p>
+          <p><strong>Datensätze:</strong> Bevölkerung zum Jahresanfang (<code>demo_gind</code>), BIP zu laufenden Preisen (<code>nama_10_gdp</code>) und BIP pro Kopf in Kaufkraftstandards (<code>nama_10_pc</code>).</p>
+          <p><strong>Verarbeitung:</strong> Der Import arbeitet seriell mit höchstens einer laufenden Anfrage. Pro-Kopf-Stromwerte werden nur für Jahresansichten und nur mit Bevölkerung aus demselben Kalenderjahr berechnet.</p>
+          <p><strong>Quelle:</strong> <a href="https://ec.europa.eu/eurostat/web/main/data/database" target="_blank" rel="noopener noreferrer">Eurostat-Datenbank</a>.</p>
+        </article>
+        <article>
+          <h3>JRC Energy Storage Inventory</h3>
+          <p><strong>Anbieter:</strong> Joint Research Centre der Europäischen Kommission.</p>
+          <p><strong>Inhalt:</strong> Elektrische Speicherleistung, Speicherkapazität und daraus abgeleitete Speicherdauer für betriebsbereite mechanische und elektrochemische Speicher.</p>
+          <p><strong>Importweg:</strong> Ausschließlich manueller, geprüfter CSV-Import. Das Atlas-Programm fragt das interaktive JRC-Dashboard nicht automatisiert ab.</p>
+          <p><strong>Hinweis:</strong> Die Bestandsdaten können geschätzte Werte und Daten externer Anbieter enthalten. Deshalb werden Quelle, Snapshot und Qualitätsstatus getrennt ausgewiesen.</p>
+          <p><strong>Quelle:</strong> <a href="https://ses.jrc.ec.europa.eu/storage-inventory" target="_blank" rel="noopener noreferrer">European Energy Storage Inventory</a>.</p>
+        </article>
       </div>
-      <p>Die Anwendung verwendet ausschließlich Ember. Importierte API-Antworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>; Ember-API-Schlüssel werden vor der Speicherung redigiert und nicht in der Datenbank abgelegt.</p>
+      <p>Importierte Quellantworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>. Ember-API-Schlüssel werden vor der Speicherung redigiert und nicht in der Datenbank abgelegt. Quellen werden nicht stillschweigend zeitlich vermischt.</p>
     </details>
 
     <details>
@@ -85,8 +112,11 @@
         <li>Erzeugung, Energiemix, Verbrauch und CO₂-Intensität stammen aus Embers kuratierten Monats- und Jahresdaten.</li>
         <li>Preise sind nationale Monatswerte von Ember und werden bei vollständigen Jahren kalendertäglich gewichtet.</li>
         <li>Bruttoimport, Bruttoexport, negative Preisstunden und operative Intervallwerte sind nicht Teil dieses Monatsatlas.</li>
+        <li>Nettoimporte sind positiv bei Nettoimport und negativ bei Nettoexport. Die Nettoimportquote bezieht sich auf den Verbrauch desselben Zeitraums.</li>
+        <li>Eurostat-Kennzahlen und daraus berechnete Pro-Kopf-Werte sind ausschließlich in der Jahresansicht verfügbar.</li>
+        <li>JRC-Speicherwerte sind Snapshot-Daten und werden nicht wie Monats- oder Jahresflüsse behandelt.</li>
         <li>Der laufende Monat ist vorläufig. Das laufende Jahr wird nur aus abgeschlossenen Monaten als YTD ausgewiesen.</li>
-        <li>Ein leerer Wert bedeutet, dass Ember für Land und Zeitraum keine Kennzahl liefert.</li>
+        <li>Ein leerer Wert bedeutet, dass die angegebene Quelle für Land und Zeitraum keine Kennzahl liefert.</li>
       </ul>
       <div id="coverage"></div>
     </details>

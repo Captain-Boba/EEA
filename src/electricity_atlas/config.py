@@ -11,7 +11,6 @@ class Country:
 
 
 ATLAS_COUNTRIES: dict[str, Country] = {
-    "AL": Country("AL", "Albanien"),
     "AT": Country("AT", "Österreich"),
     "BE": Country("BE", "Belgien"),
     "BG": Country("BG", "Bulgarien"),
@@ -61,7 +60,6 @@ EMBER_PRICE_CSV_URL = (
     "european_wholesale_electricity_price_data_monthly.csv"
 )
 EMBER_ISO3: dict[str, str] = {
-    "AL": "ALB",
     "AT": "AUT",
     "BE": "BEL",
     "BG": "BGR",
@@ -95,3 +93,19 @@ EMBER_ISO3: dict[str, str] = {
     "SE": "SWE",
 }
 EMBER_ISO3_TO_ATLAS = {iso3: code for code, iso3 in EMBER_ISO3.items()}
+
+EUROSTAT_SOURCE_NAME = "eurostat"
+EUROSTAT_API_BASE_URL = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data"
+EUROSTAT_SOURCE_LABEL = "Eurostat"
+# Eurostat uses the statistical code EL for Greece, while the Atlas keeps GR.
+EUROSTAT_GEO = {code: ("EL" if code == "GR" else code) for code in ATLAS_COUNTRIES}
+EUROSTAT_GEO_TO_ATLAS = {geo: code for code, geo in EUROSTAT_GEO.items()}
+
+JRC_SOURCE_NAME = "jrc"
+JRC_STORAGE_ENDPOINT = "european-energy-storage-inventory/manual-export"
+JRC_STORAGE_SOURCE_LABEL = "European Commission JRC – European Energy Storage Inventory"
+
+# Albania remains present in Ember's vendor CSV but is intentionally outside
+# the Atlas catalog. It is ignored while every other unknown ISO3 code remains
+# a hard validation error.
+EXCLUDED_VENDOR_ISO3 = frozenset({"ALB"})

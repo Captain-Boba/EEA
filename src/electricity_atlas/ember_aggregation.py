@@ -11,6 +11,7 @@ from .config import (
     EMBER_PRICE_SOURCE_LABEL,
     EMBER_SOURCE_LABEL,
     EMBER_SOURCE_NAME,
+    EUROSTAT_SOURCE_NAME,
 )
 
 
@@ -119,16 +120,41 @@ def aggregate_ember_country(
         )
     values: dict[str, float] = {}
     monthly_generation: dict[str, float] = {}
+    monthly_component_generation: dict[str, float] = {}
     for row in rows:
-        if row["unit"] == "TWh" and row["metric"].startswith("generation_"):
+        if row["unit"] == "TWh" and (
+            row["metric"].startswith("generation_")
+            or row["metric"] in {"demand_total", "net_imports"}
+        ):
             values[row["metric"]] = values.get(row["metric"], 0.0) + row["value"]
-            monthly_generation[row["period_start"]] = (
-                monthly_generation.get(row["period_start"], 0.0) + row["value"]
-            )
+            if row["metric"] == "generation_total":
+                monthly_generation[row["period_start"]] = row["value"]
+            elif (
+                row["metric"] in EMBER_RENEWABLE_METRICS
+                or row["metric"] in EMBER_FOSSIL_METRICS
+                or row["metric"] == "generation_nuclear"
+            ):
+                monthly_component_generation[row["period_start"]] = (
+                    monthly_component_generation.get(row["period_start"], 0.0) + row["value"]
+                )
 
-    generation_twh = _sum_present(values, values.keys())
-    renewable_twh = _sum_present(values, EMBER_RENEWABLE_METRICS)
-    fossil_twh = _sum_present(values, EMBER_FOSSIL_METRICS)
+    for period_start, value in monthly_component_generation.items():
+        monthly_generation.setdefault(period_start, value)
+
+    component_values = {
+        metric: value
+        for metric, value in values.items()
+        if metric in EMBER_RENEWABLE_METRICS or metric in EMBER_FOSSIL_METRICS or metric == "generation_nuclear"
+    }
+    generation_twh = values.get("generation_total")
+    if generation_twh is None:
+        generation_twh = _sum_present(component_values, component_values.keys())
+    renewable_twh = values.get("generation_renewables")
+    if renewable_twh is None:
+        renewable_twh = _sum_present(component_values, EMBER_RENEWABLE_METRICS)
+    fossil_twh = values.get("generation_fossil")
+    if fossil_twh is None:
+        fossil_twh = _sum_present(component_values, EMBER_FOSSIL_METRICS)
     consumption_rows = [
         row for row in rows if row["metric"] == "consumption" and row["unit"] == "TWh"
     ]
@@ -137,11 +163,14 @@ def aggregate_ember_country(
         for row in rows
         if row["metric"] == "carbon_intensity" and row["unit"] == "gCO2/kWh"
     ]
-    consumption_twh = (
+    consumption_twh = values.get("demand_total")
+    fallback_consumption = (
         sum(row["value"] for row in consumption_rows)
         if is_current_ytd and consumption_rows
         else (consumption_rows[0]["value"] if consumption_rows else None)
     )
+    if consumption_twh is None:
+        consumption_twh = fallback_consumption
     quality_issues: list[dict[str, str]] = []
     if month is None and consumption_twh is None:
         monthly_demand = list(
@@ -185,6 +214,38 @@ def aggregate_ember_country(
             }
         )
     price = _price_summary(connection, code, year, month)
+    population = None
+    gdp_current_billion_eur = None
+    gdp_per_capita_pps = None
+    if month is None:
+        socioeconomic = {
+            row["metric"]: row["value"]
+            for row in connection.execute(
+                """SELECT metric,value FROM period_observation
+                   WHERE source=? AND country_code=? AND granularity='yearly'
+                     AND period_start=? AND metric IN ('population','gdp_current_billion_eur','gdp_per_capita_pps')""",
+                (EUROSTAT_SOURCE_NAME, code, f"{year:04d}-01-01"),
+            )
+        }
+        population = socioeconomic.get("population")
+        gdp_current_billion_eur = socioeconomic.get("gdp_current_billion_eur")
+        gdp_per_capita_pps = socioeconomic.get("gdp_per_capita_pps")
+    generation_per_capita = (
+        generation_twh * 1_000_000 / population
+        if generation_twh is not None and population and population > 0
+        else None
+    )
+    consumption_per_capita = (
+        consumption_twh * 1_000_000 / population
+        if consumption_twh is not None and population and population > 0
+        else None
+    )
+    net_imports_twh = values.get("net_imports")
+    net_import_share = (
+        net_imports_twh / consumption_twh * 100.0
+        if net_imports_twh is not None and consumption_twh not in (None, 0)
+        else None
+    )
     available_groups = sum(value is not None for value in (generation_twh, consumption_twh, carbon_intensity))
     any_data = available_groups or price["price_months_available"]
     if price["price_coverage"] == "incomplete":
@@ -201,8 +262,11 @@ def aggregate_ember_country(
             "twh": value,
             "pct": value / generation_twh * 100.0 if generation_twh and value is not None else None,
         }
-        for metric, value in values.items()
+        for metric, value in component_values.items()
     }
+    def mix_value(metric: str, part: str) -> float | None:
+        return mix.get(metric, {}).get(part)
+
     return {
         "country_code": code,
         "country_name": COUNTRIES[code].name,
@@ -212,20 +276,45 @@ def aggregate_ember_country(
         "source_label": EMBER_SOURCE_LABEL,
         "generation_twh": generation_twh,
         "consumption_twh": consumption_twh,
+        "generation_per_capita_mwh": generation_per_capita,
+        "consumption_per_capita_mwh": consumption_per_capita,
         "renewable_twh": renewable_twh,
         "renewable_share_pct": renewable_share(renewable_twh, generation_twh)
         if renewable_twh is not None and generation_twh is not None
         else None,
         "wind_twh": values.get("generation_wind"),
+        "wind_share_pct": mix_value("generation_wind", "pct"),
         "solar_twh": values.get("generation_solar"),
+        "solar_share_pct": mix_value("generation_solar", "pct"),
+        "hydro_twh": values.get("generation_hydro"),
+        "hydro_share_pct": mix_value("generation_hydro", "pct"),
+        "bioenergy_twh": values.get("generation_biomass"),
+        "bioenergy_share_pct": mix_value("generation_biomass", "pct"),
+        "other_renewables_twh": values.get("generation_other_renewables"),
+        "other_renewables_share_pct": mix_value("generation_other_renewables", "pct"),
         "nuclear_twh": values.get("generation_nuclear"),
+        "nuclear_share_pct": mix_value("generation_nuclear", "pct"),
         "fossil_twh": fossil_twh,
+        "fossil_share_pct": renewable_share(fossil_twh, generation_twh)
+        if fossil_twh is not None and generation_twh is not None
+        else None,
+        "coal_twh": values.get("generation_coal"),
+        "coal_share_pct": mix_value("generation_coal", "pct"),
+        "gas_twh": values.get("generation_gas"),
+        "gas_share_pct": mix_value("generation_gas", "pct"),
+        "other_fossil_twh": values.get("generation_other_fossil"),
+        "other_fossil_share_pct": mix_value("generation_other_fossil", "pct"),
+        "net_imports_twh": net_imports_twh,
+        "net_import_share_pct": net_import_share,
         "price_avg_eur_mwh": price["price_avg_eur_mwh"],
         "price_coverage": price["price_coverage"],
         "price_months_available": price["price_months_available"],
         "price_months_complete": price["price_months_complete"],
         "price_source_label": price["price_source_label"],
         "carbon_intensity_gco2eq_kwh": carbon_intensity,
+        "population": population,
+        "gdp_current_billion_eur": gdp_current_billion_eur,
+        "gdp_per_capita_pps": gdp_per_capita_pps,
         "mix": mix,
         "quality_issues": quality_issues,
         "data_status": (

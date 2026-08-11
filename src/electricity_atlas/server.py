@@ -11,6 +11,8 @@ from .aggregation import aggregate_all, aggregate_country
 from .config import COUNTRIES
 from .coverage import coverage_rows
 from .db import database, read_database
+from .metrics import metric_catalog
+from .storage_importer import latest_storage
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2] / "web"
@@ -52,6 +54,8 @@ class AtlasHandler(BaseHTTPRequestHandler):
                     payload = {"status": "ok", "database": str(self.db_path)}
                 elif path == "/api/countries":
                     payload = [country.__dict__ for country in COUNTRIES.values()]
+                elif path == "/api/metrics":
+                    payload = metric_catalog()
                 elif path == "/api/summary":
                     payload = aggregate_all(connection, year, month, source)
                 elif path == "/api/compare":
@@ -61,6 +65,8 @@ class AtlasHandler(BaseHTTPRequestHandler):
                     payload = [aggregate_country(connection, code, year, month, source) for code in codes]
                 elif path == "/api/coverage":
                     payload = coverage_rows(connection, year)
+                elif path == "/api/storage":
+                    payload = latest_storage(connection)
                 else:
                     self._json({"error": "not found"}, HTTPStatus.NOT_FOUND)
                     return

@@ -26,21 +26,30 @@ class ServerSmokeTests(unittest.TestCase):
                     summary = json.load(response)
                 with urlopen(base + "/api/summary?year=2025&month=7&source=ember", timeout=5) as response:
                     ember_summary = json.load(response)
+                with urlopen(base + "/api/metrics", timeout=5) as response:
+                    metrics = json.load(response)
+                with urlopen(base + "/api/storage", timeout=5) as response:
+                    storage = json.load(response)
                 self.assertIn("European Electricity Atlas", html)
                 self.assertIn("Datenquellen und Herkunft", html)
                 self.assertNotIn("Energy-Charts", html)
                 self.assertIn('id="year" type="number" min="2015"', html)
-                self.assertEqual(len(summary), 32)
+                self.assertEqual(len(summary), 31)
                 self.assertEqual(
                     {row["country_code"] for row in summary},
-                    {"AL", "AT", "BE", "BG", "CH", "CZ", "DE", "DK", "ES", "EE", "FI", "FR", "UK", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "ME", "MK", "NL", "NO", "PL", "PT", "RO", "RS", "SK", "SI", "SE"},
+                    {"AT", "BE", "BG", "CH", "CZ", "DE", "DK", "ES", "EE", "FI", "FR", "UK", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "ME", "MK", "NL", "NO", "PL", "PT", "RO", "RS", "SK", "SI", "SE"},
                 )
                 self.assertEqual(summary[0]["period"], "2025-07")
                 self.assertTrue(all(row["source"] == "ember" for row in summary))
                 self.assertTrue(all(row["data_status"] == "missing" for row in summary))
-                self.assertEqual(len(ember_summary), 32)
+                self.assertEqual(len(ember_summary), 31)
                 self.assertTrue(all(row["source"] == "ember" for row in ember_summary))
                 self.assertTrue(all(row["data_status"] == "missing" for row in ember_summary))
+                self.assertIn("net_import_share_pct", {metric["id"] for metric in metrics})
+                self.assertEqual(storage["snapshot_date"], None)
+                self.assertEqual(storage["source"], "jrc")
+                self.assertIn("JRC", storage["source_label"])
+                self.assertEqual(storage["countries"], [])
                 with self.assertRaises(HTTPError) as error:
                     urlopen(base + "/api/summary?year=2025&source=combined", timeout=5)
                 self.assertEqual(error.exception.code, 400)

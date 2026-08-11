@@ -83,7 +83,21 @@ class EmberClient:
         params = {"entity_code": entity_code, "start_date": start_date, "end_date": end_date}
         if extra:
             params.update(extra)
-        return self._request(endpoint, entity_code, start_date, end_date, params, refresh)
+        cache_target = entity_code
+        if extra:
+            cache_target += "|" + "&".join(f"{key}={extra[key]}" for key in sorted(extra))
+        legacy_target = (
+            entity_code if extra == {"is_aggregate_series": "false"} else None
+        )
+        return self._request(
+            endpoint,
+            cache_target,
+            start_date,
+            end_date,
+            params,
+            refresh,
+            legacy_target=legacy_target,
+        )
 
     def options(
         self,
@@ -104,28 +118,36 @@ class EmberClient:
         end_date: str,
         params: dict[str, str],
         refresh: bool,
+        legacy_target: str | None = None,
     ) -> dict[str, Any]:
         normalized_endpoint = endpoint.strip("/")
         cache_endpoint = f"ember/{normalized_endpoint}"
         if not refresh:
-            row = self.connection.execute(
-                """SELECT response_json FROM api_cache
-                   WHERE endpoint=? AND target=? AND start_date=? AND end_date=?""",
-                (cache_endpoint, target, start_date, end_date),
-            ).fetchone()
-            if row:
-                return json.loads(row["response_json"])
-            covering = self.connection.execute(
-                """SELECT response_json FROM api_cache
-                   WHERE endpoint=? AND target=? AND start_date<=? AND end_date>=?
-                   ORDER BY start_date DESC, end_date ASC
-                   LIMIT 1""",
-                (cache_endpoint, target, start_date, end_date),
-            ).fetchone()
-            if covering:
-                return self._slice_cached_payload(
-                    json.loads(covering["response_json"]), normalized_endpoint, start_date, end_date
-                )
+            for candidate_target in (target, legacy_target):
+                if candidate_target is None:
+                    continue
+                row = self.connection.execute(
+                    """SELECT response_json FROM api_cache
+                       WHERE endpoint=? AND target=? AND start_date=? AND end_date=?""",
+                    (cache_endpoint, candidate_target, start_date, end_date),
+                ).fetchone()
+                if row:
+                    payload = json.loads(row["response_json"])
+                    if candidate_target == target or self._is_non_aggregate_generation(payload):
+                        return payload
+                covering = self.connection.execute(
+                    """SELECT response_json FROM api_cache
+                       WHERE endpoint=? AND target=? AND start_date<=? AND end_date>=?
+                       ORDER BY start_date DESC, end_date ASC
+                       LIMIT 1""",
+                    (cache_endpoint, candidate_target, start_date, end_date),
+                ).fetchone()
+                if covering:
+                    payload = json.loads(covering["response_json"])
+                    if candidate_target == target or self._is_non_aggregate_generation(payload):
+                        return self._slice_cached_payload(
+                            payload, normalized_endpoint, start_date, end_date
+                        )
 
         request_params = dict(params)
         request_params["api_key"] = self._api_key
@@ -177,6 +199,14 @@ class EmberClient:
         )
         self.connection.commit()
         return payload
+
+    @staticmethod
+    def _is_non_aggregate_generation(payload: dict[str, Any]) -> bool:
+        rows = payload.get("data")
+        return isinstance(rows, list) and all(
+            isinstance(row, dict) and row.get("is_aggregate_series") is False
+            for row in rows
+        )
 
     @staticmethod
     def _slice_cached_payload(

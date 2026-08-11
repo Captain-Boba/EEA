@@ -1,33 +1,26 @@
-const columns = [
-  ["country_name", "Land", "text"],
-  ["data_status", "Datenstatus", "text"],
-  ["generation_twh", "Erzeugung TWh", "number"],
-  ["consumption_twh", "Verbrauch TWh", "number"],
-  ["renewable_twh", "EE TWh", "number"],
-  ["renewable_share_pct", "EE %", "number"],
-  ["wind_twh", "Wind TWh", "number"],
-  ["solar_twh", "Solar TWh", "number"],
-  ["nuclear_twh", "Kernkraft TWh", "number"],
-  ["fossil_twh", "Fossil TWh", "number"],
-  ["price_avg_eur_mwh", "Ø Preis EUR/MWh", "number"],
-  ["carbon_intensity_gco2eq_kwh", "CO₂ gCO₂eq/kWh", "number"],
+const TABLE_METRIC_IDS = [
+  "generation_twh",
+  "consumption_twh",
+  "consumption_per_capita_mwh",
+  "renewable_share_pct",
+  "fossil_share_pct",
+  "nuclear_share_pct",
+  "net_import_share_pct",
+  "carbon_intensity_gco2eq_kwh",
+  "price_avg_eur_mwh",
 ];
+const STORAGE_METRIC_IDS = ["storage_power_gw", "storage_energy_gwh", "storage_duration_hours"];
 
-const compareMetrics = [
-  ["generation_twh", "Produktion", "TWh"], ["consumption_twh", "Verbrauch", "TWh"],
-  ["renewable_twh", "EE", "TWh"], ["renewable_share_pct", "EE", "%"],
-  ["wind_twh", "Wind", "TWh"], ["solar_twh", "Solar", "TWh"],
-  ["nuclear_twh", "Kernkraft", "TWh"], ["fossil_twh", "Fossil", "TWh"],
-  ["price_avg_eur_mwh", "Ø Preis", "EUR/MWh"],
-  ["carbon_intensity_gco2eq_kwh", "CO₂", "gCO₂eq/kWh"],
-];
-
+let metricCatalog = new Map();
 let data = [];
 let sortKey = "country_name";
 let sortDirection = 1;
 let comparisonData = [];
 let compareSortKey = "country_name";
 let compareSortDirection = 1;
+let storageData = [];
+let storageSortKey = "storage_power_gw";
+let storageSortDirection = -1;
 const selected = new Set();
 
 const $ = id => document.getElementById(id);
@@ -44,26 +37,54 @@ function selectedYear() {
   return year;
 }
 
-const periodQuery = () => {
+function periodQuery() {
   const params = new URLSearchParams({year: selectedYear()});
   if ($("period-type").value === "month") params.set("month", $("month").value);
   return params;
-};
+}
 
 function format(value) {
   if (value === null || value === undefined) return '<span class="missing">—</span>';
-  if (typeof value === "number") return new Intl.NumberFormat("de-DE", {maximumFractionDigits: 2}).format(value);
+  if (typeof value === "number") {
+    return new Intl.NumberFormat("de-DE", {maximumFractionDigits: 2}).format(value);
+  }
   return String(value);
 }
 
-function formatCell(row, key) {
-  if (key !== "data_status") return format(row[key]);
-  const status = {complete: "vollständig", partial: "teilweise", missing: "fehlend"}[row.data_status]
-    || row.data_status;
-  const period = row.period_status === "provisional_current_month"
-    ? '<span class="period-flag provisional">vorläufig</span>'
-    : (row.period_status === "ytd" ? '<span class="period-flag ytd">YTD</span>' : "");
-  return `${status}${period}`;
+function metricDefinition(id) {
+  return metricCatalog.get(id) || {id, label_de: id, unit: ""};
+}
+
+function metricHeader(id, activeKey, direction) {
+  const metric = metricDefinition(id);
+  const active = activeKey === id;
+  const arrow = active ? (direction > 0 ? " ↑" : " ↓") : "";
+  const ariaSort = active ? ` aria-sort="${direction > 0 ? "ascending" : "descending"}"` : "";
+  const unit = metric.unit ? `<span class="unit">${metric.unit}</span>` : "";
+  return `<th scope="col" data-key="${id}"${ariaSort}>${metric.label_de}${arrow}${unit}</th>`;
+}
+
+function statusBadge(row) {
+  const labels = {complete: "vollständig", partial: "teilweise", missing: "fehlend"};
+  const periodLabels = {provisional_current_month: "vorläufig", ytd: "YTD"};
+  const details = [
+    `Datenstatus: ${labels[row.data_status] || row.data_status}`,
+    `Zeitraum: ${row.period}`,
+    `Preisabdeckung: ${row.price_coverage || "fehlend"}`,
+    ...(row.quality_issues || []).map(issue => issue.details),
+  ].join("\n");
+  const period = periodLabels[row.period_status]
+    ? `<span class="period-flag ${row.period_status === "ytd" ? "ytd" : "provisional"}">${periodLabels[row.period_status]}</span>`
+    : "";
+  return `<span class="status-badge ${row.data_status}" title="${escapeAttribute(details)}" aria-label="${escapeAttribute(details)}">${labels[row.data_status] || row.data_status}</span>${period}`;
+}
+
+function escapeAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 function sortRows(rows, key, direction) {
@@ -76,23 +97,30 @@ function sortRows(rows, key, direction) {
   });
 }
 
+function bindSort(selector, callback) {
+  document.querySelectorAll(selector).forEach(th => th.addEventListener("click", () => callback(th.dataset.key)));
+}
+
 function renderHead() {
-  $("summary-head").innerHTML = '<th scope="col">Auswahl</th>' + columns.map(([key, label]) =>
-    `<th scope="col" data-key="${key}"${sortKey === key ? ` aria-sort="${sortDirection > 0 ? "ascending" : "descending"}"` : ""}>${label}${sortKey === key ? (sortDirection > 0 ? " ↑" : " ↓") : ""}</th>`
-  ).join("");
-  document.querySelectorAll("#summary-head th[data-key]").forEach(th => th.addEventListener("click", () => {
-    if (sortKey === th.dataset.key) sortDirection *= -1;
-    else { sortKey = th.dataset.key; sortDirection = -1; }
+  const countryArrow = sortKey === "country_name" ? (sortDirection > 0 ? " ↑" : " ↓") : "";
+  const countrySort = sortKey === "country_name" ? ` aria-sort="${sortDirection > 0 ? "ascending" : "descending"}"` : "";
+  $("summary-head").innerHTML = '<th scope="col">Auswahl</th>'
+    + `<th scope="col" data-key="country_name"${countrySort}>Land${countryArrow}</th>`
+    + TABLE_METRIC_IDS.map(id => metricHeader(id, sortKey, sortDirection)).join("");
+  bindSort("#summary-head th[data-key]", key => {
+    if (sortKey === key) sortDirection *= -1;
+    else { sortKey = key; sortDirection = -1; }
     render();
-  }));
+  });
 }
 
 function render() {
   renderHead();
   const sorted = sortRows(data, sortKey, sortDirection);
   $("summary-body").innerHTML = sorted.map(row => `<tr>
-    <td><input type="checkbox" aria-label="${row.country_name} auswählen" data-country="${row.country_code}" ${selected.has(row.country_code) ? "checked" : ""}></td>
-    ${columns.map(([key]) => `<td>${formatCell(row, key)}</td>`).join("")}
+    <td><input type="checkbox" aria-label="${escapeAttribute(row.country_name)} auswählen" data-country="${row.country_code}" ${selected.has(row.country_code) ? "checked" : ""}></td>
+    <th scope="row"><span class="country-name">${row.country_name}</span>${statusBadge(row)}</th>
+    ${TABLE_METRIC_IDS.map(id => `<td>${format(row[id])}</td>`).join("")}
   </tr>`).join("");
   document.querySelectorAll("input[data-country]").forEach(input => input.addEventListener("change", event => {
     const code = event.target.dataset.country;
@@ -104,18 +132,36 @@ function render() {
 }
 
 function renderComparison() {
-  $("compare-head").innerHTML = `<th scope="col" data-key="country_name"${compareSortKey === "country_name" ? ` aria-sort="${compareSortDirection > 0 ? "ascending" : "descending"}"` : ""}>Land${compareSortKey === "country_name" ? (compareSortDirection > 0 ? " ↑" : " ↓") : ""}</th>` + compareMetrics.map(([key, label, unit]) =>
-    `<th scope="col" data-key="${key}"${compareSortKey === key ? ` aria-sort="${compareSortDirection > 0 ? "ascending" : "descending"}"` : ""}>${label}${compareSortKey === key ? (compareSortDirection > 0 ? " ↑" : " ↓") : ""}<span class="unit">${unit}</span></th>`
-  ).join("");
-  document.querySelectorAll("#compare-head th[data-key]").forEach(th => th.addEventListener("click", () => {
-    if (compareSortKey === th.dataset.key) compareSortDirection *= -1;
-    else { compareSortKey = th.dataset.key; compareSortDirection = -1; }
+  const countryArrow = compareSortKey === "country_name" ? (compareSortDirection > 0 ? " ↑" : " ↓") : "";
+  const countrySort = compareSortKey === "country_name" ? ` aria-sort="${compareSortDirection > 0 ? "ascending" : "descending"}"` : "";
+  $("compare-head").innerHTML = `<th scope="col" data-key="country_name"${countrySort}>Land${countryArrow}</th>`
+    + TABLE_METRIC_IDS.map(id => metricHeader(id, compareSortKey, compareSortDirection)).join("");
+  bindSort("#compare-head th[data-key]", key => {
+    if (compareSortKey === key) compareSortDirection *= -1;
+    else { compareSortKey = key; compareSortDirection = -1; }
     renderComparison();
-  }));
+  });
   const sorted = sortRows(comparisonData, compareSortKey, compareSortDirection);
   $("compare-body").innerHTML = sorted.map(row =>
-    `<tr><th scope="row">${row.country_name}</th>${compareMetrics.map(([key]) => `<td>${formatCell(row, key)}</td>`).join("")}</tr>`
+    `<tr><th scope="row"><span class="country-name">${row.country_name}</span>${statusBadge(row)}</th>${TABLE_METRIC_IDS.map(id => `<td>${format(row[id])}</td>`).join("")}</tr>`
   ).join("");
+}
+
+function renderStorage() {
+  const countryArrow = storageSortKey === "country_name" ? (storageSortDirection > 0 ? " ↑" : " ↓") : "";
+  const countrySort = storageSortKey === "country_name" ? ` aria-sort="${storageSortDirection > 0 ? "ascending" : "descending"}"` : "";
+  $("storage-head").innerHTML = `<th scope="col" data-key="country_name"${countrySort}>Land${countryArrow}</th>`
+    + STORAGE_METRIC_IDS.map(id => metricHeader(id, storageSortKey, storageSortDirection)).join("");
+  bindSort("#storage-head th[data-key]", key => {
+    if (storageSortKey === key) storageSortDirection *= -1;
+    else { storageSortKey = key; storageSortDirection = -1; }
+    renderStorage();
+  });
+  const sorted = sortRows(storageData, storageSortKey, storageSortDirection);
+  $("storage-body").innerHTML = sorted.map(row => `<tr>
+    <th scope="row">${row.country_name}${row.quality_status === "missing" ? '<span class="status-badge missing">fehlend</span>' : ""}</th>
+    ${STORAGE_METRIC_IDS.map(id => `<td>${format(row[id])}</td>`).join("")}
+  </tr>`).join("");
 }
 
 function updateSelection() {
@@ -123,10 +169,17 @@ function updateSelection() {
   $("compare").disabled = selected.size < 2 || selected.size > 4;
 }
 
+async function loadMetricCatalog() {
+  const response = await fetch("/api/metrics");
+  if (!response.ok) throw new Error((await response.json()).error || response.statusText);
+  metricCatalog = new Map((await response.json()).map(metric => [metric.id, metric]));
+}
+
 async function loadSummary() {
   $("status").textContent = "Daten werden geladen …";
   $("status").className = "";
   try {
+    if (!metricCatalog.size) await loadMetricCatalog();
     const response = await fetch(`/api/summary?${periodQuery()}`);
     if (!response.ok) throw new Error((await response.json()).error || response.statusText);
     data = await response.json();
@@ -136,7 +189,7 @@ async function loadSummary() {
       ? " Laufender Monat: vorläufig."
       : (periodStatus === "ytd" ? " Laufendes Jahr: YTD." : "");
     $("status").textContent = data.some(row => Object.values(row).some(value => typeof value === "number"))
-      ? `Ember-Daten geladen.${periodNote}` : `Noch keine Ember-Daten importiert.${periodNote}`;
+      ? `Atlas-Daten geladen.${periodNote}` : `Noch keine Daten importiert.${periodNote}`;
   } catch (error) {
     $("status").textContent = `Fehler: ${error.message}`;
     $("status").className = "error";
@@ -155,8 +208,29 @@ async function compare() {
   $("comparison").scrollIntoView({behavior: "smooth"});
 }
 
-async function loadCoverage() {
-  $("coverage").innerHTML = "<p>Ember ist die einzige Datenquelle. Fehlende Werte bleiben leer und werden nicht aus anderen Quellen ergänzt.</p>";
+async function loadStorage() {
+  try {
+    if (!metricCatalog.size) await loadMetricCatalog();
+    const response = await fetch("/api/storage");
+    if (!response.ok) throw new Error((await response.json()).error || response.statusText);
+    const storage = await response.json();
+    if (!storage.snapshot_date) return;
+    storageData = storage.countries;
+    const missingNote = storage.countries_missing?.length
+      ? ` Ohne Exportwert: ${storage.countries_missing.join(", ")}.`
+      : "";
+    $("storage-note").textContent = `Snapshot ${storage.snapshot_date} · ${storage.countries_with_values}/${storage.countries.length} Länder · ${storage.source_label}.${missingNote}`;
+    $("storage").hidden = false;
+    renderStorage();
+  } catch (error) {
+    $("storage").hidden = false;
+    $("storage-note").textContent = `Speicherdaten konnten nicht geladen werden: ${error.message}`;
+    $("storage-note").className = "error";
+  }
+}
+
+function loadCoverage() {
+  $("coverage").innerHTML = "<p>Fehlende Werte bleiben leer. Jahreswerte pro Kopf kombinieren ausschließlich Ember-Stromdaten und Eurostat-Bevölkerung desselben Kalenderjahres.</p>";
 }
 
 function syncPeriodControls() {
@@ -172,3 +246,4 @@ $("compare").addEventListener("click", compare);
 syncPeriodControls();
 loadCoverage();
 loadSummary();
+loadStorage();

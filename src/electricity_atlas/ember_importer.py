@@ -21,7 +21,15 @@ EMBER_SERIES_TO_METRIC = {
     "solar": "generation_solar",
     "wind": "generation_wind",
 }
-EMBER_NON_GENERATION_SERIES = frozenset({"demand", "net imports"})
+EMBER_AGGREGATE_SERIES_TO_METRIC = {
+    "total generation": "generation_total",
+    "demand": "demand_total",
+    "renewables": "generation_renewables",
+    "fossil": "generation_fossil",
+}
+EMBER_IGNORED_AGGREGATE_SERIES = frozenset(
+    {"clean", "wind and solar", "hydro, bioenergy and other renewables"}
+)
 
 
 @dataclass(frozen=True)
@@ -203,16 +211,45 @@ class EmberImporter:
     def _import_endpoint(
         self, code: str, endpoint: str, granularity: str, start_date: str, end_date: str
     ) -> int:
-        extra = {"is_aggregate_series": "false"} if endpoint.startswith("electricity-generation/") else None
         api_end_date = _next_month_token(end_date) if granularity == "monthly" else end_date
-        payload = self.client.get(
-            endpoint,
-            EMBER_ISO3[code],
-            start_date,
-            api_end_date,
-            extra=extra,
-            refresh=self.refresh,
-        )
+        if endpoint.startswith("electricity-generation/"):
+            payloads = [
+                self.client.get(
+                    endpoint,
+                    EMBER_ISO3[code],
+                    start_date,
+                    api_end_date,
+                    extra={"is_aggregate_series": aggregate},
+                    refresh=self.refresh,
+                )
+                for aggregate in ("false", "true")
+            ]
+            payload = {"data": []}
+            seen_records: set[tuple[Any, ...]] = set()
+            for item in payloads:
+                if not isinstance(item, dict) or not isinstance(item.get("data"), list):
+                    raise ValueError(f"{endpoint} payload has no data list")
+                for record in item["data"]:
+                    if not isinstance(record, dict):
+                        payload["data"].append(record)
+                        continue
+                    key = (
+                        record.get("entity_code"),
+                        record.get("date"),
+                        record.get("series"),
+                        record.get("is_aggregate_series"),
+                    )
+                    if key not in seen_records:
+                        payload["data"].append(record)
+                        seen_records.add(key)
+        else:
+            payload = self.client.get(
+                endpoint,
+                EMBER_ISO3[code],
+                start_date,
+                api_end_date,
+                refresh=self.refresh,
+            )
         rows = self._normalize_payload(code, endpoint, granularity, start_date, end_date, payload)
         range_start, _ = _record_period(start_date, granularity)
         range_end, _ = _record_period(end_date, granularity)
@@ -275,19 +312,26 @@ class EmberImporter:
             if not requested_start <= period_start <= requested_end:
                 raise ValueError(f"{endpoint} record {index} is outside the requested period")
             if endpoint.startswith("electricity-generation/"):
-                if record.get("is_aggregate_series") is True:
-                    raise ValueError(f"{endpoint} record {index} unexpectedly contains an aggregate series")
                 series = str(record.get("series", "")).strip()
-                if series.casefold() in EMBER_NON_GENERATION_SERIES:
-                    continue
-                metric = EMBER_SERIES_TO_METRIC.get(series.casefold())
-                if not series or metric is None:
+                series_key = series.casefold()
+                is_aggregate = record.get("is_aggregate_series") is True
+                if not series:
+                    raise ValueError(f"{endpoint} record {index} has no series")
+                if series_key == "net imports":
+                    metric = "net_imports"
+                elif is_aggregate:
+                    if series_key in EMBER_IGNORED_AGGREGATE_SERIES:
+                        continue
+                    metric = EMBER_AGGREGATE_SERIES_TO_METRIC.get(series_key)
+                else:
+                    metric = EMBER_SERIES_TO_METRIC.get(series_key)
+                if metric is None:
                     raise ValueError(f"{endpoint} record {index} has an unsupported series")
                 value = record.get("generation_twh")
                 if value is not None:
                     rows.append(EmberPeriodRow(code, period_start, period_end, granularity, endpoint, series, metric, float(value), "TWh"))
                 share = record.get("share_of_generation_pct")
-                if share is not None:
+                if share is not None and metric not in {"net_imports", "demand_total"}:
                     rows.append(EmberPeriodRow(code, period_start, period_end, granularity, endpoint, series, "share_of_generation_pct", float(share), "%"))
             elif endpoint.startswith("electricity-demand/"):
                 value = record.get("demand_twh")

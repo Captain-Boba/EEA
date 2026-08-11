@@ -8,11 +8,13 @@ from pathlib import Path
 from .aggregation import aggregate_all
 from .config import DEFAULT_DB, EMBER_COUNTRIES
 from .coverage import coverage_markdown
-from .db import database, migrate_to_ember_only, read_database, reset
+from .db import database, migrate_atlas_catalog, read_database, reset
 from .ember_client import EmberKeyError, load_ember_api_key
 from .ember_importer import EmberImporter
+from .eurostat_importer import EurostatImporter
 from .price_importer import WholesalePriceImporter
 from .server import serve
+from .storage_importer import JrcStorageImporter
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -26,13 +28,31 @@ def build_parser() -> argparse.ArgumentParser:
     import_parser.add_argument("--from-year", type=int, help="Ember history start year")
     import_parser.add_argument("--to-year", type=int, help="Ember history end year; default current year")
     import_parser.add_argument("--months", type=int, nargs="*", help="Optional months (1-12); default full year")
-    import_parser.add_argument("--countries", nargs="+", help="Atlas country codes; default all 32 countries")
+    import_parser.add_argument("--countries", nargs="+", help="Atlas country codes; default all 31 countries")
     import_parser.add_argument("--refresh", action="store_true", help="Re-download and reproducibly replace cached periods")
 
     subparsers.add_parser("import-prices", help="Download and atomically import Ember monthly wholesale prices")
+    eurostat_parser = subparsers.add_parser(
+        "import-eurostat",
+        help="Sequentially import annual Eurostat population and GDP data",
+    )
+    eurostat_parser.add_argument("--from-year", type=int, default=2015)
+    eurostat_parser.add_argument("--to-year", type=int)
+    storage_parser = subparsers.add_parser(
+        "import-storage",
+        help="Import reviewed JRC storage CSV or paired dashboard XLSX exports",
+    )
+    storage_parser.add_argument("--file", type=Path, help="Reviewed canonical CSV")
+    storage_parser.add_argument("--power-file", type=Path, help="JRC Power (GW) XLSX export")
+    storage_parser.add_argument("--capacity-file", type=Path, help="JRC Capacity (GWh) XLSX export")
+    storage_parser.add_argument("--snapshot-date", help="Dashboard update date in YYYY-MM-DD")
+    subparsers.add_parser(
+        "migrate-atlas",
+        help="Remove Albania, unsupported sources and obsolete interval tables",
+    )
     subparsers.add_parser(
         "migrate-ember-only",
-        help="Remove non-Ember rows, caches and obsolete interval tables",
+        help=argparse.SUPPRESS,
     )
 
     serve_parser = subparsers.add_parser("serve", help="Run local debug UI")
@@ -64,9 +84,44 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(json.dumps(result, ensure_ascii=False))
         return 0
-    if args.command == "migrate-ember-only":
+    if args.command == "import-eurostat":
+        try:
+            with database(args.db) as connection:
+                result = EurostatImporter(connection).import_years(args.from_year, args.to_year)
+        except Exception as exc:
+            print(f"Eurostat import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command == "import-storage":
+        try:
+            with database(args.db) as connection:
+                importer = JrcStorageImporter(connection)
+                if args.file and not any((args.power_file, args.capacity_file, args.snapshot_date)):
+                    result = importer.import_file(args.file)
+                elif (
+                    not args.file
+                    and args.power_file
+                    and args.capacity_file
+                    and args.snapshot_date
+                ):
+                    result = importer.import_exports(
+                        args.power_file,
+                        args.capacity_file,
+                        args.snapshot_date,
+                    )
+                else:
+                    raise ValueError(
+                        "Use either --file or all of --power-file, --capacity-file and --snapshot-date"
+                    )
+        except Exception as exc:
+            print(f"JRC storage import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command in {"migrate-atlas", "migrate-ember-only"}:
         with database(args.db) as connection:
-            result = migrate_to_ember_only(connection)
+            result = migrate_atlas_catalog(connection)
             connection.execute("VACUUM")
         print(json.dumps(result, ensure_ascii=False))
         return 0
