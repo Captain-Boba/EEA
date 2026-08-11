@@ -1,106 +1,119 @@
-# European Electricity Atlas – Data Core v0.1
+# European Electricity Atlas
 
-Lokale Datenpipeline für 31 europäische Atlasländer. Ember liefert vergleichbare Monats- und Jahreswerte für Erzeugung, Nachfrage, Energiemix, Nettoimporte, CO₂-Intensität und Großhandelspreise. Eurostat ergänzt jährliche Bevölkerung und BIP-Kennzahlen. Speicher-Snapshots aus dem JRC European Energy Storage Inventory werden ausschließlich aus einer manuell heruntergeladenen und geprüften CSV übernommen.
+Ein lokaler, interaktiver Atlas für den Vergleich europäischer Stromsysteme. Die Weboberfläche verbindet eine kennzahlengesteuerte Europakarte mit sortierbaren Tabellen, Länder­vergleichen und transparenten Angaben zu Datenstatus und Quellen.
 
-## Voraussetzungen und Installation
+![European Electricity Atlas mit interaktiver Karte](docs/images/atlas-overview.jpg)
 
+## Was der Atlas bietet
+
+- 31 europäische Länder mit Monats- und Jahreswerten ab 2015
+- Stromerzeugung, Nachfrage, Energiemix, Nettoimporte und CO₂-Intensität
+- nationale monatliche und jährliche Großhandelspreise
+- jährliche Bevölkerungs- und BIP-Kennzahlen sowie Pro-Kopf-Auswertungen
+- Speicherleistung, Speicherenergie und äquivalente Speicherdauer als separater JRC-Snapshot
+- vollständig lokale Europakarte ohne Kartenkacheln, CDN oder Tracking
+- synchronisierte Auswahl von zwei bis vier Ländern in Karte, Haupttabelle und Vergleich
+- sichtbare Coverage-Lücken, vorläufige Zeiträume und YTD-Werte statt erfundener Nullwerte
+
+## Schnellstart mit fertigem Datenstand
+
+### Voraussetzungen
+
+- Windows mit PowerShell
+- Git
 - Python 3.11 oder neuer
-- Internetzugang nur für Ember- und Eurostat-Importe
+- Zugriff auf dieses private GitHub-Repository
+
+Repository klonen und eine lokale Python-Umgebung einrichten:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e .
+git clone https://github.com/Captain-Boba/EEA.git
+cd EEA
+
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
 ```
 
-Es gibt keine Laufzeitabhängigkeiten außerhalb der Python-Standardbibliothek.
+Im [aktuellen Release](https://github.com/Captain-Boba/EEA/releases/latest) unter **Assets** die Datei `atlas.sqlite3` herunterladen und im geklonten Projekt unter `data\atlas.sqlite3` ablegen. Der Release-Datenstand benötigt weder einen Ember-API-Key noch einen erneuten Import.
 
-## Ember-Zugang und Stromdaten
-
-Der API-Schlüssel wird zuerst aus `EMBER_API_KEY` und andernfalls aus der lokalen, ignorierten Datei `EMBER_API_KEY.txt` gelesen. Er wird nie ausgegeben oder in SQLite gespeichert; gespeicherte Request-URLs enthalten ausschließlich `api_key=REDACTED`.
+Server starten:
 
 ```powershell
-$env:EMBER_API_KEY="<API-Key>"
-eea import --year 2025
-eea import --from-year 2015
-eea import --year 2025 --countries DE FR ES UK
-eea import --year 2025 --months 1 7
+.\.venv\Scripts\eea.exe serve --port 8765
 ```
 
-Der historische Cache wird wiederverwendet. `--refresh` erzwingt den erneuten Abruf und atomaren Ersatz des ausdrücklich angeforderten Zeitraums. Die Weboberfläche führt keine Importe aus.
+Danach [http://127.0.0.1:8765](http://127.0.0.1:8765) öffnen. `Strg+C` beendet den Server; sobald wieder der PowerShell-Prompt erscheint, ist er gestoppt.
 
-Nationale monatliche Großhandelspreise benötigen keinen API-Key:
+## Datenquellen
+
+| Quelle | Verwendung | Zeitbezug |
+| --- | --- | --- |
+| [Ember](https://ember-energy.org/) | Erzeugung, Nachfrage, Energiemix, Nettoimporte und CO₂-Intensität | Monat und Jahr |
+| [Ember Wholesale Electricity Price Data](https://ember-energy.org/data/european-wholesale-electricity-price-data/) | nationale Großhandelspreise | Monat und daraus gewichtetes Jahr |
+| [Eurostat](https://ec.europa.eu/eurostat/) | Bevölkerung, BIP und BIP pro Kopf | Jahr |
+| [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory) | operative elektrische Speicherleistung und -energie | geprüfter Snapshot |
+| [Natural Earth](https://www.naturalearthdata.com/) | lokale Ländergeometrien der Europakarte | Version 5.1.1 |
+
+Ember-Daten werden als `CC BY 4.0` gekennzeichnet. Natural-Earth-Geometrien sind gemeinfrei. Für Eurostat gelten dessen Wiederverwendungsbedingungen und Ausnahmen. Die JRC-Bestandsdaten können Schätzungen sowie Daten externer Anbieter enthalten; ihre Weitergabe muss vor einer öffentlichen oder kommerziellen Veröffentlichung gesondert geprüft werden.
+
+## Daten selbst aktualisieren
+
+Dieser Abschnitt ist nur erforderlich, wenn nicht der fertige Release-Snapshot verwendet wird oder ein neuerer Datenstand aufgebaut werden soll.
+
+### Ember-Stromdaten
+
+Der Key wird zuerst aus `EMBER_API_KEY` und andernfalls aus der lokalen, von Git ignorierten Datei `EMBER_API_KEY.txt` gelesen. Er wird weder ausgegeben noch in SQLite gespeichert; gecachte Request-URLs enthalten ausschließlich `api_key=REDACTED`.
 
 ```powershell
-eea import-prices
+$env:EMBER_API_KEY = "<API-Key>"
+.\.venv\Scripts\eea.exe import --from-year 2015
 ```
 
-Der Preisimport prüft Header, den 31-Länder-Katalog, ISO3-Codes, Monatsschlüssel und endliche numerische Werte vor dem atomaren Ersatz. Albanien kann in der unveränderten Ember-Rohdatei vorkommen, wird aber nicht in die Atlas-Faktentabelle übernommen. Leere Preiszellen bleiben fehlende Coverage. Der laufende Monat ist vorläufig; Jahrespreise werden nach tatsächlicher Monatsdauer gewichtet und nur mit zwölf abgeschlossenen Monaten vollständig ausgewiesen.
-
-## Eurostat-Jahresdaten
+Der historische Cache wird wiederverwendet. `--refresh` erzwingt den erneuten Abruf und atomaren Ersatz des ausdrücklich angeforderten Zeitraums. Alternativ lassen sich einzelne Jahre, Monate oder Länder importieren:
 
 ```powershell
-eea import-eurostat --from-year 2015
+.\.venv\Scripts\eea.exe import --year 2025
+.\.venv\Scripts\eea.exe import --year 2025 --countries DE FR ES UK
+.\.venv\Scripts\eea.exe import --year 2025 --months 1 7
 ```
 
-Der Import ruft nacheinander genau drei Datensätze ab:
-
-- `demo_gind`: Bevölkerung am Jahresanfang
-- `nama_10_gdp`: BIP zu laufenden Preisen
-- `nama_10_pc`: BIP pro Kopf in Kaufkraftstandards
-
-Es läuft höchstens eine Eurostat-Anfrage gleichzeitig. Temporäre Fehler und HTTP 429 werden mit begrenztem Backoff und `Retry-After` behandelt. Erst nachdem alle drei Antworten strukturell und numerisch validiert wurden, werden Faktentabelle und Rohcache atomar ersetzt.
-
-Das entspricht Eurostats [Fair-Use-Empfehlung](https://ec.europa.eu/eurostat/web/user-guides/data-browser/api-data-access/api-detailed-guidelines/asynchronous-api): eine Extraktionsanfrage zur Zeit und keine Parallelisierung. Eurostat erlaubt die Wiederverwendung statistischer Daten grundsätzlich mit Quellenangabe. Die [Eurostat-Ausnahmen](https://ec.europa.eu/eurostat/help/copyright-notice) schließen die kommerzielle Wiederverwendung bestimmter Daten für Länder außerhalb EU, EFTA sowie Beitritts- und Kandidatenländern aus. Das betrifft insbesondere die UK-Werte und muss vor einer kommerziellen Veröffentlichung separat geklärt oder ausgeschlossen werden.
-
-Erzeugung und Verbrauch pro Kopf werden nur in der Jahresansicht und ausschließlich aus Ember-Stromwert und Eurostat-Bevölkerung desselben Kalenderjahres berechnet. Bei fehlender Eurostat-Coverage bleibt der Wert leer; ein anderes Jahr wird nicht als Ersatz benutzt.
-
-## JRC-Speicher-Snapshot
-
-Das interaktive JRC-Dashboard wird nicht automatisiert abgefragt. Für den regulären Import werden zwei gefilterte Diagrammexporte verwendet: `Power (GW)` und `Capacity (GWh)` nach Land, jeweils mit `Project status = Operational` und `Technology = Mechanical + Electrochemical`. Der auf dem Dashboard sichtbare Aktualisierungstag wird ausdrücklich mitgegeben:
+### Großhandelspreise und Eurostat
 
 ```powershell
-eea import-storage `
+.\.venv\Scripts\eea.exe import-prices
+.\.venv\Scripts\eea.exe import-eurostat --from-year 2015
+```
+
+Beide Befehle benötigen Internetzugang, aber keinen API-Key. Antworten werden vollständig validiert, bevor vorhandene Daten atomar ersetzt werden. Eurostat-Anfragen laufen bewusst sequenziell und beachten begrenztes Backoff sowie `Retry-After`.
+
+### JRC-Speicher-Snapshot
+
+Das interaktive JRC-Dashboard wird derzeit nicht automatisiert abgerufen. Für den Import werden die gefilterten Diagrammexporte `Power (GW)` und `Capacity (GWh)` verwendet, jeweils mit `Project status = Operational` und `Technology = Mechanical + Electrochemical`:
+
+```powershell
+.\.venv\Scripts\eea.exe import-storage `
   --power-file .\data\imports\jrc-power.xlsx `
   --capacity-file .\data\imports\jrc-capacity.xlsx `
-  --snapshot-date 2026-08-11
+  --snapshot-date YYYY-MM-DD
 ```
 
-Die XLSX-Dateien müssen exakt die drei Exportspalten `Country`, `Project status` und `Power (GW)` beziehungsweise `Capacity (GWh)` besitzen. Nicht zum Atlas gehörende, bekannte Exportländer werden ignoriert; neue unbekannte Ländernamen lösen einen vollständigen Importabbruch aus. Länder ohne Exportzeile bleiben leer.
+Beide Arbeitsmappen werden gemeinsam validiert und erst danach atomar importiert. Rohdateien, Dateinamen und SHA-256 werden im lokalen Quellcache erhalten. Details stehen in [JRC_STORAGE_IMPORT.md](docs/JRC_STORAGE_IMPORT.md).
 
-Alternativ bleibt das geprüfte CSV-Austauschformat verfügbar:
+## Datenmodell und Qualitätsregeln
 
-```powershell
-eea import-storage --file .\data\imports\jrc-storage-reviewed.csv
-```
+`period_observation` ist die kanonische Faktentabelle. Der Monat ist die kleinste Einheit für Strom- und Preisdaten; geprüfte Jahreswerte und JRC-Snapshots werden getrennt gespeichert. `api_cache` enthält redigierte Ember-JSON-Antworten, `source_cache` die unveränderte Preis-CSV, Eurostat-JSON und JRC-Austauschdateien samt Provenienz.
 
-Die CSV muss exakt diese Spalten besitzen:
+- fehlende Werte bleiben `null` und erscheinen in der Oberfläche als `—`
+- aktuelle Monate und Jahre werden als vorläufig beziehungsweise YTD gekennzeichnet
+- Jahresnachfrage wird nur aus genau zwölf vorhandenen Monatswerten abgeleitet
+- Jahrespreise werden nach tatsächlicher Monatsdauer gewichtet
+- positive Nettoimporte bedeuten Importüberschuss, negative Werte Exportüberschuss
+- Eurostat-Denominatoren werden nur mit Stromwerten desselben Kalenderjahres kombiniert
+- fehlerhafte Aktualisierungen dürfen vorhandene Daten nicht verändern
 
-```text
-Country Code,Snapshot Date,Project Status,Technology,Subtechnology,Power (MW),Capacity (MWh)
-```
+Eine frische, noch nicht vorhandene SQLite-Datei wird beim Serverstart initialisiert. Die API arbeitet anschließend read-only.
 
-Eine leere Vorlage liegt unter `docs/JRC_STORAGE_IMPORT_TEMPLATE.csv`. Leistung und Energie werden getrennt gespeichert; die Speicherdauer wird als `GWh/GW` abgeleitet. Die unveränderten XLSX-Dateien werden Base64-kodiert samt Dateiname, SHA-256 und Importzeitpunkt im Rohcache erhalten. JRC-Daten können Schätzungen und Inhalte externer Anbieter enthalten und müssen vor einer öffentlichen oder kommerziellen Weitergabe gesondert lizenzrechtlich geprüft werden.
-
-Quelle und Disclaimer: [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory). Das Dashboard nennt neben öffentlichen Daten ausdrücklich Wood Mackenzie und weist geschätzte Kapazitäten aus. Deshalb gibt es absichtlich keinen automatischen Dashboard-Scraper.
-
-## Migration älterer Datenbanken
-
-```powershell
-eea migrate-atlas
-```
-
-Der Befehl entfernt Albanien, unbekannte Quellen, albanische Ember-API-Caches und obsolete Intervalltabellen. Ember-, Eurostat- und JRC-Daten der 31 Atlasländer bleiben erhalten. Der alte Name `migrate-ember-only` funktioniert vorübergehend als versteckter Alias.
-
-## Serverstart
-
-```powershell
-eea serve --port 8765
-```
-
-Danach [http://127.0.0.1:8765](http://127.0.0.1:8765) öffnen. `Strg+C` beendet den Server; erscheint wieder `PS E:\EEA>`, ist er beendet.
-
-## API
+## Lokale API
 
 - `/api/countries`
 - `/api/metrics`
@@ -110,40 +123,30 @@ Danach [http://127.0.0.1:8765](http://127.0.0.1:8765) öffnen. `Strg+C` beendet 
 - `/api/coverage?year=2025`
 - `/api/storage`
 
-Die Summary bleibt eine Ember-Stromsicht mit transparent ergänzten, jahresgleichen Eurostat-Denominatoren. `source=ember` ist zulässig; unbekannte oder automatisch vermischte Quellsichten werden abgelehnt. Speicher-Snapshots besitzen einen separaten Endpunkt.
+Die Weboberfläche führt selbst keine Importe aus und lädt zur Laufzeit keine externen Kartenressourcen.
 
-## Lokale Europakarte
+## Entwicklung und Tests
 
-Die Hauptseite enthält eine interaktive, mit Tabelle und Vergleichsauswahl synchronisierte Europakarte. Sie verwendet Natural Earth 1:50m Admin 0 Countries 5.1.1 als vollständig lokales SVG. Beim Öffnen der Anwendung sind weder Kartenkacheln noch CDN- oder Trackingaufrufe erforderlich. Kennzahlen, Darstellungen, Zeiteignung und Farbskalierung stammen aus dem zentralen Katalog `/api/metrics`; JRC-Speicherwerte zeigen statt Jahr oder Monat ihr Snapshot-Datum.
-
-Quelle, Versionsstand, SHA-256 und der reproduzierbare Bearbeitungsweg sind unter [Lokale Europakarte](docs/MAP_ASSET.md) dokumentiert.
-
-## Datenmodell
-
-`period_observation` ist die kanonische Faktentabelle. Der Monat ist die kleinste Strom- und Preiseinheit; geprüfte Jahreswerte und JRC-Snapshots werden separat gespeichert. `api_cache` enthält redigierte Ember-JSON-Antworten. `source_cache` enthält Ember-Preis-CSV, Eurostat-JSON und die manuell geprüfte JRC-Austauschdatei samt Provenienz und SHA-256.
-
-- Erzeugung, Nachfrage und Nettoimporte: TWh
-- Preis: EUR/MWh
-- CO₂-Intensität: gCO₂eq/kWh
-- Speicherleistung: GW
-- Speicherenergie: GWh
-
-Positive Nettoimporte bedeuten Importüberschuss, negative Werte Exportüberschuss. Die Nettoimportquote ist `Nettoimporte / Verbrauch × 100`. Fehlende Werte bleiben `null` und werden weder als Null erfunden noch aus einem anderen Zeitraum ergänzt.
-
-## Tests
+Es gibt keine Laufzeitabhängigkeiten außerhalb der Python-Standardbibliothek.
 
 ```powershell
 $env:PYTHONPATH = "$PWD\src"
-python -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 git diff --check
 ```
+
+Die Tests verwenden ausschließlich lokale Fixtures und führen keine Live-Importe aus.
+
+## Weiterführende Dokumentation
+
+- [Projekt-Roadmap](ROADMAP.md)
+- [Ember-Coverage](docs/EMBER_COVERAGE.md)
+- [JRC-Speicherimport](docs/JRC_STORAGE_IMPORT.md)
+- [Lokale Europakarte und Natural-Earth-Provenienz](docs/MAP_ASSET.md)
 
 ## Bekannte Einschränkungen
 
 - Einzelne historische Land-Monat-Kombinationen können reguläre Coverage-Lücken besitzen.
 - Bruttoimport, Bruttoexport, negative Preisstunden und operative Intervallstatistiken sind nicht Teil des Monatsatlas.
-- Der Ember-Endpunkt für Jahresnachfrage kann fehlen; ein Jahreswert wird nur aus genau zwölf Monatswerten abgeleitet.
-- Aktuelle Monate und Jahre können vorläufig sein und später revidiert werden.
-- JRC-Speicherwerte sind ein fachlich geprüfter Snapshot, keine automatisch aktualisierte Zeitreihe.
-
-Weitere Details: [Ember-Abdeckung](docs/EMBER_COVERAGE.md).
+- JRC-Speicherwerte bilden elektrisch aufladbare Speicherprojekte ab, nicht die gesamte nationale Wasserkraft-Magazinkapazität.
+- Der JRC-Datenstand ist ein manuell geprüfter Snapshot und noch keine automatisch aktualisierte Zeitreihe.
