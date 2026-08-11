@@ -37,9 +37,43 @@
 
     <p id="status" role="status">Daten werden geladen …</p>
 
+    <section id="atlas-map-section" aria-labelledby="atlas-map-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="atlas-map-title">Europakarte</h2>
+          <p class="hint">Kennzahl und Darstellung wählen. Ein Land per Klick, Enter oder Leertaste zum Vergleich hinzufügen.</p>
+        </div>
+        <label class="value-toggle"><input id="map-values" type="checkbox"> Werte anzeigen</label>
+      </div>
+      <div class="map-controls" aria-label="Kartenkennzahl">
+        <label>Kennzahl
+          <select id="map-family" aria-controls="atlas-map"></select>
+        </label>
+        <label>Darstellung
+          <select id="map-representation" aria-controls="atlas-map"></select>
+        </label>
+      </div>
+      <p id="map-availability" class="hint" role="status"></p>
+      <div class="map-layout">
+        <div id="map-frame" class="map-frame" aria-busy="true">
+          <div id="map-canvas"></div>
+          <div id="map-tooltip" class="map-tooltip" hidden></div>
+        </div>
+        <aside class="map-panel" aria-label="Kartenlegende und Länderwert">
+          <h3 id="map-metric-title">Karte wird geladen …</h3>
+          <p id="map-period" class="hint"></p>
+          <div id="map-legend" class="map-legend"></div>
+          <p id="map-sign-note" class="hint" hidden>Negativ = Exportüberschuss · Positiv = Importüberschuss</p>
+          <div id="map-detail" class="map-detail" role="status" aria-live="polite">
+            Ein Land fokussieren, um Details anzuzeigen.
+          </div>
+        </aside>
+      </div>
+    </section>
+
     <section>
       <h2>Gesamttabelle</h2>
-      <p class="hint">Spaltenkopf anklicken zum Sortieren. Der Datenstatus steht als Badge am Land; Details zeigt der Tooltip. Zwei bis vier Länder über die erste Spalte auswählen.</p>
+      <p class="hint">Mit „Sortieren“ die Tabelle ordnen oder eine kartierbare Spalte gezielt auf der Karte anzeigen. Zwei bis vier Länder über die erste Spalte auswählen.</p>
       <div class="table-wrap">
         <table id="summary-table">
           <thead><tr id="summary-head"></tr></thead>
@@ -101,6 +135,13 @@
           <p><strong>Importweg:</strong> Ausschließlich manueller, geprüfter CSV-Import. Das Atlas-Programm fragt das interaktive JRC-Dashboard nicht automatisiert ab.</p>
           <p><strong>Hinweis:</strong> Die Bestandsdaten können geschätzte Werte und Daten externer Anbieter enthalten. Deshalb werden Quelle, Snapshot und Qualitätsstatus getrennt ausgewiesen.</p>
           <p><strong>Quelle:</strong> <a href="https://ses.jrc.ec.europa.eu/storage-inventory" target="_blank" rel="noopener noreferrer">European Energy Storage Inventory</a>.</p>
+        </article>
+        <article>
+          <h3>Natural Earth</h3>
+          <p><strong>Kartengrundlage:</strong> Natural Earth 1:50m Admin 0 Countries, Version 5.1.1.</p>
+          <p><strong>Verarbeitung:</strong> Während der Entwicklung auf den europäischen Ausschnitt begrenzt, geometrisch vereinfacht und als lokales SVG gespeichert. Beim Öffnen der Anwendung werden keine Kartenkacheln oder externen Dienste geladen.</p>
+          <p><strong>Nutzungsbedingungen:</strong> Natural-Earth-Kartendaten sind gemeinfrei und dürfen verändert sowie kommerziell genutzt werden.</p>
+          <p><strong>Quelle:</strong> <a href="https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/" target="_blank" rel="noopener noreferrer">Natural Earth Admin-0 Countries</a>.</p>
         </article>
       </div>
       <p>Importierte Quellantworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>. Ember-API-Schlüssel werden vor der Speicherung redigiert und nicht in der Datenbank abgelegt. Quellen werden nicht stillschweigend zeitlich vermischt.</p>

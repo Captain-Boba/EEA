@@ -112,6 +112,12 @@ Danach [http://127.0.0.1:8765](http://127.0.0.1:8765) öffnen. `Strg+C` beendet 
 
 Die Summary bleibt eine Ember-Stromsicht mit transparent ergänzten, jahresgleichen Eurostat-Denominatoren. `source=ember` ist zulässig; unbekannte oder automatisch vermischte Quellsichten werden abgelehnt. Speicher-Snapshots besitzen einen separaten Endpunkt.
 
+## Lokale Europakarte
+
+Die Hauptseite enthält eine interaktive, mit Tabelle und Vergleichsauswahl synchronisierte Europakarte. Sie verwendet Natural Earth 1:50m Admin 0 Countries 5.1.1 als vollständig lokales SVG. Beim Öffnen der Anwendung sind weder Kartenkacheln noch CDN- oder Trackingaufrufe erforderlich. Kennzahlen, Darstellungen, Zeiteignung und Farbskalierung stammen aus dem zentralen Katalog `/api/metrics`; JRC-Speicherwerte zeigen statt Jahr oder Monat ihr Snapshot-Datum.
+
+Quelle, Versionsstand, SHA-256 und der reproduzierbare Bearbeitungsweg sind unter [Lokale Europakarte](docs/MAP_ASSET.md) dokumentiert.
+
 ## Datenmodell
 
 `period_observation` ist die kanonische Faktentabelle. Der Monat ist die kleinste Strom- und Preiseinheit; geprüfte Jahreswerte und JRC-Snapshots werden separat gespeichert. `api_cache` enthält redigierte Ember-JSON-Antworten. `source_cache` enthält Ember-Preis-CSV, Eurostat-JSON und die manuell geprüfte JRC-Austauschdatei samt Provenienz und SHA-256.

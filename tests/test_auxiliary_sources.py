@@ -272,6 +272,8 @@ class MetricCatalogTests(unittest.TestCase):
         per_capita = next(metric for metric in catalog if metric["id"] == "consumption_per_capita_mwh")
         self.assertFalse(per_capita["temporal_availability"]["monthly"])
         self.assertTrue(per_capita["temporal_availability"]["yearly"])
+        self.assertTrue(all(metric["map"] for metric in catalog))
+        self.assertTrue(all("map_config" in metric for metric in catalog))
 
 
 if __name__ == "__main__":

@@ -22,6 +22,10 @@ class ServerSmokeTests(unittest.TestCase):
                 base = f"http://127.0.0.1:{server.server_port}"
                 with urlopen(base + "/", timeout=5) as response:
                     html = response.read().decode("utf-8")
+                with urlopen(base + "/assets/europe.svg", timeout=5) as response:
+                    map_svg = response.read().decode("utf-8")
+                with urlopen(base + "/api/countries", timeout=5) as response:
+                    countries = json.load(response)
                 with urlopen(base + "/api/summary?year=2025&month=7", timeout=5) as response:
                     summary = json.load(response)
                 with urlopen(base + "/api/summary?year=2025&month=7&source=ember", timeout=5) as response:
@@ -32,8 +36,12 @@ class ServerSmokeTests(unittest.TestCase):
                     storage = json.load(response)
                 self.assertIn("European Electricity Atlas", html)
                 self.assertIn("Datenquellen und Herkunft", html)
+                self.assertIn('id="atlas-map-section"', html)
                 self.assertNotIn("Energy-Charts", html)
                 self.assertIn('id="year" type="number" min="2015"', html)
+                self.assertIn("Natural Earth 1:50m Admin 0 Countries 5.1.1", map_svg)
+                self.assertEqual(len(countries), 31)
+                self.assertEqual({country["code"] for country in countries}, {row["country_code"] for row in summary})
                 self.assertEqual(len(summary), 31)
                 self.assertEqual(
                     {row["country_code"] for row in summary},
