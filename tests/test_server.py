@@ -54,9 +54,12 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertTrue(all(row["source"] == "ember" for row in ember_summary))
                 self.assertTrue(all(row["data_status"] == "missing" for row in ember_summary))
                 self.assertIn("net_import_share_pct", {metric["id"] for metric in metrics})
+                self.assertIn("battery_power_gw", {metric["id"] for metric in metrics})
+                self.assertIn("pumped_storage_energy_gwh", {metric["id"] for metric in metrics})
                 self.assertEqual(storage["snapshot_date"], None)
-                self.assertEqual(storage["source"], "jrc")
+                self.assertEqual(storage["source"], "resolved_storage_sources")
                 self.assertIn("JRC", storage["source_label"])
+                self.assertIn("Battery-Charts", storage["source_label"])
                 self.assertEqual(storage["countries"], [])
                 with self.assertRaises(HTTPError) as error:
                     urlopen(base + "/api/summary?year=2025&source=combined", timeout=5)

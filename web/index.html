@@ -95,7 +95,7 @@
     <section id="storage" hidden>
       <h2>Elektrische Speicher</h2>
       <p id="storage-note" class="hint"></p>
-      <p class="hint">Betriebsbereite mechanische und elektrochemische Speicher. Die Speicherdauer ist aus Energie ÷ Leistung abgeleitet.</p>
+      <p class="hint">Batterien und Pumpspeicher werden getrennt ausgewiesen. Die äquivalente Entladedauer ist jeweils aus fachlich zusammengehöriger Energie ÷ Leistung abgeleitet.</p>
       <div class="table-wrap storage-wrap">
         <table id="storage-table">
           <thead><tr id="storage-head"></tr></thead>
@@ -129,11 +129,20 @@
           <p><strong>Quelle:</strong> <a href="https://ec.europa.eu/eurostat/web/main/data/database" target="_blank" rel="noopener noreferrer">Eurostat-Datenbank</a>.</p>
         </article>
         <article>
+          <h3>Battery-Charts Deutschland</h3>
+          <p><strong>Anbieter:</strong> Battery-Charts, Forschungsstelle für Energiewirtschaft und Batterietechnik der RWTH Aachen.</p>
+          <p><strong>Inhalt:</strong> Bereinigter MaStR-Gesamtbestand stationärer Batteriespeicher in Deutschland, getrennt nach Heimspeichern, Industrie- und Großspeichern.</p>
+          <p><strong>Verarbeitung:</strong> Monatswerte für Energie und Entladeleistung werden gemeinsam validiert. Der deutsche Gesamtwert ist exakt die Summe der drei Segmente; Fahrzeugbatterien sind nicht enthalten.</p>
+          <p><strong>Importweg:</strong> Ausschließlich manueller Import zweier lokal gespeicherter JSON-Antworten. Der Atlas ruft den Battery-Charts-Endpunkt nicht selbst auf.</p>
+          <p><strong>Coverage:</strong> Deutschland wird als <code>national_registry_total</code> gekennzeichnet. Deutsche JRC-Batterieprojekte werden nicht addiert.</p>
+          <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quelle: <a href="https://battery-charts.de/" target="_blank" rel="noopener noreferrer">Battery-Charts</a>.</p>
+        </article>
+        <article>
           <h3>JRC Energy Storage Inventory</h3>
           <p><strong>Anbieter:</strong> Joint Research Centre der Europäischen Kommission.</p>
-          <p><strong>Inhalt:</strong> Elektrische Speicherleistung, Speicherkapazität und daraus abgeleitete Speicherdauer für betriebsbereite mechanische und elektrochemische Speicher.</p>
-          <p><strong>Importweg:</strong> Ausschließlich manueller, geprüfter CSV-Import. Das Atlas-Programm fragt das interaktive JRC-Dashboard nicht automatisiert ab.</p>
-          <p><strong>Hinweis:</strong> Die Bestandsdaten können geschätzte Werte und Daten externer Anbieter enthalten. Deshalb werden Quelle, Snapshot und Qualitätsstatus getrennt ausgewiesen.</p>
+          <p><strong>Inhalt:</strong> Operative elektrochemische Projekte außerhalb Deutschlands sowie ausschließlich als <em>Pumped Hydro Storage (PHS)</em> klassifizierte Pumpspeicher in allen Atlas-Ländern.</p>
+          <p><strong>Importweg:</strong> Ein bewusster, höchstens monatlicher CLI-Abruf der öffentlichen Projekt-API. Die API ist öffentlich erreichbar, aber nicht formal versioniert.</p>
+          <p><strong>Coverage:</strong> JRC-Werte sind ein <code>tracked_project_inventory</code>, kein vollständiger nationaler Gesamtbestand. Fehlende Energie bleibt fehlend; geschätzte Kapazitäten werden sichtbar gekennzeichnet.</p>
           <p><strong>Quelle:</strong> <a href="https://ses.jrc.ec.europa.eu/storage-inventory" target="_blank" rel="noopener noreferrer">European Energy Storage Inventory</a>.</p>
         </article>
         <article>
@@ -144,7 +153,7 @@
           <p><strong>Quelle:</strong> <a href="https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/" target="_blank" rel="noopener noreferrer">Natural Earth Admin-0 Countries</a>.</p>
         </article>
       </div>
-      <p>Importierte Quellantworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>. Ember-API-Schlüssel werden vor der Speicherung redigiert und nicht in der Datenbank abgelegt. Quellen werden nicht stillschweigend zeitlich vermischt.</p>
+      <p>Importierte Quellantworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>. Ember-Schlüssel werden vor der Speicherung redigiert; für Battery-Charts verwendet der Atlas keinen Schlüssel. Quellen werden nicht stillschweigend vermischt.</p>
     </details>
 
     <details>
@@ -155,7 +164,7 @@
         <li>Bruttoimport, Bruttoexport, negative Preisstunden und operative Intervallwerte sind nicht Teil dieses Monatsatlas.</li>
         <li>Nettoimporte sind positiv bei Nettoimport und negativ bei Nettoexport. Die Nettoimportquote bezieht sich auf den Verbrauch desselben Zeitraums.</li>
         <li>Eurostat-Kennzahlen und daraus berechnete Pro-Kopf-Werte sind ausschließlich in der Jahresansicht verfügbar.</li>
-        <li>JRC-Speicherwerte sind Snapshot-Daten und werden nicht wie Monats- oder Jahresflüsse behandelt.</li>
+        <li>Speicherwerte sind separat datierte Bestandswerte und werden nicht wie Monats- oder Jahresflüsse behandelt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.</li>
         <li>Der laufende Monat ist vorläufig. Das laufende Jahr wird nur aus abgeschlossenen Monaten als YTD ausgewiesen.</li>
         <li>Ein leerer Wert bedeutet, dass die angegebene Quelle für Land und Zeitraum keine Kennzahl liefert.</li>
       </ul>

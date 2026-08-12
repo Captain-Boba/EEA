@@ -1,0 +1,3 @@
+cd E:\EEA
+$env:PYTHONPATH="src"
+python -m electricity_atlas.cli --db .\data\atlas.sqlite3 serve --port 8765

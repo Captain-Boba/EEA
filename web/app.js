@@ -9,7 +9,14 @@ const TABLE_METRIC_IDS = [
   "carbon_intensity_gco2eq_kwh",
   "price_avg_eur_mwh",
 ];
-const STORAGE_METRIC_IDS = ["storage_power_gw", "storage_energy_gwh", "storage_duration_hours"];
+const STORAGE_METRIC_IDS = [
+  "battery_power_gw",
+  "battery_energy_gwh",
+  "battery_duration_hours",
+  "pumped_storage_power_gw",
+  "pumped_storage_energy_gwh",
+  "pumped_storage_duration_hours",
+];
 const NE_TO_ATLAS = {
   "AUT": "AT", "BEL": "BE", "BGR": "BG", "CHE": "CH", "CZE": "CZ", "DEU": "DE", "DNK": "DK",
   "ESP": "ES", "EST": "EE", "FIN": "FI", "FRA": "FR", "GBR": "UK", "GRC": "GR", "HRV": "HR",
@@ -34,7 +41,7 @@ let compareSortDirection = 1;
 let storageData = [];
 let storageSnapshot = null;
 let storageSourceLabel = "";
-let storageSortKey = "storage_power_gw";
+let storageSortKey = "battery_power_gw";
 let storageSortDirection = -1;
 let mapSvg = null;
 let mapMetricId = "generation_twh";
@@ -208,8 +215,33 @@ function renderStorage() {
   const sorted = sortRows(storageData, storageSortKey, storageSortDirection);
   $("storage-body").innerHTML = sorted.map(row => `<tr>
     <th scope="row">${escapeHtml(row.country_name)}${row.quality_status === "missing" ? '<span class="status-badge missing">fehlend</span>' : ""}</th>
-    ${STORAGE_METRIC_IDS.map(id => `<td>${format(row[id])}</td>`).join("")}
+    ${STORAGE_METRIC_IDS.map(id => storageCell(row, id)).join("")}
   </tr>`).join("");
+}
+
+function storageCell(row, metricId) {
+  const provenance = row.metric_provenance?.[metricId];
+  if (!provenance) return `<td>${format(null)}</td>`;
+  const coverageLabels = {
+    national_registry_total: "nationaler Register-Gesamtbestand",
+    tracked_project_inventory: "erfasster Projektbestand",
+  };
+  const sourceName = provenance.source === "battery_charts" ? "Battery-Charts" : "JRC";
+  const qualityLabel = storageQualityLabel(provenance.quality_status);
+  const quality = qualityLabel === "vorhanden" ? "" : ` · ${qualityLabel}`;
+  const title = `${provenance.source_label} · Stichtag ${provenance.date} · ${coverageLabels[provenance.coverage_type] || provenance.coverage_type}${quality}`;
+  return `<td title="${escapeAttribute(title)}">${format(row[metricId])}<small class="cell-provenance">${escapeHtml(sourceName)} · ${escapeHtml(provenance.date)}${escapeHtml(quality)}</small></td>`;
+}
+
+function storageQualityLabel(quality) {
+  return {
+    observed: "vorhanden",
+    derived: "abgeleitet",
+    provisional_current_month: "vorläufig",
+    derived_provisional: "abgeleitet, vorläufig",
+    observed_with_estimates: "mit Schätzwerten",
+    derived_with_estimates: "abgeleitet, mit Schätzwerten",
+  }[quality] || quality || "vorhanden";
 }
 
 function toggleCountry(code, shouldSelect = !selected.has(code)) {
@@ -282,7 +314,7 @@ function renderMapControls() {
 
   if (metricAvailable(activeMetric)) {
     $("map-availability").textContent = activeMetric.temporal_availability.snapshot
-      ? "Speicherkennzahlen verwenden den separat ausgewiesenen JRC-Snapshot; Jahr und Monat gelten hier nicht."
+      ? "Speicherkennzahlen verwenden getrennte Battery-Charts- und JRC-Snapshots; Jahr und Monat gelten hier nicht."
       : "";
   } else if (activeMetric.temporal_availability.yearly && isMonthView()) {
     $("map-availability").textContent = "Nur in der Jahresansicht verfügbar.";
@@ -322,7 +354,10 @@ function countryName(code) {
 }
 
 function periodLabel(metric, row = null) {
-  if (metric.temporal_availability.snapshot) return storageSnapshot ? `Snapshot ${storageSnapshot}` : "Kein Snapshot";
+  if (metric.temporal_availability.snapshot) {
+    const date = row?.metric_provenance?.[metric.id]?.date || storageSnapshot;
+    return date ? `Snapshot ${date}` : "Kein Snapshot";
+  }
   const period = row?.period || (isMonthView() ? `${selectedYear()}-${String($("month").value).padStart(2, "0")}` : String(selectedYear()));
   const status = row?.period_status === "ytd" ? " · YTD" : (row?.period_status === "provisional_current_month" ? " · vorläufig" : "");
   return `${period}${status}`;
@@ -333,7 +368,8 @@ function statusLabel(row, metric) {
   const value = row[metric.id];
   if (value === null || value === undefined) return "fehlend";
   if (metric.temporal_availability.snapshot) {
-    return row.quality_status === "observed_with_estimates" ? "mit Schätzwerten" : (row.quality_status || "vorhanden");
+    const quality = row.metric_provenance?.[metric.id]?.quality_status || row.quality_status;
+    return storageQualityLabel(quality);
   }
   return {complete: "vollständig", partial: "teilweise", missing: "fehlend"}[row.data_status] || row.data_status || "vorhanden";
 }
@@ -343,14 +379,18 @@ function countryDetail(code, metric) {
   const value = metricAvailable(metric) && row ? row[metric.id] : null;
   const formatted = formatMetricValue(value, metric);
   const unit = formatted === "—" ? "" : ` ${metric.unit}`;
+  const provenance = metric.temporal_availability.snapshot ? row?.metric_provenance?.[metric.id] : null;
+  const source = provenance?.source_label || metric.source;
+  const coverage = provenance?.coverage_type ? `<span>Coverage: ${escapeHtml(provenance.coverage_type)}</span>` : "";
   return {
     html: `<strong>${escapeHtml(countryName(code))}</strong>
       <span>${escapeHtml(metric.label_de)}</span>
       <b>${escapeHtml(formatted + unit)}</b>
       <span>${escapeHtml(periodLabel(metric, row))}</span>
       <span>Datenstatus: ${escapeHtml(statusLabel(row, metric))}</span>
-      <span>Quelle: ${escapeHtml(metric.source)}</span>`,
-    label: `${countryName(code)}, ${metric.label_de}: ${formatted}${unit}, ${periodLabel(metric, row)}, Datenstatus ${statusLabel(row, metric)}, Quelle ${metric.source}`,
+      ${coverage}
+      <span>Quelle: ${escapeHtml(source)}</span>`,
+    label: `${countryName(code)}, ${metric.label_de}: ${formatted}${unit}, ${periodLabel(metric, row)}, Datenstatus ${statusLabel(row, metric)}, Quelle ${source}`,
   };
 }
 
@@ -583,9 +623,10 @@ async function loadStorage() {
     renderMap();
     if (!storage.snapshot_date) return;
     const missingNote = storage.countries_missing?.length
-      ? ` Ohne Exportwert: ${storage.countries_missing.join(", ")}.`
+      ? ` Ohne Speicherwert: ${storage.countries_missing.join(", ")}.`
       : "";
-    $("storage-note").textContent = `Snapshot ${storage.snapshot_date} · ${storage.countries_with_values}/${storage.countries.length} Länder · ${storageSourceLabel}.${missingNote}`;
+    const dates = storage.snapshot_dates?.length ? storage.snapshot_dates.join(", ") : storage.snapshot_date;
+    $("storage-note").textContent = `Datenstände ${dates} · ${storage.countries_with_values}/${storage.countries.length} Länder · ${storageSourceLabel}.${missingNote}`;
     $("storage").hidden = false;
     renderStorage();
   } catch (error) {

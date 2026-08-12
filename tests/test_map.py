@@ -77,7 +77,9 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertEqual(hydro_share["map_config"]["domain"], [0, 100])
         self.assertFalse(metrics["population"]["temporal_availability"]["monthly"])
         self.assertTrue(metrics["population"]["temporal_availability"]["yearly"])
-        self.assertTrue(metrics["storage_power_gw"]["temporal_availability"]["snapshot"])
+        self.assertTrue(metrics["battery_power_gw"]["temporal_availability"]["snapshot"])
+        self.assertTrue(metrics["pumped_storage_energy_gwh"]["temporal_availability"]["snapshot"])
+        self.assertNotIn("storage_power_gw", metrics)
         self.assertEqual(metrics["net_imports_twh"]["map_config"]["scale"], "diverging")
         self.assertEqual(metrics["net_imports_twh"]["map_config"]["midpoint"], 0)
 

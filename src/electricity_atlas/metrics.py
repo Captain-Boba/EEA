@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .config import (
+    BATTERY_CHARTS_SOURCE_LABEL,
     EMBER_PRICE_SOURCE_LABEL,
     EMBER_SOURCE_LABEL,
     EUROSTAT_SOURCE_LABEL,
@@ -92,9 +93,12 @@ METRICS: tuple[dict[str, Any], ...] = (
     _metric("population", "Bevölkerung", "Sozioökonomie", "Einwohner", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, family="Bevölkerung", representation="Einwohner", map_decimals=0),
     _metric("gdp_current_billion_eur", "BIP", "Sozioökonomie", "Mrd. EUR", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, family="BIP", representation="BIP zu laufenden Preisen"),
     _metric("gdp_per_capita_pps", "BIP pro Kopf", "Sozioökonomie", "PPS/Einwohner", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, family="BIP pro Kopf", representation="Kaufkraftstandard je Einwohner", map_decimals=0),
-    _metric("storage_power_gw", "Speicherleistung", "Kapazitäten und Speicher", "GW", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Speicher", representation="Leistung in GW"),
-    _metric("storage_energy_gwh", "Speicherenergie", "Kapazitäten und Speicher", "GWh", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Speicher", representation="Energie in GWh"),
-    _metric("storage_duration_hours", "Speicherdauer", "Kapazitäten und Speicher", "h", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Speicher", representation="Äquivalente Dauer in Stunden"),
+    _metric("battery_power_gw", "Batterie-Entladeleistung", "Kapazitäten und Speicher", "GW", monthly=False, yearly=False, snapshot=True, source=f"{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}", family="Batteriespeicher", representation="Entladeleistung in GW"),
+    _metric("battery_energy_gwh", "Batterie-Speicherenergie", "Kapazitäten und Speicher", "GWh", monthly=False, yearly=False, snapshot=True, source=f"{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}", family="Batteriespeicher", representation="Speicherenergie in GWh"),
+    _metric("battery_duration_hours", "Batterie-Entladedauer", "Kapazitäten und Speicher", "h", monthly=False, yearly=False, snapshot=True, source=f"{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}", family="Batteriespeicher", representation="Äquivalente Entladedauer in Stunden"),
+    _metric("pumped_storage_power_gw", "Pumpspeicher-Entladeleistung", "Kapazitäten und Speicher", "GW", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Entladeleistung in GW"),
+    _metric("pumped_storage_energy_gwh", "Pumpspeicher-Speicherenergie", "Kapazitäten und Speicher", "GWh", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Speicherenergie in GWh"),
+    _metric("pumped_storage_duration_hours", "Pumpspeicher-Entladedauer", "Kapazitäten und Speicher", "h", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Äquivalente Entladedauer in Stunden"),
 )
 
 METRICS_BY_ID = {metric["id"]: metric for metric in METRICS}

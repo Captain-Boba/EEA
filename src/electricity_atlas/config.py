@@ -103,7 +103,16 @@ EUROSTAT_GEO_TO_ATLAS = {geo: code for code, geo in EUROSTAT_GEO.items()}
 
 JRC_SOURCE_NAME = "jrc"
 JRC_STORAGE_ENDPOINT = "european-energy-storage-inventory/manual-export"
+JRC_STORAGE_API_ENDPOINT = "european-energy-storage-inventory/api/projects"
+JRC_STORAGE_API_URL = "https://ses.jrc.ec.europa.eu/storage-inventory-tool/api/projects"
 JRC_STORAGE_SOURCE_LABEL = "European Commission JRC – European Energy Storage Inventory"
+
+BATTERY_CHARTS_SOURCE_NAME = "battery_charts"
+BATTERY_CHARTS_API_URL = "https://battery-charts.de/wp-json/isea/v1/data"
+BATTERY_CHARTS_ENERGY_ENDPOINT = "bess_monthly_energy"
+BATTERY_CHARTS_POWER_ENDPOINT = "bess_monthly_power"
+BATTERY_CHARTS_COMBINED_ENDPOINT = "bess_monthly_energy+bess_monthly_power"
+BATTERY_CHARTS_SOURCE_LABEL = "Battery-Charts – bereinigter MaStR-Gesamtbestand, CC BY 4.0"
 
 # Albania remains present in Ember's vendor CSV but is intentionally outside
 # the Atlas catalog. It is ignored while every other unknown ISO3 code remains

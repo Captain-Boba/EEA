@@ -1,0 +1,56 @@
+[
+  {
+    "status": {"name": "Operational"},
+    "technology": {"parentName": "Electrochemical", "name": "Lithium-ion"},
+    "country": {"code": "FR"},
+    "power": {"value": 200, "unit": "MW"},
+    "capacity": {"value": 400, "unit": "MWh"},
+    "estimated_capacity": true
+  },
+  {
+    "status": {"name": "Operational"},
+    "technology": {"parentName": "Electrochemical", "name": "Lithium-ion"},
+    "country": {"code": "BE"},
+    "power": {"value": 100, "unit": "MW"}
+  },
+  {
+    "status": {"name": "Operational"},
+    "technology": {"parentName": "Mechanical", "name": "Pumped Hydro Storage (PHS)"},
+    "country": {"code": "DE"},
+    "power": {"value": 1000, "unit": "MW"},
+    "capacity": {"value": 8000, "unit": "MWh"},
+    "estimated_capacity": false
+  },
+  {
+    "status": {"name": "Operational"},
+    "technology": {"parentName": "Mechanical", "name": "Flywheel"},
+    "country": {"code": "FR"},
+    "power": {"value": 999, "unit": "MW"},
+    "capacity": {"value": 999, "unit": "MWh"},
+    "estimated_capacity": false
+  },
+  {
+    "status": {"name": "Expected"},
+    "technology": {"parentName": "Electrochemical", "name": "Lithium-ion"},
+    "country": {"code": "NL"},
+    "power": {"value": 999, "unit": "MW"},
+    "capacity": {"value": 999, "unit": "MWh"},
+    "estimated_capacity": false
+  },
+  {
+    "status": {"name": "Operational"},
+    "technology": {"parentName": "Electrochemical", "name": "Lithium-ion"},
+    "country": {"code": "DE"},
+    "power": {"value": 999, "unit": "MW"},
+    "capacity": {"value": 999, "unit": "MWh"},
+    "estimated_capacity": false
+  },
+  {
+    "status": {"name": "Operational"},
+    "technology": {"parentName": "Mechanical", "name": "Pumped Hydro Storage (PHS)"},
+    "country": {"code": "AL"},
+    "power": {"value": 999, "unit": "MW"},
+    "capacity": {"value": 999, "unit": "MWh"},
+    "estimated_capacity": false
+  }
+]

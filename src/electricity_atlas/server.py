@@ -12,7 +12,7 @@ from .config import COUNTRIES
 from .coverage import coverage_rows
 from .db import database, read_database
 from .metrics import metric_catalog
-from .storage_importer import latest_storage
+from .storage_online import latest_storage
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2] / "web"

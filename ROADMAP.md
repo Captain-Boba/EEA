@@ -6,17 +6,16 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 
 ## Prioritäten
 
-### 1. Monatliche JRC-Speicheraktualisierung automatisieren
+### 1. Regelmäßige Speicherpflege etablieren
 
-- Einen konservativen, höchstens einmal monatlich laufenden Download für die beiden JRC-Dashboard-Exporte `Power (GW)` und `Capacity (GWh)` entwickeln.
-- Zuerst prüfen, ob JRC einen stabilen und für automatisierte Abrufe vorgesehenen Download-Endpunkt bereitstellt. Nur falls das nicht möglich ist, eine klar gekennzeichnete Browser-Automatisierung für das Qlik-Dashboard verwenden.
-- In beiden Exporten exakt dieselben Filter anwenden: `Project status = Operational` und `Technology = Mechanical + Electrochemical`.
-- Beide Dateien vollständig herunterladen und erst gemeinsam importieren, nachdem Snapshot-Datum, Header, Länder, Filterstatus und numerische Werte validiert wurden.
-- Unveränderte Rohdateien, Abrufzeitpunkt, SHA-256 und Herkunft speichern. Bei Download-, Struktur- oder Validierungsfehlern muss der vorhandene Snapshot unverändert bleiben.
-- Abrufe mit klarer Kennung, Timeouts, begrenzten Wiederholungen und ohne parallele Requests ausführen.
-- In Dokumentation und Oberfläche weiterhin deutlich machen, dass diese JRC-Werte elektrisch aufladbare Speicherprojekte abbilden und nicht die gesamte nationale Wasserkraft-Magazinkapazität.
+- Den neuen bewussten JRC-CLI-Abruf zunächst höchstens einmal pro Kalendermonat betreiben und seine Abdeckung beobachten.
+- Battery-Charts vorerst ausschließlich über den manuellen, atomaren JSON-Dateiimport aktualisieren. Der vorbereitete Online-Zugriff bleibt technisch deaktiviert, bis seine Nutzung ausdrücklich geklärt ist.
+- Nach Betriebserfahrung entscheiden, ob ein externer monatlicher Scheduler sinnvoll ist; der Atlas-Server selbst darf weiterhin keine Hintergrundabfragen auslösen.
+- Strukturänderungen der nicht formal versionierten JRC-Projekt-API und der manuell exportierten Battery-Charts-Antworten sichtbar dokumentieren, statt die Validierung stillschweigend zu lockern.
+- Die Lizenz- und Weitergabesituation des JRC-Projektbestands vor einer öffentlichen oder kommerziellen Datenveröffentlichung abschließend klären.
+- In Dokumentation und Oberfläche weiterhin deutlich machen, dass der JRC-Projektbestand nicht die nationale Wasserkraft-Magazinkapazität abbildet.
 
-**Abnahme:** Ein einzelner Befehl lädt beide Exporte, validiert sie und ersetzt den JRC-Snapshot atomar. Ein geplanter monatlicher Lauf darf bei unveränderten oder fehlerhaften Quelldaten weder Duplikate noch Datenverlust erzeugen.
+**Abnahme:** Mehrere reale Monatsaktualisierungen laufen mit maximal einem JRC-Request und ohne Battery-Charts-Netzwerkzugriff; der getrennte Dateiimport erzeugt weder Duplikate noch Datenverlust.
 
 ## Kurzfristige Produktziele
 
@@ -92,11 +91,11 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 - Die Kennzahl strikt vom JRC-Portfolio aus Pumpspeichern und Batterien trennen.
 - Nationale Sonderquellen wie NVE nur verwenden, wenn Definition, Stichtag und Vergleichbarkeit transparent ausgewiesen werden können.
 
-### 10. Speichertechnologien getrennt ausweisen
+### 10. Speicher-Coverage weiter verbessern
 
-- Prüfen, ob Leistung und Energie konsistent nach mechanischen und elektrochemischen Speichern exportiert werden können.
-- Eine äquivalente Volllast-Entladedauer nur für fachlich zusammengehörige Leistung und Energie berechnen.
-- Keine gerätebezogene Entladedauer aus bloßen nationalen Summen vortäuschen.
+- Für Länder außerhalb Deutschlands transparent prüfen, welche stationären Batterieklassen im JRC-Projektbestand fehlen.
+- Keine fehlenden Heim- oder Gewerbespeicher schätzen; stattdessen Coverage-Typ und Datenlücken direkt am Wert ausweisen.
+- Nur dann weitere nationale Gesamtbestände anbinden, wenn Leistung, Energie, Stichtag, Segmentgrenzen und Lizenz belastbar vergleichbar sind.
 
 ### 11. Coverage und Datenqualität weiter sichtbar machen
 
@@ -110,7 +109,8 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 - Webansicht und Datenhaltung sind auf Monats- und Jahreswerte ab 2015 ausgerichtet.
 - Ember liefert Stromerzeugung, Nachfrage, Energiemix, Nettoimporte, CO₂-Intensität und Großhandelspreise.
 - Eurostat ergänzt jährliche Bevölkerung und BIP-Kennzahlen.
-- JRC-Speicherdaten werden derzeit als manuell heruntergeladener, validierter Snapshot importiert.
+- Batterien und Pumpspeicher sind in Leistung, Energie und äquivalenter Entladedauer getrennt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.
+- `update-storage` respektiert einen monatlichen Cache und ruft ausschließlich JRC nach bewusster CLI-Ausführung ab. Battery-Charts besitzt nur den separaten manuellen JSON-Dateiimport; der frühere manuelle JRC-Import bleibt als veralteter Offline-Fallback erhalten.
 - Rohdaten und Provenienz werden lokal gespeichert; fehlerhafte Aktualisierungen dürfen bestehende Daten nicht verändern.
 
 ## Leitplanken

@@ -11,4 +11,4 @@ Status: local imports on 10 August 2026 before the catalog migration to 31 count
 - Current months are provisional and the current year is reported as YTD.
 - API keys are redacted before request metadata is cached.
 
-Ember remains the sole source for electricity-system and price metrics. Eurostat is used only for annual socioeconomic denominators, and JRC storage data is exposed as a separate snapshot; neither silently fills Ember gaps.
+Ember remains the sole source for electricity-system and price metrics. Eurostat is used only for annual socioeconomic denominators. Battery-Charts and JRC storage data are exposed as separately dated stock values; none of these auxiliary sources silently fills Ember gaps.

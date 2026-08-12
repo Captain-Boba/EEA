@@ -15,6 +15,7 @@ from .eurostat_importer import EurostatImporter
 from .price_importer import WholesalePriceImporter
 from .server import serve
 from .storage_importer import JrcStorageImporter
+from .storage_online import BatteryChartsImporter, OnlineStorageUpdater
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -40,12 +41,27 @@ def build_parser() -> argparse.ArgumentParser:
     eurostat_parser.add_argument("--to-year", type=int)
     storage_parser = subparsers.add_parser(
         "import-storage",
-        help="Import reviewed JRC storage CSV or paired dashboard XLSX exports",
+        help="Deprecated offline fallback: import reviewed JRC CSV or paired XLSX exports",
     )
     storage_parser.add_argument("--file", type=Path, help="Reviewed canonical CSV")
     storage_parser.add_argument("--power-file", type=Path, help="JRC Power (GW) XLSX export")
     storage_parser.add_argument("--capacity-file", type=Path, help="JRC Capacity (GWh) XLSX export")
     storage_parser.add_argument("--snapshot-date", help="Dashboard update date in YYYY-MM-DD")
+    online_storage_parser = subparsers.add_parser(
+        "update-storage",
+        help="Conservatively update JRC storage data; Battery-Charts network access is disabled",
+    )
+    online_storage_parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Bypass the monthly cache while retaining request and retry limits",
+    )
+    battery_storage_parser = subparsers.add_parser(
+        "import-battery-storage",
+        help="Import manually exported Battery-Charts energy and power JSON files",
+    )
+    battery_storage_parser.add_argument("--energy-file", type=Path, required=True)
+    battery_storage_parser.add_argument("--power-file", type=Path, required=True)
     subparsers.add_parser(
         "migrate-atlas",
         help="Remove Albania, unsupported sources and obsolete interval tables",
@@ -90,6 +106,27 @@ def main(argv: list[str] | None = None) -> int:
                 result = EurostatImporter(connection).import_years(args.from_year, args.to_year)
         except Exception as exc:
             print(f"Eurostat import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command == "update-storage":
+        try:
+            with database(args.db) as connection:
+                result = OnlineStorageUpdater(connection, refresh=args.refresh).update()
+        except Exception as exc:
+            print(f"Storage update aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command == "import-battery-storage":
+        try:
+            with database(args.db) as connection:
+                result = BatteryChartsImporter(connection).import_files(
+                    args.energy_file,
+                    args.power_file,
+                )
+        except Exception as exc:
+            print(f"Battery storage import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
             return 1
         print(json.dumps(result, ensure_ascii=False))
         return 0
