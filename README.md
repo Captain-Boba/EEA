@@ -12,7 +12,7 @@ Ein lokaler, interaktiver Atlas für den Vergleich europäischer Stromsysteme. D
 - jährliche Bevölkerungs- und BIP-Kennzahlen sowie Pro-Kopf-Auswertungen
 - Batterie- und Pumpspeicherleistung, -energie und äquivalente Entladedauer als getrennte Bestandswerte
 - vollständig lokale Europakarte ohne Kartenkacheln, CDN oder Tracking
-- synchronisierte Auswahl von zwei bis vier Ländern in Karte, Haupttabelle und Vergleich
+- interaktiver Zeitreihenvergleich für ein bis zehn Länder mit Atlas-Durchschnitt, Direktlink und lokalen Exporten
 - sichtbare Coverage-Lücken, vorläufige Zeiträume und YTD-Werte statt erfundener Nullwerte
 
 ## Schnellstart mit fertigem Datenstand
@@ -54,6 +54,7 @@ Danach [http://127.0.0.1:8765](http://127.0.0.1:8765) öffnen. `Strg+C` beendet 
 | [Battery-Charts](https://battery-charts.de/) | vollständiger deutscher stationärer Batteriebestand aus dem bereinigten MaStR | monatlicher Bestandswert |
 | [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory) | operative Batterieprojekte außerhalb Deutschlands und Pumpspeicher aller Länder | API-Snapshot |
 | [Natural Earth](https://www.naturalearthdata.com/) | lokale Ländergeometrien der Europakarte | Version 5.1.1 |
+| [flag-icons](https://github.com/lipis/flag-icons) | lokale SVG-Länderflaggen im Zeitreihenvergleich | Version 7.4.0, MIT |
 
 Ember- und Battery-Charts-Daten werden als `CC BY 4.0` gekennzeichnet. Natural-Earth-Geometrien sind gemeinfrei. Für Eurostat gelten dessen Wiederverwendungsbedingungen und Ausnahmen. Die JRC-Bestandsdaten können Schätzungen sowie Daten externer Anbieter enthalten; ihre Weitergabe muss vor einer öffentlichen oder kommerziellen Veröffentlichung gesondert geprüft werden.
 
@@ -130,6 +131,7 @@ Eine frische, noch nicht vorhandene SQLite-Datei wird beim Serverstart initialis
 - `/api/summary?year=2025`
 - `/api/summary?year=2025&month=7`
 - `/api/compare?year=2025&countries=DE,FR`
+- `/api/timeseries?metric=renewable_share_pct&countries=DE,FR,UK&start=2015-01&end=2026-08`
 - `/api/coverage?year=2025`
 - `/api/storage`
 
@@ -159,5 +161,6 @@ Die Tests verwenden ausschließlich lokale Fixtures und führen keine Live-Impor
 - Einzelne historische Land-Monat-Kombinationen können reguläre Coverage-Lücken besitzen.
 - Bruttoimport, Bruttoexport, negative Preisstunden und operative Intervallstatistiken sind nicht Teil des Monatsatlas.
 - JRC-Speicherwerte bilden den erfassten operativen Projektbestand ab, nicht zwingend einen vollständigen nationalen Gesamtbestand und nicht die Wasserkraft-Magazinkapazität.
+- Zeitreihenplots interpolieren keine Lücken. Der Atlas-Durchschnitt ist je Zeitpunkt das arithmetische Mittel aller vorhandenen Werte des vollständigen Länderkatalogs.
 - Außerhalb Deutschlands werden fehlende Heim- oder Gewerbebatterien nicht geschätzt. Fehlende JRC-Energie bleibt leer und wird nicht aus Leistung oder Projektdaten erfunden.
 - Die öffentliche JRC-Projekt-API ist nicht formal versioniert; Strukturänderungen führen deshalb bewusst zu einem abgebrochenen, bestandserhaltenden Import.

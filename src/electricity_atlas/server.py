@@ -13,6 +13,7 @@ from .coverage import coverage_rows
 from .db import database, read_database
 from .metrics import metric_catalog
 from .storage_online import latest_storage
+from .timeseries import build_timeseries
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2] / "web"
@@ -63,6 +64,15 @@ class AtlasHandler(BaseHTTPRequestHandler):
                     if not 2 <= len(codes) <= 4 or any(code not in COUNTRIES for code in codes):
                         raise ValueError("countries must contain 2 to 4 Atlas country codes")
                     payload = [aggregate_country(connection, code, year, month, source) for code in codes]
+                elif path == "/api/timeseries":
+                    codes = query.get("countries", [""])[0].split(",")
+                    payload = build_timeseries(
+                        connection,
+                        query.get("metric", [""])[0],
+                        codes,
+                        query.get("start", [""])[0],
+                        query.get("end", [""])[0],
+                    )
                 elif path == "/api/coverage":
                     payload = coverage_rows(connection, year)
                 elif path == "/api/storage":

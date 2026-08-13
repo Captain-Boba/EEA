@@ -32,7 +32,7 @@
         </select>
       </label>
       <button id="load">Auswerten</button>
-      <button id="compare" disabled>Vergleichen (<span id="selected-count">0</span>)</button>
+      <button id="compare" disabled>Zeitreihe vergleichen (<span id="selected-count">0</span>)</button>
     </section>
 
     <p id="status" role="status">Daten werden geladen …</p>
@@ -41,7 +41,7 @@
       <div class="section-heading">
         <div>
           <h2 id="atlas-map-title">Europakarte</h2>
-          <p class="hint">Kennzahl und Darstellung wählen. Ein Land per Klick, Enter oder Leertaste zum Vergleich hinzufügen.</p>
+          <p class="hint">Kennzahl und Darstellung wählen. Ein Land per Klick, Enter oder Leertaste in der Infokachel anzeigen.</p>
         </div>
         <label class="value-toggle"><input id="map-values" type="checkbox"> Werte anzeigen</label>
       </div>
@@ -73,7 +73,7 @@
 
     <section>
       <h2>Gesamttabelle</h2>
-      <p class="hint">Mit „Sortieren“ die Tabelle ordnen oder eine kartierbare Spalte gezielt auf der Karte anzeigen. Zwei bis vier Länder über die erste Spalte auswählen.</p>
+      <p class="hint">Mit „Sortieren“ die Tabelle ordnen oder eine kartierbare Spalte gezielt auf der Karte anzeigen. Ein bis zehn Länder über die erste Spalte für den Zeitreihenvergleich auswählen.</p>
       <div class="table-wrap">
         <table id="summary-table">
           <thead><tr id="summary-head"></tr></thead>
@@ -83,12 +83,53 @@
     </section>
 
     <section id="comparison" hidden>
-      <h2>Ländervergleich</h2>
-      <div class="table-wrap">
-        <table id="compare-table">
-          <thead><tr id="compare-head"></tr></thead>
-          <tbody id="compare-body"></tbody>
-        </table>
+      <div class="section-heading">
+        <div>
+          <h2>Zeitreihenvergleich</h2>
+          <p class="hint">Eine Kennzahl, bis zu zehn Länder und der Durchschnitt des vollständigen Atlas-Katalogs.</p>
+        </div>
+      </div>
+      <div class="comparison-controls" aria-label="Zeitreihenvergleich steuern">
+        <div class="country-control">
+          <label>Land hinzufügen
+            <select id="compare-country-add"></select>
+          </label>
+          <div id="compare-chips" class="country-chips" aria-label="Ausgewählte Länder"></div>
+        </div>
+        <label>Kennzahlenfamilie
+          <select id="compare-family"></select>
+        </label>
+        <label>Darstellung
+          <select id="compare-metric"></select>
+        </label>
+        <label id="compare-start-label">Von
+          <input id="compare-start" type="month" min="2015-01">
+        </label>
+        <label id="compare-end-label">Bis
+          <input id="compare-end" type="month" min="2015-01">
+        </label>
+        <button id="compare-load" type="button">Plot aktualisieren</button>
+        <div class="comparison-actions" aria-label="Zeitreihe exportieren">
+          <button id="export-csv" type="button" disabled>CSV</button>
+          <button id="export-svg" type="button" disabled>SVG</button>
+          <button id="export-png" type="button" disabled>PNG</button>
+          <button id="copy-link" type="button" disabled>Link kopieren</button>
+        </div>
+      </div>
+      <p id="comparison-status" class="hint" role="status"></p>
+      <div class="comparison-layout">
+        <div class="chart-panel">
+          <svg id="timeseries-chart" viewBox="0 0 1040 620" role="img" aria-label="Zeitreihenplot"></svg>
+          <button id="unpin-time" class="secondary-action" type="button" hidden>Zeitpunktfixierung aufheben</button>
+        </div>
+        <aside class="ranking-panel" aria-labelledby="ranking-title">
+          <div class="ranking-heading">
+            <h3 id="ranking-title">Live-Ranking</h3>
+            <span id="ranking-period" class="period-flag"></span>
+          </div>
+          <div id="atlas-average-value" class="atlas-average-value"></div>
+          <ol id="ranking-list" class="ranking-list"></ol>
+        </aside>
       </div>
     </section>
 
@@ -171,6 +212,6 @@
       <div id="coverage"></div>
     </details>
   </main>
-  <script src="/app.js"></script>
+  <script src="/app.js?v=timeseries-v1.0.0"></script>
 </body>
 </html>

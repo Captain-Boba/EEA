@@ -1,6 +1,6 @@
 # European Electricity Atlas – Roadmap
 
-Stand: 12. August 2026
+Stand: 13. August 2026
 
 Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene Grundlagen werden getrennt aufgeführt, damit die Prioritätenliste ausschließlich noch ausstehende Arbeiten enthält.
 
@@ -19,32 +19,39 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 
 ## Kurzfristige Produktziele
 
-### 2. Kartendarstellung vergrößern und besser ausrichten
+### 2. Kartendarstellung vergrößern, maximieren und exportieren
 
 - Der Karte deutlich mehr sichtbare Fläche geben und ungenutzten horizontalen Raum vermeiden.
-- Einen passenderen Europa-Ausschnitt mit einer eher quadratischen beziehungsweise ausgewogen kompakten Darstellung erarbeiten.
+- Den bestehenden geografischen Europa-Ausschnitt beibehalten; die Karte soll größer dargestellt, aber nicht neu zugeschnitten werden.
+- Eine Vollbildfunktion ergänzen, mit der die Karte maximiert und anschließend eindeutig wieder verlassen werden kann.
+- Den jeweils aktuellen Kartenstand exportierbar machen. Der Export muss die aktive Kennzahl, Darstellung, Farbskala, sichtbaren Werte und eine automatisch dazu erzeugte Legende enthalten.
 - Desktop-, Tablet- und Mobilansicht getrennt prüfen; kleine Länder müssen weiterhin per Maus und Tastatur erreichbar bleiben.
 - `Werte anzeigen` standardmäßig aktivieren, ohne die Karte bei kleinen Ländern oder engen Viewports unlesbar zu machen.
 
-**Abnahme:** Europa ist ohne unnötige Leerräume vollständig sichtbar, die Karte nutzt den verfügbaren Platz und Wertelabels sind beim ersten Laden eingeschaltet.
+**Abnahme:** Die Karte nutzt bei unverändertem geografischem Ausschnitt deutlich mehr Fläche, lässt sich vollständig maximieren und wiederherstellen und kann in ihrem aktuellen Zustand mit passender automatisch erzeugter Legende exportiert werden. Wertelabels sind beim ersten Laden eingeschaltet.
 
-### 3. Karteninteraktion auf einen festen Länderfokus umstellen
+### 3. Festen Länderfokus der Karte vervollständigen
 
-- Die Vergleichsauswahl über Klicks auf Kartenländer vollständig entfernen.
+- Kartenklicks sind bereits von der Vergleichsauswahl entkoppelt. Diese Trennung beibehalten und automatisiert absichern.
 - Ein angeklicktes Land in der Infokachel rechts neben der Karte festhalten, bis ein anderes Land gewählt oder der Fokus ausdrücklich gelöst wird.
-- Hover und Tastaturfokus dürfen weiterhin temporäre Informationen zeigen, sollen den festgehaltenen Länderfokus aber nicht unbeabsichtigt überschreiben.
-- Die Infokachel muss Land, Kennzahl, Wert, Einheit, Zeitraum beziehungsweise Snapshot, Datenstatus und Quelle enthalten.
+- Hover und Tastaturfokus dürfen weiterhin temporäre Informationen im Tooltip zeigen, sollen den festgehaltenen Länderfokus in der Infokachel aber nicht überschreiben.
+- Eine eindeutige Aktion zum Lösen des festgehaltenen Länderfokus ergänzen.
+- Die bereits vorhandenen Angaben zu Land, Kennzahl, Wert, Einheit, Zeitraum beziehungsweise Snapshot, Datenstatus und Quelle beibehalten.
 
 **Abnahme:** Kartenklicks verändern keine Vergleichsauswahl mehr. Maus- und Tastaturbedienung können genau ein Land sichtbar und nachvollziehbar in der Infokachel festhalten.
 
-### 4. Vergleichstool um Diagramme und freie Länderzahl erweitern
+### 4. Zeitreihenvergleich V2 fachlich und farblich verfeinern
 
-- Kennzahlen im Vergleichstool als aussagekräftige Graphen beziehungsweise Zeitreihen plotten.
-- Das feste Limit von vier Vergleichsländern entfernen.
-- Legende, Farben, Achsen, Einheiten und fehlende Werte auch bei vielen Ländern lesbar halten.
-- Auswahl und Entfernung von Ländern so gestalten, dass ein großer Vergleichssatz kontrollierbar bleibt; bei visueller Überladung warnen, aber kein willkürliches hartes Limit setzen.
+- Den vorhandenen Zeitreihenplot mit bis zu zehn Ländern, Atlas-Durchschnitt, Live-Ranking, Direktlink sowie CSV-, SVG- und PNG-Export beibehalten.
+- Die Linienfarbe nach Möglichkeit aus einer prägenden Farbe der jeweiligen Landesflagge ableiten. Entstünde dadurch innerhalb der aktuellen Auswahl eine Verwechslung, muss eine klar unterscheidbare Ersatzfarbe verwendet werden; die Zuordnung bleibt innerhalb der Ansicht konsistent.
+- Die derzeitige Veränderungsanzeige gegenüber dem sichtbaren Startpunkt durch eine feste Vergleichsbasis 2015 ersetzen.
+- Prozentuale Veränderungen auch bei Prozentkennzahlen ausschließlich als relative Veränderung in `%` ausweisen, nicht in Prozentpunkten (`pp`). Die Berechnung lautet `(aktueller Wert - Vergleichswert) / Vergleichswert × 100`.
+- Als feste Vergleichsbasis dient das Jahr 2015 und nicht der Anfang des gerade sichtbaren Zeitraums. Jahreswerte werden mit dem Jahreswert 2015 verglichen.
+- Monatswerte immer mit demselben Kalendermonat des Jahres 2015 vergleichen: Juli 2026 beispielsweise mit Juli 2015, niemals mit Januar 2015. Diese Basis gilt auch dann, wenn der sichtbare Zeitraum später beginnt.
+- Fehlt der passende Vergleichswert aus 2015 oder beträgt er tatsächlich null, keine prozentuale Veränderung berechnen und stattdessen `—` anzeigen; weder auf einen anderen Monat ausweichen noch einen Wert erfinden.
+- Die API muss die gegebenenfalls außerhalb des sichtbaren Zeitraums liegenden 2015-Basiswerte nachvollziehbar liefern, ohne sie als zusätzliche sichtbare Datenpunkte in den Plot einzuschleusen.
 
-**Abnahme:** Mehr als vier Länder lassen sich auswählen und gemeinsam tabellarisch sowie grafisch vergleichen, ohne dass fehlende Werte als Null dargestellt werden.
+**Abnahme:** Der bestehende Vergleich bleibt vollständig funktionsfähig. Linien bleiben anhand ihrer Flaggenfarben beziehungsweise konfliktfreier Ersatzfarben unterscheidbar. Prozentuale Veränderungen erscheinen in `%`; bei Monatswerten verwendet jeder Datenpunkt ausschließlich denselben Kalendermonat 2015 als Basis. Fehlende Werte und nicht berechenbare Veränderungen werden nicht als Null dargestellt.
 
 ### 5. Ländersteckbrief entwickeln
 
@@ -71,17 +78,23 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 - Nach jedem Wechsel von Sortierspalte oder Sortierrichtung vollständig neu nummerieren: Der oberste Eintrag erhält immer `1`, der nächste `2` und so weiter.
 - Die Nummer ist keine feste Länder-ID. Bei einer absteigenden Sortierung nach Erzeugung trägt beispielsweise das Land mit der höchsten Erzeugung die `1`; bei aufsteigender Sortierung entsprechend das Land mit der niedrigsten dargestellten Erzeugung.
 - Flaggen und sortierabhängige Ränge im Vergleich und im Steckbrief nur dort wiederverwenden, wo die zugrunde liegende Sortierung eindeutig sichtbar bleibt.
+- Das optisch gebrochene Feld beziehungsweise die Überschrift `Auswahl` oben links entfernen; die Länderauswahl stattdessen ohne diesen sichtbaren Spaltentitel zugänglich beschriften.
+- Sämtliche Spaltenüberschriften und Tabellenwerte horizontal zentrieren. Eine ausdrücklich linksbündig gewünschte Bezeichnungsspalte müsste vor der Umsetzung gesondert festgelegt werden.
+- Dezimalstellen je Spalte einheitlich lang darstellen. Nachgestellte Nullen dürfen nicht unterdrückt werden, wenn dadurch innerhalb derselben Spalte unterschiedlich viele Nachkommastellen sichtbar wären.
 
-**Abnahme:** Jede sichtbare Tabellenzeile besitzt eine Flagge und den korrekten Rang der aktiven Sortierung. Nach jeder Umsortierung beginnt die neue Reihenfolge wieder bei `1`.
+**Abnahme:** Jede sichtbare Tabellenzeile besitzt eine Flagge und den korrekten Rang der aktiven Sortierung. Nach jeder Umsortierung beginnt die neue Reihenfolge wieder bei `1`. Überschriften und Inhalte sind zentriert, Dezimalstellen innerhalb einer Spalte einheitlich und die gebrochene sichtbare Überschrift `Auswahl` ist entfernt.
 
 ### 8. Oberfläche weiter polieren
 
+- Die Steuerleiste mit Jahr, Zeitraum, `Auswerten` und `Vergleichen` beim Scrollen am oberen Rand des sichtbaren Fensters mitführen, ohne relevante Inhalte zu verdecken.
+- Ein neues, zurückhaltendes Atlas-Logo entwickeln: klar wiedererkennbar und etwas eigenständiger als ein reiner Textschriftzug, aber bewusst nicht verspielt oder überladen.
+- Bedienhinweise sprachlich und inhaltlich überarbeiten. Wiederkehrende Erklärtexte nicht dauerhaft an allen Ansichten offen anzeigen, sondern kontextbezogen über kleine, klar beschriftete Info-Schaltflächen zugänglich machen.
 - Abstände, Typografie, visuelle Hierarchie, Karten- und Tabellenproportionen sowie die Ausnutzung großer Bildschirme vereinheitlichen.
 - Interaktive Zustände für Hover, Fokus, Auswahl, Laden, leere Daten und Fehler konsistent gestalten.
 - Mobile Bedienung, Tastaturnavigation, Fokusreihenfolge und ausreichende Kontraste erneut vollständig abnehmen.
 - Neue Steckbrief-, Quartett- und Diagrammansichten in dasselbe visuelle System integrieren.
 
-**Abnahme:** Die Kernabläufe Karte, Tabelle, Vergleich und Ländersteckbrief wirken visuell zusammengehörig und funktionieren ohne Seiten-Overflow auf Desktop und Mobilgeräten.
+**Abnahme:** Die Steuerleiste bleibt beim Scrollen zuverlässig bedienbar, das neue Logo ist in Desktop- und Mobilansicht klar lesbar und Bedienhilfen lassen sich bei Bedarf aufrufen, ohne die Oberfläche dauerhaft mit Erklärungstexten zu füllen. Die Kernabläufe Karte, Tabelle, Vergleich und Ländersteckbrief wirken visuell zusammengehörig und funktionieren ohne Seiten-Overflow.
 
 ## Weitere Daten- und Qualitätsziele
 
@@ -111,7 +124,24 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 - Eurostat ergänzt jährliche Bevölkerung und BIP-Kennzahlen.
 - Batterien und Pumpspeicher sind in Leistung, Energie und äquivalenter Entladedauer getrennt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.
 - `update-storage` respektiert einen monatlichen Cache und ruft ausschließlich JRC nach bewusster CLI-Ausführung ab. Battery-Charts besitzt nur den separaten manuellen JSON-Dateiimport; der frühere manuelle JRC-Import bleibt als veralteter Offline-Fallback erhalten.
+- Das frühere tabellarische Vergleichsprovisorium ist durch einen nativen SVG-Zeitreihenplot für ein bis zehn Länder ersetzt. Monats- und Jahresauflösung stammen aus dem zentralen Kennzahlenkatalog; Snapshot-Kennzahlen bleiben ausgeschlossen.
+- Der Zeitreihenvergleich enthält einen Atlas-Durchschnitt über alle jeweils vorhandenen Länderwerte, echte Datenlücken, Live-Ranking, Hover und Zeitpunktfixierung, lokale Flaggen sowie CSV-, SVG- und PNG-Export.
+- Länderauswahl, Kennzahl und Zeitraum werden in einem defensiv validierten Direktlink gespeichert. Die alte `/api/compare`-Schnittstelle bleibt vorerst erhalten.
+- Kartenklicks verändern die Vergleichsauswahl nicht mehr. Der dauerhafte Kartenfokus muss noch von temporärem Hover beziehungsweise Tastaturfokus getrennt und explizit lösbar gemacht werden.
 - Rohdaten und Provenienz werden lokal gespeichert; fehlerhafte Aktualisierungen dürfen bestehende Daten nicht verändern.
+
+## Abgeschlossene Grundlagen
+
+### Zeitreihenvergleich V1
+
+- Eigener `/api/timeseries`-Vertrag für ein bis zehn eindeutige Atlas-Länder und genau eine Kennzahl.
+- Automatische Monatsauflösung, sofern verfügbar, andernfalls Jahresauflösung; Snapshot-Kennzahlen werden verständlich deaktiviert.
+- Chronologische Länderreihen mit `null` für fehlende Perioden, ohne Interpolation oder erfundene Nullwerte.
+- Atlas-Durchschnitt je Zeitpunkt über den vollständigen Länderkatalog; fehlende Werte werden ausgeschlossen und echte Nullwerte berücksichtigt.
+- Lokaler nativer SVG-Plot mit bis zu zehn Länderlinien, gestricheltem Atlas-Durchschnitt, Endpunktflaggen, Kollisionsbehandlung, Nulllinie für vorzeichenbehaftete Kennzahlen und responsiver Darstellung.
+- Live-Ranking am letzten beziehungsweise berührten Zeitpunkt, geteilte Ränge, Linienhervorhebung sowie fixierbarer Zeitpunkt.
+- Wiederherstellbarer Direktlink und lokale CSV-, SVG- und PNG-Exporte; CSV-Lücken bleiben leer.
+- 31 lokale SVG-Flaggen aus `flag-icons` einschließlich dokumentierter MIT-Lizenz; keine Diagramm-, Flaggen- oder CDN-Abrufe zur Laufzeit.
 
 ## Leitplanken
 

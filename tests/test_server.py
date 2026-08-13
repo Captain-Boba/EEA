@@ -34,6 +34,11 @@ class ServerSmokeTests(unittest.TestCase):
                     metrics = json.load(response)
                 with urlopen(base + "/api/storage", timeout=5) as response:
                     storage = json.load(response)
+                with urlopen(
+                    base + "/api/timeseries?metric=generation_twh&countries=DE&start=2025-01&end=2025-02",
+                    timeout=5,
+                ) as response:
+                    timeseries = json.load(response)
                 self.assertIn("European Electricity Atlas", html)
                 self.assertIn("Datenquellen und Herkunft", html)
                 self.assertIn('id="atlas-map-section"', html)
@@ -61,6 +66,10 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertIn("JRC", storage["source_label"])
                 self.assertIn("Battery-Charts", storage["source_label"])
                 self.assertEqual(storage["countries"], [])
+                self.assertEqual(timeseries["granularity"], "monthly")
+                self.assertEqual(len(timeseries["countries"]), 1)
+                self.assertEqual(len(timeseries["countries"][0]["values"]), 2)
+                self.assertEqual(timeseries["countries"][0]["values"][0]["value"], None)
                 with self.assertRaises(HTTPError) as error:
                     urlopen(base + "/api/summary?year=2025&source=combined", timeout=5)
                 self.assertEqual(error.exception.code, 400)

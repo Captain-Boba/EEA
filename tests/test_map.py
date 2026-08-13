@@ -10,6 +10,7 @@ from electricity_atlas.metrics import metric_catalog
 
 ROOT = Path(__file__).resolve().parents[1]
 SVG_PATH = ROOT / "web" / "assets" / "europe.svg"
+FLAG_PATH = ROOT / "web" / "assets" / "flags"
 APP_PATH = ROOT / "web" / "app.js"
 INDEX_PATH = ROOT / "web" / "index.html"
 
@@ -94,6 +95,21 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('fetch("/assets/europe.svg")', app)
         external_fetches = re.findall(r"fetch\((['\"])(.*?)\1", app)
         self.assertTrue(all(url.startswith("/") for _, url in external_fetches))
+
+    def test_timeseries_ui_replaces_placeholder_table_and_uses_local_flags(self):
+        html = INDEX_PATH.read_text(encoding="utf-8")
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn('id="timeseries-chart"', html)
+        self.assertIn('id="ranking-list"', html)
+        self.assertNotIn('id="compare-table"', html)
+        self.assertIn("/api/timeseries?", app)
+        self.assertIn("buildComparisonCsv", app)
+        self.assertIn("history.replaceState", app)
+        self.assertIn("prefers-reduced-motion", (ROOT / "web" / "style.css").read_text(encoding="utf-8"))
+        expected = {("gb" if code == "UK" else code.lower()) + ".svg" for code in ATLAS_COUNTRIES}
+        actual = {path.name for path in FLAG_PATH.glob("*.svg")}
+        self.assertEqual(actual, expected)
+        self.assertTrue((FLAG_PATH / "LICENSE.flag-icons.txt").is_file())
 
 
 if __name__ == "__main__":
