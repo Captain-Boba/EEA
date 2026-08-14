@@ -172,31 +172,34 @@ class TimeseriesTests(unittest.TestCase):
             "provisional_current_month",
         )
 
-    def test_monthly_baseline_uses_matching_2015_calendar_months(self):
-        self.insert("DE", "2015-07-01", "2015-07-31", "monthly", "generation_total", 10)
-        self.insert("DE", "2015-08-01", "2015-08-31", "monthly", "generation_total", 20)
+    def test_monthly_baseline_uses_matching_months_in_selected_start_year(self):
+        self.insert("DE", "2023-07-01", "2023-07-31", "monthly", "generation_total", 10)
+        self.insert("DE", "2023-08-01", "2023-08-31", "monthly", "generation_total", 20)
         result = build_timeseries(
             self.connection,
             "generation_twh",
             ["DE"],
-            "2026-07",
+            "2023-07",
             "2026-08",
             today=date(2026, 8, 13),
         )
         self.assertEqual(
             result["comparison_baseline"],
-            {"year": 2015, "method": "same_calendar_month"},
+            {"year": 2023, "method": "same_calendar_month"},
         )
-        self.assertEqual(
-            [(point["period"], point["value"]) for point in result["countries"][0]["baseline_values"]],
-            [("2015-07", 10.0), ("2015-08", 20.0)],
-        )
+        baseline_values = {
+            point["period"]: point["value"]
+            for point in result["countries"][0]["baseline_values"]
+        }
+        self.assertEqual(len(baseline_values), 12)
+        self.assertEqual(baseline_values["2023-07"], 10.0)
+        self.assertEqual(baseline_values["2023-08"], 20.0)
 
-    def test_yearly_baseline_is_2015_even_when_visible_range_starts_later(self):
+    def test_yearly_baseline_is_the_selected_start_year(self):
         self.insert(
             "DE",
-            "2015-01-01",
-            "2015-12-31",
+            "2020-01-01",
+            "2020-12-31",
             "yearly",
             "population",
             80_000_000,
@@ -211,8 +214,8 @@ class TimeseriesTests(unittest.TestCase):
             "2021",
             today=date(2026, 8, 13),
         )
-        self.assertEqual(result["comparison_baseline"], {"year": 2015, "method": "annual"})
-        self.assertEqual(result["countries"][0]["baseline_values"][0]["period"], "2015")
+        self.assertEqual(result["comparison_baseline"], {"year": 2020, "method": "annual"})
+        self.assertEqual(result["countries"][0]["baseline_values"][0]["period"], "2020")
         self.assertEqual(result["countries"][0]["baseline_values"][0]["value"], 80_000_000.0)
 
 

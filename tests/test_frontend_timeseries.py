@@ -173,14 +173,14 @@ process.stdout.write(JSON.stringify({
         self.assertEqual(result["completeEnd"], "2026-06")
         self.assertEqual(result["completeIndex"], 0)
 
-    def test_flag_colors_are_preferred_without_conflicts_and_monthly_change_uses_2015_month(self):
+    def test_flag_colors_are_preferred_without_conflicts_and_monthly_change_uses_range_start_year(self):
         script = r'''
 global.document = {getElementById: () => ({addEventListener: () => {}})};
 global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
 global.history = {replaceState: () => {}};
 global.fetch = () => new Promise(() => {});
 global.URLSearchParams = URLSearchParams;
-const {assignCountryColors, colorDistance, extractFlagColors, comparisonBaselinePoint, rankingFallbackDetails, relativeBaselineChange} = require("./web/app.js");
+const {assignCountryColors, chartIndexFromClientX, colorDistance, extractFlagColors, comparisonBaselinePoint, rankingFallbackDetails, relativeBaselineChange} = require("./web/app.js");
 const candidates = new Map([
   ["DE", extractFlagColors('<path fill="#fc0"/><path fill="#000001"/><path fill="red"/>')],
   ["ES", extractFlagColors('<path fill="#aa151b"/><path fill="#f1bf00"/>')],
@@ -197,6 +197,11 @@ const monthly = {
   values: [{period: "2026-07", value: 15}],
   baseline_values: [{period: "2015-07", value: 5}],
 };
+const threeYears = {
+  country_code: "DE",
+  values: [{period: "2026-07", value: 15}],
+  baseline_values: [{period: "2023-07", value: 6}],
+};
 const zeroBaseline = {
   country_code: "DE",
   values: [{period: "2026", value: 15}],
@@ -212,8 +217,15 @@ process.stdout.write(JSON.stringify({
   unique: new Set(colors.values()).size,
   tenUnique: new Set(tenColors).size,
   minimumDistance,
+  hitIndices: [
+    chartIndexFromClientX(100, {left: 100, width: 900}, 10),
+    chartIndexFromClientX(550, {left: 100, width: 900}, 10),
+    chartIndexFromClientX(1000, {left: 100, width: 900}, 10),
+  ],
   monthlyBaseline: comparisonBaselinePoint(monthly, "2026-07", "monthly"),
   monthlyChange: relativeBaselineChange(monthly, 0, "monthly"),
+  threeYearBaseline: comparisonBaselinePoint(threeYears, "2026-07", "monthly", 2023),
+  threeYearChange: relativeBaselineChange(threeYears, 0, "monthly", 2023),
   zeroChange: relativeBaselineChange(zeroBaseline, 0, "yearly"),
   missingChange: relativeBaselineChange(missingBaseline, 0, "monthly"),
   missingFallback: rankingFallbackDetails({...missingBaseline, country_name: "Deutschland"}, 0),
@@ -225,8 +237,11 @@ process.stdout.write(JSON.stringify({
         self.assertEqual(result["unique"], 4)
         self.assertEqual(result["tenUnique"], 10)
         self.assertGreaterEqual(result["minimumDistance"], 96)
+        self.assertEqual(result["hitIndices"], [0, 5, 9])
         self.assertEqual(result["monthlyBaseline"], {"period": "2015-07", "value": 5})
         self.assertEqual(result["monthlyChange"], 200)
+        self.assertEqual(result["threeYearBaseline"], {"period": "2023-07", "value": 6})
+        self.assertEqual(result["threeYearChange"], 150)
         self.assertIsNone(result["zeroChange"])
         self.assertIsNone(result["missingChange"])
         self.assertTrue(result["missingFallback"]["active"])

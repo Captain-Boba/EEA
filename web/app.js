@@ -1548,19 +1548,16 @@ function renderTimeseriesChart() {
   $("unpin-time").hidden = chartPinnedIndex === null;
 }
 
-function pointerInSvg(svg, event) {
-  const point = svg.createSVGPoint();
-  point.x = event.clientX;
-  point.y = event.clientY;
-  return point.matrixTransform(svg.getScreenCTM().inverse());
+function chartIndexFromClientX(clientX, rect, pointCount) {
+  const ratio = (clientX - rect.left) / Math.max(rect.width, 1);
+  return Math.max(0, Math.min(pointCount - 1, Math.round(ratio * Math.max(1, pointCount - 1))));
 }
 
 function bindChartInteraction(svg, scale, geometry) {
   const overlay = svg.querySelector(".chart-interaction");
   overlay.addEventListener("pointermove", event => {
-    const point = pointerInSvg(svg, event);
     const count = timeseriesData.atlas_average.values.length;
-    const index = Math.max(0, Math.min(count - 1, Math.round((point.x - geometry.left) / (geometry.right - geometry.left) * Math.max(1, count - 1))));
+    const index = chartIndexFromClientX(event.clientX, overlay.getBoundingClientRect(), count);
     if (index !== chartHoverIndex) {
       chartHoverIndex = index;
       renderTimeseriesChart();
@@ -1573,44 +1570,49 @@ function bindChartInteraction(svg, scale, geometry) {
     }
   });
   overlay.addEventListener("click", event => {
-    const point = pointerInSvg(svg, event);
     const count = timeseriesData.atlas_average.values.length;
-    const index = Math.max(0, Math.min(count - 1, Math.round((point.x - geometry.left) / (geometry.right - geometry.left) * Math.max(1, count - 1))));
+    const index = chartIndexFromClientX(event.clientX, overlay.getBoundingClientRect(), count);
     chartPinnedIndex = chartPinnedIndex === index ? null : index;
     chartHoverIndex = index;
     renderTimeseriesChart();
   });
 }
 
-function comparisonBaselinePoint(country, period, granularity) {
-  const baselinePeriod = granularity === "monthly" ? `${MIN_YEAR}-${period.slice(5, 7)}` : String(MIN_YEAR);
+function comparisonBaselineYear(payload = timeseriesData) {
+  const year = Number(payload?.comparison_baseline?.year);
+  return Number.isInteger(year) ? year : MIN_YEAR;
+}
+
+function comparisonBaselinePoint(country, period, granularity, baselineYear = MIN_YEAR) {
+  const baselinePeriod = granularity === "monthly" ? `${baselineYear}-${period.slice(5, 7)}` : String(baselineYear);
   return country.baseline_values?.find(point => point.period === baselinePeriod) || null;
 }
 
 function rankingFallbackDetails(country, index) {
   const period = country.values[index]?.period || "";
   const granularity = timeseriesData?.granularity || (period.includes("-") ? "monthly" : "yearly");
-  const baselinePoint = comparisonBaselinePoint(country, period, granularity);
+  const baselineYear = comparisonBaselineYear();
+  const baselinePoint = comparisonBaselinePoint(country, period, granularity, baselineYear);
   const incomplete = country.values.some(point => !Number.isFinite(point.value));
   const reasons = [];
   if (incomplete) reasons.push("Datenreihe unvollständig");
-  if (!Number.isFinite(baselinePoint?.value)) reasons.push("Vergleichswert 2015 fehlt");
+  if (!Number.isFinite(baselinePoint?.value)) reasons.push(`Vergleichswert ${baselineYear} fehlt`);
   return {
     active: reasons.length > 0,
     text: reasons.length ? `${country.country_name}: ${reasons.join("; ")}` : "",
   };
 }
 
-function relativeBaselineChange(country, index, granularity) {
+function relativeBaselineChange(country, index, granularity, baselineYear = MIN_YEAR) {
   const current = country.values[index]?.value;
   const period = country.values[index]?.period || "";
-  const baseline = comparisonBaselinePoint(country, period, granularity)?.value;
+  const baseline = comparisonBaselinePoint(country, period, granularity, baselineYear)?.value;
   if (!Number.isFinite(current) || !Number.isFinite(baseline) || baseline === 0) return null;
   return (current - baseline) / baseline * 100;
 }
 
 function rankingChange(country, index) {
-  const change = relativeBaselineChange(country, index, timeseriesData.granularity);
+  const change = relativeBaselineChange(country, index, timeseriesData.granularity, comparisonBaselineYear());
   if (!Number.isFinite(change)) return "—";
   return `${change >= 0 ? "+" : ""}${new Intl.NumberFormat("de-DE", {maximumFractionDigits: 1}).format(change)} %`;
 }
@@ -1645,9 +1647,10 @@ function renderRanking(index) {
   const average = timeseriesData.atlas_average.values[index].value;
   $("atlas-average-value").dataset.numeric = Number.isFinite(average) ? String(average) : "";
   $("atlas-average-value").innerHTML = `Atlas-Durchschnitt · <span class="ranking-average-number" data-numeric="${Number.isFinite(average) ? average : ""}">${formatMetricValue(average, timeseriesData.metric)}</span> ${escapeHtml(timeseriesData.metric.unit)}`;
+  const baselineYear = comparisonBaselineYear();
   $("ranking-baseline-note").textContent = timeseriesData.granularity === "monthly"
-    ? "Veränderung gegenüber demselben Kalendermonat 2015"
-    : "Veränderung gegenüber dem Jahreswert 2015";
+    ? `Veränderung gegenüber demselben Kalendermonat ${baselineYear}`
+    : `Veränderung gegenüber dem Jahreswert ${baselineYear}`;
   $("ranking-list").innerHTML = entries.map(entry => {
     return `<li data-country="${entry.country.country_code}" class="ranking-item${Number.isFinite(entry.value) ? "" : " missing-value"}">
       <span class="ranking-rank">${entry.rank || "—"}</span>
@@ -1723,6 +1726,8 @@ if (typeof module !== "undefined" && module.exports) {
     formatTableValue,
     availableComparisonRange,
     comparisonPresetRange,
+    chartIndexFromClientX,
+    comparisonBaselineYear,
     latestCompleteComparisonIndex,
     latestCompleteComparisonPeriod,
     parseComparisonUrl,
@@ -2165,12 +2170,14 @@ window.__atlasCompareTest = {
   buildComparisonCsv,
   colorDistance,
   comparisonPresetRange,
+  chartIndexFromClientX,
   assignCountryColors,
   extractFlagColors,
   flagCode,
   latestCompleteComparisonIndex,
   latestCompleteComparisonPeriod,
   parseComparisonUrl,
+  comparisonBaselineYear,
   comparisonBaselinePoint,
   rankingFallbackDetails,
   relativeBaselineChange,
