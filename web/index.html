@@ -3,14 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>European Electricity Atlas – Data Core</title>
+  <meta name="theme-color" content="#070d18">
+  <title>European Electricity Atlas – Midnight Grid</title>
+  <link rel="icon" href="/assets/eea-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <main>
-    <header>
-      <h1>European Electricity Atlas</h1>
-      <p>Internes Analyse-UI für vergleichbare europäische Stromdaten</p>
+    <header class="site-header">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true"><img src="/assets/eea-mark.svg" alt=""></span>
+        <div>
+          <h1>European Electricity Atlas</h1>
+        </div>
+      </div>
     </header>
 
     <section class="controls" aria-label="Zeitraum">
@@ -33,6 +39,10 @@
       </label>
       <button id="load">Auswerten</button>
       <button id="compare" disabled>Zeitreihe vergleichen (<span id="selected-count">0</span>)</button>
+      <button id="clear-selection" class="europe-clear-action" type="button" disabled aria-label="Gesamte Länderauswahl aufheben">
+        <img class="europe-star" src="/assets/europe-star.svg" alt="">
+        <span>Auswahl aufheben</span>
+      </button>
     </section>
 
     <p id="status" role="status">Daten werden geladen …</p>
@@ -41,52 +51,86 @@
       <div class="section-heading">
         <div>
           <h2 id="atlas-map-title">Europakarte</h2>
-          <p class="hint">Kennzahl und Darstellung wählen. Ein Land per Klick, Enter oder Leertaste in der Infokachel anzeigen.</p>
-        </div>
-        <label class="value-toggle"><input id="map-values" type="checkbox"> Werte anzeigen</label>
-      </div>
-      <div class="map-controls" aria-label="Kartenkennzahl">
-        <label>Kennzahl
-          <select id="map-family" aria-controls="atlas-map"></select>
-        </label>
-        <label>Darstellung
-          <select id="map-representation" aria-controls="atlas-map"></select>
-        </label>
-      </div>
-      <p id="map-availability" class="hint" role="status"></p>
-      <div class="map-layout">
-        <div id="map-frame" class="map-frame" aria-busy="true">
-          <div id="map-canvas"></div>
-          <div id="map-tooltip" class="map-tooltip" hidden></div>
-        </div>
-        <aside class="map-panel" aria-label="Kartenlegende und Länderwert">
-          <h3 id="map-metric-title">Karte wird geladen …</h3>
-          <p id="map-period" class="hint"></p>
-          <div id="map-legend" class="map-legend"></div>
-          <p id="map-sign-note" class="hint" hidden>Negativ = Exportüberschuss · Positiv = Importüberschuss</p>
-          <div id="map-detail" class="map-detail" role="status" aria-live="polite">
-            Ein Land fokussieren, um Details anzuzeigen.
+          <button class="info-trigger" type="button" data-info-target="map-info" aria-expanded="false">Hinweise zur Karte</button>
+          <div id="map-info" class="info-popover" role="dialog" aria-label="Hinweise zur Karte" hidden>
+            <button class="info-close" type="button" aria-label="Hinweise schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
+            <p>Kennzahl und Darstellung wählen. Ein Land per Klick, Enter oder Leertaste dauerhaft fokussieren.</p>
           </div>
-        </aside>
+        </div>
+      </div>
+      <div id="map-stage" class="map-stage">
+        <div class="map-controls" aria-label="Kartenkennzahl">
+          <label>Kennzahl
+            <select id="map-family" aria-controls="atlas-map"></select>
+          </label>
+          <label>Darstellung
+            <select id="map-representation" aria-controls="atlas-map"></select>
+          </label>
+        </div>
+        <p id="map-availability" class="hint" role="status"></p>
+        <div class="map-actions" aria-label="Karte anzeigen und exportieren">
+          <label class="value-toggle"><input id="map-values" type="checkbox" checked> Werte anzeigen</label>
+          <button id="map-export-svg" class="secondary-action" type="button" disabled>SVG exportieren</button>
+          <button id="map-export-png" class="secondary-action" type="button" disabled>PNG exportieren</button>
+          <button id="map-fullscreen" class="secondary-action" type="button" aria-pressed="false">Karte im Vollbild</button>
+        </div>
+        <div class="map-layout">
+          <div id="map-frame" class="map-frame" aria-busy="true">
+            <div id="map-canvas"></div>
+            <div id="map-tooltip" class="map-tooltip" hidden></div>
+          </div>
+          <aside class="map-panel" aria-label="Kartenlegende und Länderwert">
+            <h3 id="map-metric-title">Karte wird geladen …</h3>
+            <p id="map-period" class="hint"></p>
+            <div id="map-legend" class="map-legend"></div>
+            <p id="map-sign-note" class="hint" hidden>Negativ = Exportüberschuss · Positiv = Importüberschuss</p>
+            <div id="map-detail" class="map-detail" role="status" aria-live="polite">
+              Ein Land fokussieren, um Details anzuzeigen.
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
 
-    <section>
-      <h2>Gesamttabelle</h2>
-      <p class="hint">Mit „Sortieren“ die Tabelle ordnen oder eine kartierbare Spalte gezielt auf der Karte anzeigen. Ein bis zehn Länder über die erste Spalte für den Zeitreihenvergleich auswählen.</p>
-      <div class="table-wrap">
-        <table id="summary-table">
-          <thead><tr id="summary-head"></tr></thead>
-          <tbody id="summary-body"></tbody>
-        </table>
-      </div>
+    <section id="summary-section" class="data-table-section" aria-labelledby="summary-title">
+      <article class="table-card">
+        <header class="table-card-header">
+          <div class="table-card-title">
+            <span class="table-kicker">Ländervergleich</span>
+            <h2 id="summary-title">Europas Stromsysteme im Ranking</h2>
+            <p id="summary-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
+          </div>
+          <div class="table-card-tools">
+            <span id="summary-count" class="table-count" aria-live="polite"></span>
+            <button class="info-trigger table-info-trigger" type="button" data-info-target="table-info" aria-expanded="false">Tabellenhilfe</button>
+            <div id="table-info" class="info-popover align-right" role="dialog" aria-label="Tabellenhilfe" hidden>
+              <button class="info-close" type="button" aria-label="Tabellenhilfe schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
+              <p>Spalten sortieren oder eine Kennzahl auf die Karte übertragen. Bis zu zehn Länder über die erste Spalte für den Zeitreihenvergleich auswählen.</p>
+            </div>
+          </div>
+        </header>
+        <div id="summary-table-region" class="table-wrap">
+          <table id="summary-table">
+            <thead><tr id="summary-head"></tr></thead>
+            <tbody id="summary-body"></tbody>
+          </table>
+        </div>
+        <button id="summary-toggle" class="table-toggle table-edge-toggle" type="button" aria-expanded="false" aria-controls="summary-table-region">
+          <span class="table-toggle-label">Alle Länder anzeigen</span>
+          <span class="table-toggle-chevron" aria-hidden="true"></span>
+        </button>
+      </article>
     </section>
 
     <section id="comparison" hidden>
       <div class="section-heading">
         <div>
           <h2>Zeitreihenvergleich</h2>
-          <p class="hint">Eine Kennzahl, bis zu zehn Länder und der Durchschnitt des vollständigen Atlas-Katalogs.</p>
+          <button class="info-trigger" type="button" data-info-target="comparison-info" aria-expanded="false">Hinweise zum Vergleich</button>
+          <div id="comparison-info" class="info-popover" role="dialog" aria-label="Hinweise zum Zeitreihenvergleich" hidden>
+            <button class="info-close" type="button" aria-label="Hinweise schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
+            <p>Eine Kennzahl, bis zu zehn Länder und der Durchschnitt des vollständigen Atlas-Katalogs.</p>
+          </div>
         </div>
       </div>
       <div id="comparison-stage" class="comparison-stage">
@@ -137,16 +181,33 @@
       </div>
     </section>
 
-    <section id="storage" hidden>
-      <h2>Elektrische Speicher</h2>
-      <p id="storage-note" class="hint"></p>
-      <p class="hint">Batterien und Pumpspeicher werden getrennt ausgewiesen. Die äquivalente Entladedauer ist jeweils aus fachlich zusammengehöriger Energie ÷ Leistung abgeleitet.</p>
-      <div class="table-wrap storage-wrap">
-        <table id="storage-table">
-          <thead><tr id="storage-head"></tr></thead>
-          <tbody id="storage-body"></tbody>
-        </table>
-      </div>
+    <section id="storage" class="data-table-section" aria-labelledby="storage-title" hidden>
+      <article class="table-card storage-card">
+        <header class="table-card-header">
+          <div class="table-card-title">
+            <span class="table-kicker">Flexibilität &amp; Reserven</span>
+            <h2 id="storage-title">Elektrische Speicher im Ranking</h2>
+            <p id="storage-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
+          </div>
+          <div class="table-card-tools">
+            <span id="storage-count" class="table-count" aria-live="polite"></span>
+          </div>
+        </header>
+        <div class="table-card-context">
+          <p id="storage-note" class="hint"></p>
+          <p class="hint">Batterien und Pumpspeicher werden getrennt ausgewiesen. Die äquivalente Entladedauer ist jeweils aus fachlich zusammengehöriger Energie ÷ Leistung abgeleitet.</p>
+        </div>
+        <div id="storage-table-region" class="table-wrap storage-wrap">
+          <table id="storage-table">
+            <thead><tr id="storage-head"></tr></thead>
+            <tbody id="storage-body"></tbody>
+          </table>
+        </div>
+        <button id="storage-toggle" class="table-toggle table-edge-toggle" type="button" aria-expanded="false" aria-controls="storage-table-region">
+          <span class="table-toggle-label">Alle Länder anzeigen</span>
+          <span class="table-toggle-chevron" aria-hidden="true"></span>
+        </button>
+      </article>
     </section>
 
     <details class="source-details">

@@ -25,23 +25,68 @@ const NE_TO_ATLAS = {
   "SVK": "SK", "SVN": "SI", "SWE": "SE"
 };
 const MAP_PALETTES = {
-  teal: ["#e7f2f2", "#a8d3d1", "#5badaf", "#247f8f", "#07566f"],
-  amber: ["#fff3d7", "#f5d18a", "#dfa653", "#b8752f", "#78461f"],
-  purple: ["#f0edf6", "#cbbddb", "#9c83b5", "#71518f", "#48266c"],
-  "orange-purple": ["#b35806", "#f1a340", "#f7f7f7", "#998ec3", "#542788"],
+  generation: ["#e8eef8", "#b9c9e2", "#7f9dc6", "#466f9f", "#234a76"],
+  consumption: ["#e6f1f4", "#b7d5dc", "#78b2bf", "#3d8999", "#1b5e6d"],
+  renewables: ["#e8f4e8", "#b8dcb8", "#7fbe83", "#459e58", "#216b37"],
+  wind: ["#edf5ff", "#c2dcf4", "#8cbde4", "#5197cd", "#276da6"],
+  solar: ["#fff8df", "#f7e6a8", "#ebcc67", "#d7a72d", "#9e7314"],
+  hydro: ["#e5f4fb", "#b7dff1", "#75c4e5", "#369fcb", "#15719b"],
+  bioenergy: ["#edf1df", "#ccd7a3", "#a2b66d", "#758f3d", "#4a6124"],
+  "other-renewables": ["#e8f5ef", "#b9dfcf", "#82c6aa", "#4aa481", "#276e58"],
+  fossil: ["#f8e9e1", "#edc0aa", "#db8d6a", "#bb573b", "#7d2f24"],
+  coal: ["#eeeeed", "#c7c7c3", "#989891", "#686861", "#3d3d39"],
+  gas: ["#fff0e5", "#f7c89e", "#e99458", "#ca6130", "#8d351f"],
+  "other-fossil": ["#f4e9e3", "#dfc1b2", "#bf927a", "#95634e", "#643f32"],
+  nuclear: ["#f1eaf7", "#d5c0e4", "#ad91ca", "#805eaa", "#58377e"],
+  trade: ["#2a6fbb", "#80b1d3", "#f7f7f7", "#ef8a62", "#b2182b"],
+  price: ["#f8e9f2", "#e8bad3", "#cf80ad", "#ad4f85", "#7c2f5d"],
+  carbon: ["#f6ebe7", "#e7c1b5", "#ce8d7d", "#aa584b", "#71312d"],
+  population: ["#eeeaf6", "#cfc2e2", "#aa95ca", "#7b65ae", "#4c3b7e"],
+  gdp: ["#e8f3ed", "#bfdcc9", "#8bc09e", "#519972", "#2c6a4d"],
+  "gdp-per-capita": ["#f3eedf", "#dccb9f", "#bea66d", "#927c40", "#65552a"],
+  battery: ["#eef0ff", "#c8cef4", "#98a3e2", "#6975c6", "#414b91"],
+  "pumped-storage": ["#e3f4f3", "#b2dfdc", "#72c4bf", "#39a19d", "#1f716f"],
+};
+const MAP_PALETTE_BY_FAMILY = {
+  "Erzeugung": "generation",
+  "Verbrauch": "consumption",
+  "Erneuerbare gesamt": "renewables",
+  "Wind": "wind",
+  "Solar": "solar",
+  "Wasserkraft": "hydro",
+  "Bioenergie": "bioenergy",
+  "Sonstige Erneuerbare": "other-renewables",
+  "Fossile gesamt": "fossil",
+  "Kohle": "coal",
+  "Gas": "gas",
+  "Sonstige Fossile": "other-fossil",
+  "Kernenergie": "nuclear",
+  "Nettoimporte": "trade",
+  "Großhandelspreis": "price",
+  "CO₂-Intensität": "carbon",
+  "Bevölkerung": "population",
+  "BIP": "gdp",
+  "BIP pro Kopf": "gdp-per-capita",
+  "Batteriespeicher": "battery",
+  "Pumpspeicher": "pumped-storage",
 };
 
 let metricCatalog = new Map();
 let data = [];
-let sortKey = "country_name";
-let sortDirection = 1;
+const TABLE_PREVIEW_LIMIT = 10;
+let sortKey = "generation_twh";
+let sortDirection = -1;
+let summaryExpanded = false;
 let storageData = [];
 let storageSnapshot = null;
 let storageSourceLabel = "";
 let storageSortKey = "battery_power_gw";
 let storageSortDirection = -1;
+let storageExpanded = false;
 let mapSvg = null;
 let mapMetricId = "generation_twh";
+let focusedMapCountry = null;
+let animateChartNextRender = false;
 const selected = new Set();
 let timeseriesData = null;
 let timeseriesColors = new Map();
@@ -85,12 +130,21 @@ function format(value) {
   return escapeHtml(value);
 }
 
+function formatTableValue(value, metricId) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '<span class="missing">—</span>';
+  const decimals = metricDefinition(metricId)?.map_config?.decimals ?? 2;
+  return new Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(Number(value));
+}
+
 function formatMetricValue(value, metric, compact = false) {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) return "—";
   const decimals = metric?.map_config?.decimals ?? 2;
   return new Intl.NumberFormat("de-DE", {
     maximumFractionDigits: decimals,
-    minimumFractionDigits: 0,
+    minimumFractionDigits: decimals,
     notation: compact && Math.abs(value) >= 10000 ? "compact" : "standard",
   }).format(value);
 }
@@ -115,23 +169,52 @@ function escapeAttribute(value) {
 function metricHeader(id, activeKey, direction, allowMap = false) {
   const metric = metricDefinition(id);
   const activeSort = activeKey === id;
-  const arrow = activeSort ? (direction > 0 ? " ↑" : " ↓") : "";
+  const arrow = activeSort ? (direction > 0 ? "↑" : "↓") : "";
   const ariaSort = activeSort ? ` aria-sort="${direction > 0 ? "ascending" : "descending"}"` : "";
   const unit = metric.unit ? `<span class="unit">${escapeHtml(metric.unit)}</span>` : "";
   const mapAction = allowMap && metric.map
-    ? `<button type="button" class="map-column-action${mapMetricId === id ? " active" : ""}" data-map-metric="${id}" aria-label="${escapeAttribute(metric.label_de)} auf Karte anzeigen">Auf Karte anzeigen</button>`
+    ? `<button type="button" class="map-column-action${mapMetricId === id ? " active" : ""}" data-map-metric="${id}" aria-label="${escapeAttribute(metric.label_de)} auf Karte anzeigen">Karte</button>`
     : "";
   return `<th scope="col" data-key="${id}"${ariaSort} class="${mapMetricId === id ? "map-column-active" : ""}">
-    <button type="button" class="sort-action" data-sort-key="${id}" aria-label="${escapeAttribute(metric.label_de)} sortieren">${escapeHtml(metric.label_de)}${arrow}${unit}</button>
+    <button type="button" class="sort-action" data-sort-key="${id}" aria-label="${escapeAttribute(metric.label_de)} sortieren">
+      <span class="sort-label">${escapeHtml(metric.label_de)}</span>${unit}<span class="sort-indicator" aria-hidden="true">${arrow}</span>
+    </button>
     ${mapAction}
   </th>`;
 }
 
 function countryHeader(activeKey, direction) {
   const active = activeKey === "country_name";
-  const arrow = active ? (direction > 0 ? " ↑" : " ↓") : "";
+  const arrow = active ? (direction > 0 ? "↑" : "↓") : "";
   const ariaSort = active ? ` aria-sort="${direction > 0 ? "ascending" : "descending"}"` : "";
-  return `<th scope="col" data-key="country_name"${ariaSort}><button type="button" class="sort-action" data-sort-key="country_name">Land${arrow}</button></th>`;
+  return `<th scope="col" data-key="country_name"${ariaSort}><button type="button" class="sort-action" data-sort-key="country_name"><span class="sort-label">Land</span><span class="sort-indicator" aria-hidden="true">${arrow}</span></button></th>`;
+}
+
+function rankHeader(withSelection = false) {
+  const selection = withSelection ? '<span class="sr-only">Länder für den Zeitreihenvergleich auswählen</span>' : "";
+  return `<th scope="col" class="rank-column"><span aria-hidden="true">#</span>${selection}</th>`;
+}
+
+function tableCountry(row) {
+  return `<span class="table-country">
+    <img src="/assets/flags/${flagCode(row.country_code)}.svg" alt="" loading="lazy">
+    <span class="table-country-copy"><span class="country-name">${escapeHtml(row.country_name)}</span><small>${escapeHtml(row.country_code)}</small></span>
+  </span>`;
+}
+
+function updateTableDisclosure(kind, expanded, total) {
+  const visible = expanded ? total : Math.min(TABLE_PREVIEW_LIMIT, total);
+  const button = $(`${kind}-toggle`);
+  const state = $(`${kind}-table-state`);
+  const count = $(`${kind}-count`);
+  if (!button || !state || !count) return;
+  button.hidden = total <= TABLE_PREVIEW_LIMIT;
+  button.setAttribute("aria-expanded", String(expanded));
+  button.querySelector(".table-toggle-label").textContent = expanded
+    ? "Auf Top 10 reduzieren"
+    : `Alle ${total} Länder anzeigen`;
+  state.textContent = expanded ? "Vollständige Rangliste" : "Top 10 nach aktueller Sortierung";
+  count.textContent = `${visible} von ${total} Ländern`;
 }
 
 function statusBadge(row) {
@@ -159,6 +242,31 @@ function sortRows(rows, key, direction) {
   });
 }
 
+function motionAllowed() {
+  return !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+}
+
+function rowPositions(selector) {
+  return new Map([...document.querySelectorAll(selector)].map(row => [
+    row.dataset.countryRow || row.dataset.storageRow,
+    row.getBoundingClientRect().top,
+  ]));
+}
+
+function animateRowReorder(selector, positions, keyForRow) {
+  if (!positions.size || !motionAllowed()) return;
+  document.querySelectorAll(selector).forEach(row => {
+    const previousTop = positions.get(keyForRow(row));
+    if (previousTop === undefined) return;
+    const distance = previousTop - row.getBoundingClientRect().top;
+    if (Math.abs(distance) < 1) return;
+    row.animate(
+      [{transform: `translateY(${distance}px)`}, {transform: "translateY(0)"}],
+      {duration: 320, easing: "cubic-bezier(.22,.8,.24,1)"},
+    );
+  });
+}
+
 function bindSort(selector, callback) {
   document.querySelectorAll(selector).forEach(button => button.addEventListener("click", () => callback(button.dataset.sortKey)));
 }
@@ -170,7 +278,7 @@ function bindMapColumnActions() {
 }
 
 function renderHead() {
-  $("summary-head").innerHTML = '<th scope="col">Auswahl</th>'
+  $("summary-head").innerHTML = rankHeader(true)
     + countryHeader(sortKey, sortDirection)
     + TABLE_METRIC_IDS.map(id => metricHeader(id, sortKey, sortDirection, true)).join("");
   bindSort("#summary-head [data-sort-key]", key => {
@@ -182,13 +290,17 @@ function renderHead() {
 }
 
 function render() {
+  const previousPositions = rowPositions("#summary-body [data-country-row]");
   renderHead();
   const sorted = sortRows(data, sortKey, sortDirection);
-  $("summary-body").innerHTML = sorted.map(row => `<tr data-country-row="${row.country_code}">
-    <td><input type="checkbox" aria-label="${escapeAttribute(row.country_name)} auswählen" data-country="${row.country_code}" ${selected.has(row.country_code) ? "checked" : ""}></td>
-    <th scope="row"><span class="country-name">${escapeHtml(row.country_name)}</span>${statusBadge(row)}</th>
-    ${TABLE_METRIC_IDS.map(id => `<td data-metric="${id}" class="${mapMetricId === id ? "map-column-active" : ""}">${format(row[id])}</td>`).join("")}
+  const visibleRows = summaryExpanded ? sorted : sorted.slice(0, TABLE_PREVIEW_LIMIT);
+  $("summary-body").innerHTML = visibleRows.map((row, index) => `<tr data-country-row="${row.country_code}" style="--row-index:${index}">
+    <td class="selection-cell"><span class="table-rank">${index + 1}</span><input type="checkbox" aria-label="${escapeAttribute(row.country_name)} auswählen" data-country="${row.country_code}" ${selected.has(row.country_code) ? "checked" : ""}></td>
+    <th scope="row">${tableCountry(row)}${statusBadge(row)}</th>
+    ${TABLE_METRIC_IDS.map(id => `<td data-metric="${id}" class="${mapMetricId === id ? "map-column-active" : ""}">${formatTableValue(row[id], id)}</td>`).join("")}
   </tr>`).join("");
+  updateTableDisclosure("summary", summaryExpanded, sorted.length);
+  animateRowReorder("#summary-body [data-country-row]", previousPositions, row => row.dataset.countryRow);
   document.querySelectorAll("input[data-country]").forEach(input => input.addEventListener("change", event => {
     const changed = toggleCountry(event.target.dataset.country, event.target.checked);
     if (!changed) event.target.checked = false;
@@ -197,7 +309,9 @@ function render() {
 }
 
 function renderStorage() {
-  $("storage-head").innerHTML = countryHeader(storageSortKey, storageSortDirection)
+  const previousPositions = rowPositions("#storage-body tr");
+  $("storage-head").innerHTML = rankHeader()
+    + countryHeader(storageSortKey, storageSortDirection)
     + STORAGE_METRIC_IDS.map(id => metricHeader(id, storageSortKey, storageSortDirection)).join("");
   bindSort("#storage-head [data-sort-key]", key => {
     if (storageSortKey === key) storageSortDirection *= -1;
@@ -205,15 +319,19 @@ function renderStorage() {
     renderStorage();
   });
   const sorted = sortRows(storageData, storageSortKey, storageSortDirection);
-  $("storage-body").innerHTML = sorted.map(row => `<tr>
-    <th scope="row">${escapeHtml(row.country_name)}${row.quality_status === "missing" ? '<span class="status-badge missing">fehlend</span>' : ""}</th>
+  const visibleRows = storageExpanded ? sorted : sorted.slice(0, TABLE_PREVIEW_LIMIT);
+  $("storage-body").innerHTML = visibleRows.map((row, index) => `<tr data-storage-row="${row.country_code}" style="--row-index:${index}">
+    <td class="rank-column"><span class="table-rank">${index + 1}</span></td>
+    <th scope="row">${tableCountry(row)}${row.quality_status === "missing" ? '<span class="status-badge missing">fehlend</span>' : ""}</th>
     ${STORAGE_METRIC_IDS.map(id => storageCell(row, id)).join("")}
   </tr>`).join("");
+  updateTableDisclosure("storage", storageExpanded, sorted.length);
+  animateRowReorder("#storage-body tr", previousPositions, row => row.dataset.storageRow);
 }
 
 function storageCell(row, metricId) {
   const provenance = row.metric_provenance?.[metricId];
-  if (!provenance) return `<td>${format(null)}</td>`;
+  if (!provenance) return `<td>${formatTableValue(null, metricId)}</td>`;
   const coverageLabels = {
     national_registry_total: "nationaler Register-Gesamtbestand",
     tracked_project_inventory: "erfasster Projektbestand",
@@ -222,7 +340,7 @@ function storageCell(row, metricId) {
   const qualityLabel = storageQualityLabel(provenance.quality_status);
   const quality = qualityLabel === "vorhanden" ? "" : ` · ${qualityLabel}`;
   const title = `${provenance.source_label} · Stichtag ${provenance.date} · ${coverageLabels[provenance.coverage_type] || provenance.coverage_type}${quality}`;
-  return `<td title="${escapeAttribute(title)}">${format(row[metricId])}<small class="cell-provenance">${escapeHtml(sourceName)} · ${escapeHtml(provenance.date)}${escapeHtml(quality)}</small></td>`;
+  return `<td title="${escapeAttribute(title)}">${formatTableValue(row[metricId], metricId)}<small class="cell-provenance">${escapeHtml(sourceName)} · ${escapeHtml(provenance.date)}${escapeHtml(quality)}</small></td>`;
 }
 
 function storageQualityLabel(quality) {
@@ -242,6 +360,13 @@ function toggleCountry(code, shouldSelect = !selected.has(code)) {
     return false;
   }
   shouldSelect ? selected.add(code) : selected.delete(code);
+  const row = document.querySelector(`[data-country-row="${code}"]`);
+  if (row && motionAllowed()) {
+    row.classList.remove("selection-pulse");
+    void row.offsetWidth;
+    row.classList.add("selection-pulse");
+    row.addEventListener("animationend", () => row.classList.remove("selection-pulse"), {once: true});
+  }
   updateSelection();
   if (timeseriesData) {
     $("comparison-status").textContent = "Länderauswahl geändert. Plot aktualisieren, um den neuen Stand zu laden.";
@@ -249,9 +374,26 @@ function toggleCountry(code, shouldSelect = !selected.has(code)) {
   return true;
 }
 
+function clearSelection() {
+  if (!selected.size) return;
+  selected.clear();
+  updateSelection();
+  if (timeseriesData) {
+    $("comparison-status").textContent = "Länderauswahl aufgehoben. Neue Länder wählen und den Plot aktualisieren.";
+  }
+  $("status").textContent = "Gesamte Länderauswahl aufgehoben.";
+}
+
 function updateSelection() {
-  $("selected-count").textContent = selected.size;
+  const counter = $("selected-count");
+  counter.textContent = selected.size;
+  if (motionAllowed()) {
+    counter.classList.remove("count-pulse");
+    void counter.offsetWidth;
+    counter.classList.add("count-pulse");
+  }
   $("compare").disabled = selected.size < 1 || selected.size > 10;
+  $("clear-selection").disabled = selected.size === 0;
   document.querySelectorAll("input[data-country]").forEach(input => {
     input.checked = selected.has(input.dataset.country);
   });
@@ -319,6 +461,13 @@ function setMapMetric(metricId, scrollToMap = false) {
   const metric = metricCatalog.get(metricId);
   if (!metric?.map) return;
   mapMetricId = metricId;
+  if (motionAllowed()) {
+    const frame = $("map-frame");
+    frame.classList.remove("grid-sweep");
+    void frame.offsetWidth;
+    frame.classList.add("grid-sweep");
+    frame.addEventListener("animationend", () => frame.classList.remove("grid-sweep"), {once: true});
+  }
   renderMapControls();
   renderMap();
   renderHead();
@@ -395,40 +544,48 @@ function interpolateColor(start, end, amount) {
 }
 
 function paletteColor(palette, position) {
-  const colors = MAP_PALETTES[palette] || MAP_PALETTES.teal;
+  const colors = MAP_PALETTES[palette] || MAP_PALETTES.generation;
   const bounded = Math.max(0, Math.min(1, position));
   const scaled = bounded * (colors.length - 1);
   const index = Math.min(colors.length - 2, Math.floor(scaled));
   return interpolateColor(colors[index], colors[index + 1], scaled - index);
 }
 
+function mapPaletteName(metric) {
+  const familyPalette = MAP_PALETTE_BY_FAMILY[metric?.family];
+  if (familyPalette && MAP_PALETTES[familyPalette]) return familyPalette;
+  const configuredPalette = metric?.map_config?.palette;
+  return MAP_PALETTES[configuredPalette] ? configuredPalette : "generation";
+}
+
 function mapScale(metric, values) {
   const config = metric.map_config || {};
-  if (Array.isArray(config.domain)) return {min: config.domain[0], max: config.domain[1], midpoint: config.midpoint};
   const finite = values.filter(value => Number.isFinite(value));
   if (!finite.length) return {min: 0, max: 1, midpoint: config.midpoint};
-  let min = Math.min(...finite), max = Math.max(...finite);
-  if (config.scale === "diverging") {
-    const midpoint = config.midpoint ?? 0;
-    const distance = Math.max(Math.abs(min - midpoint), Math.abs(max - midpoint), 1e-9);
-    return {min: midpoint - distance, max: midpoint + distance, midpoint};
-  }
-  if (min === max) {
-    if (min === 0) max = 1;
-    else if (min > 0) min = 0;
-    else max = 0;
-  }
+  const min = Math.min(...finite), max = Math.max(...finite);
   return {min, max, midpoint: config.midpoint};
+}
+
+function mapScalePosition(value, metric, scale) {
+  const numeric = Number(value);
+  if (scale.min === scale.max) return .5;
+  const midpoint = scale.midpoint;
+  const diverging = metric.map_config?.scale === "diverging";
+  if (diverging && Number.isFinite(midpoint) && midpoint > scale.min && midpoint < scale.max) {
+    if (numeric <= midpoint) return .5 * ((numeric - scale.min) / (midpoint - scale.min));
+    return .5 + .5 * ((numeric - midpoint) / (scale.max - midpoint));
+  }
+  return (numeric - scale.min) / (scale.max - scale.min);
 }
 
 function colorForValue(value, metric, scale) {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) return null;
-  const position = (Number(value) - scale.min) / (scale.max - scale.min || 1);
-  return paletteColor(metric.map_config?.palette || "teal", position);
+  const position = mapScalePosition(value, metric, scale);
+  return paletteColor(mapPaletteName(metric), position);
 }
 
 function renderLegend(metric, scale) {
-  const colors = MAP_PALETTES[metric.map_config?.palette] || MAP_PALETTES.teal;
+  const colors = MAP_PALETTES[mapPaletteName(metric)];
   const gradient = `linear-gradient(90deg, ${colors.join(", ")})`;
   const midpoint = scale.midpoint;
   $("map-legend").innerHTML = `<div class="legend-ramp" style="background:${gradient}" aria-hidden="true"></div>
@@ -474,13 +631,29 @@ function positionTooltip(path, pointerEvent = null) {
   tooltip.style.top = `${svgRect.top - frame.top + (labelY - viewBox.y) / viewBox.height * svgRect.height + 10}px`;
 }
 
-function showCountryDetail(path, pointerEvent = null) {
+function showCountryTooltip(path, pointerEvent = null) {
   const metric = metricDefinition(mapMetricId);
   const detail = countryDetail(path.dataset.countryCode, metric);
-  $("map-detail").innerHTML = detail.html;
   $("map-tooltip").innerHTML = detail.html;
   $("map-tooltip").hidden = false;
   positionTooltip(path, pointerEvent);
+}
+
+function focusMapCountry(path) {
+  focusedMapCountry = path.dataset.countryCode;
+  mapSvg.querySelectorAll(".atlas-country").forEach(country => country.classList.toggle("selected", country === path));
+  const detail = countryDetail(focusedMapCountry, metricDefinition(mapMetricId));
+  const panel = $("map-detail");
+  panel.innerHTML = detail.html;
+  hideMapTooltip();
+  if (motionAllowed()) {
+    path.classList.remove("map-focus-pulse");
+    panel.classList.remove("detail-enter");
+    void path.getBBox();
+    path.classList.add("map-focus-pulse");
+    panel.classList.add("detail-enter");
+    path.addEventListener("animationend", () => path.classList.remove("map-focus-pulse"), {once: true});
+  }
 }
 
 function hideMapTooltip() {
@@ -499,16 +672,16 @@ function configureMapCountries() {
     path.dataset.countryCode = code;
     path.setAttribute("tabindex", "0");
     path.setAttribute("role", "button");
-    path.addEventListener("mouseenter", event => showCountryDetail(path, event));
+    path.addEventListener("mouseenter", event => showCountryTooltip(path, event));
     path.addEventListener("mousemove", event => positionTooltip(path, event));
     path.addEventListener("mouseleave", hideMapTooltip);
-    path.addEventListener("focus", () => showCountryDetail(path));
+    path.addEventListener("focus", () => showCountryTooltip(path));
     path.addEventListener("blur", hideMapTooltip);
-    path.addEventListener("click", () => showCountryDetail(path));
+    path.addEventListener("click", () => focusMapCountry(path));
     path.addEventListener("keydown", event => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        showCountryDetail(path);
+        focusMapCountry(path);
       }
     });
   });
@@ -528,12 +701,14 @@ function renderMap() {
     const color = colorForValue(value, metric, scale);
     path.style.fill = color || "";
     path.classList.toggle("no-data", color === null);
+    path.classList.toggle("selected", path.dataset.countryCode === focusedMapCountry);
     path.setAttribute("aria-label", countryDetail(path.dataset.countryCode, metric).label);
   });
   $("map-metric-title").textContent = `${metric.family}: ${metric.representation}`;
   $("map-period").textContent = periodLabel(metric, mapRow("DE", metric));
   renderLegend(metric, scale);
   renderMapLabels(metric);
+  if (focusedMapCountry) $("map-detail").innerHTML = countryDetail(focusedMapCountry, metric).html;
   highlightMapColumn();
 }
 
@@ -549,6 +724,8 @@ async function loadMapAsset() {
     $("map-canvas").replaceChildren(mapSvg);
     configureMapCountries();
     $("map-frame").setAttribute("aria-busy", "false");
+    $("map-export-svg").disabled = false;
+    $("map-export-png").disabled = false;
     renderMap();
   } catch (error) {
     $("map-frame").setAttribute("aria-busy", "false");
@@ -691,7 +868,7 @@ function renderCountryControls() {
     return `<span class="country-chip">
       <img src="/assets/flags/${flagCode(code)}.svg" alt="" width="24" height="18">
       <span>${escapeHtml(name)} <b>${code}</b></span>
-      <button type="button" data-remove-country="${code}" aria-label="${escapeAttribute(name)} entfernen">×</button>
+      <button type="button" data-remove-country="${code}" aria-label="${escapeAttribute(name)} entfernen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
     </span>`;
   }).join("");
   document.querySelectorAll("[data-remove-country]").forEach(button => button.addEventListener("click", () => {
@@ -852,6 +1029,7 @@ async function loadTimeseries({scroll = false, updateUrl = true} = {}) {
   await prepareTimeseriesColors(payload);
   chartHoverIndex = null;
   chartPinnedIndex = null;
+  animateChartNextRender = true;
   renderTimeseriesChart();
   for (const id of ["export-csv", "export-svg", "export-png", "copy-link"]) $(id).disabled = false;
   $("comparison-status").textContent = `${payload.countries.length} Länder · ${payload.granularity === "monthly" ? "Monatswerte" : "Jahreswerte"} · fehlende Werte bleiben als Linienlücken sichtbar.`;
@@ -980,6 +1158,8 @@ function renderTimeseriesChart() {
   const scale = chartScale(payload, geometry);
   const periods = payload.atlas_average.values.map(point => point.period);
   const activeIndex = chartPinnedIndex ?? chartHoverIndex;
+  const animateThisRender = animateChartNextRender && motionAllowed();
+  animateChartNextRender = false;
   svg.replaceChildren();
   svg.setAttribute("viewBox", `0 0 ${geometry.width} ${geometry.height}`);
   svg.appendChild(svgElement("rect", {class: "chart-background", x: 0, y: 0, width: geometry.width, height: geometry.height, rx: 12}));
@@ -1009,14 +1189,15 @@ function renderTimeseriesChart() {
   }
 
   const averagePath = linePath(payload.atlas_average.values, scale);
-  if (averagePath) svg.appendChild(svgElement("path", {class: "chart-line atlas-average-line", d: averagePath}));
+  if (averagePath) svg.appendChild(svgElement("path", {class: `chart-line atlas-average-line${animateThisRender ? " draw-once" : ""}`, d: averagePath, pathLength: 1}));
   payload.countries.forEach((country, index) => {
     const path = linePath(country.values, scale);
     if (!path) return;
     const color = chartColor(country.country_code, index);
     svg.appendChild(svgElement("path", {
-      class: "chart-line country-line",
+      class: `chart-line country-line${animateThisRender ? " draw-once" : ""}`,
       d: path,
+      pathLength: 1,
       stroke: color,
       "data-country-line": country.country_code,
     }));
@@ -1039,7 +1220,7 @@ function renderTimeseriesChart() {
         stroke: "#edf3fb",
       }));
       svg.appendChild(svgElement("text", {
-        class: "average-endpoint-tag",
+        class: `average-endpoint-tag${animateThisRender ? " chart-enter" : ""}`,
         x: geometry.flagX,
         y: endpoint.y + 5,
       }, "Atlas Ø"));
@@ -1052,14 +1233,14 @@ function renderTimeseriesChart() {
       stroke: color,
     }));
     svg.appendChild(svgElement("image", {
-      class: "endpoint-flag",
+      class: `endpoint-flag${animateThisRender ? " chart-enter" : ""}`,
       href: `/assets/flags/${flagCode(endpoint.country.country_code)}.svg`,
       x: geometry.flagX,
       y: endpoint.y - 11,
       width: 30,
       height: 22,
     }));
-    svg.appendChild(svgElement("text", {class: "endpoint-tag", x: geometry.tagX, y: endpoint.y + 5, fill: color}, endpoint.country.country_code));
+    svg.appendChild(svgElement("text", {class: `endpoint-tag${animateThisRender ? " chart-enter" : ""}`, x: geometry.tagX, y: endpoint.y + 5, fill: color}, endpoint.country.country_code));
   });
   [...payload.countries.map((country, index) => ({label: country.country_code, color: chartColor(country.country_code, index)})), {label: "Atlas-Durchschnitt", color: "#edf3fb", average: true}]
     .forEach((item, index) => {
@@ -1210,6 +1391,7 @@ if (typeof module !== "undefined" && module.exports) {
     buildComparisonCsv,
     extractFlagColors,
     flagCode,
+    formatTableValue,
     parseComparisonUrl,
     relativeBaselineChange,
   };
@@ -1240,13 +1422,13 @@ async function serializedChartSvg() {
   clone.setAttribute("height", String(viewBox[3]));
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
   style.textContent = `
-    .chart-background{fill:#0d1626}.chart-title{fill:#edf3fb;font:750 24px system-ui,sans-serif}
-    .chart-subtitle,.axis-label,.legend-label,.average-endpoint-tag{fill:#91a3ba;font:13px system-ui,sans-serif}
-    .chart-grid{stroke:#2b3b52;stroke-width:1}.chart-grid.vertical{stroke-opacity:.45}
-    .chart-zero{stroke:#c9d4e2;stroke-width:1.5}.chart-line{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .chart-background{fill:#0a1422}.chart-title{fill:#f7f5f0;font:750 24px Calibri,"Segoe UI",sans-serif}
+    .chart-subtitle,.axis-label,.legend-label,.average-endpoint-tag{fill:#b6c1cc;font:13px Calibri,"Segoe UI",sans-serif}
+    .chart-grid{stroke:#34495f;stroke-width:1}.chart-grid.vertical{stroke-opacity:.45}
+    .chart-zero{stroke:#b89a5a;stroke-width:1.5}.chart-line{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
     .atlas-average-line{stroke:#edf3fb;stroke-width:1.7;stroke-dasharray:10 7;opacity:.85}
     .chart-guide{stroke:#dbe8f6;stroke-width:1.2;stroke-dasharray:4 5}.chart-point{stroke:#08101c;stroke-width:2}
-    .endpoint-connector{fill:none;stroke-width:1;opacity:.8}.average-endpoint-connector{stroke-dasharray:6 5}.endpoint-tag{font:800 14px system-ui,sans-serif}
+    .endpoint-connector{fill:none;stroke-width:1;opacity:.8}.average-endpoint-connector{stroke-dasharray:6 5}.endpoint-tag{font:800 14px Calibri,"Segoe UI",sans-serif}
     .average-endpoint-tag{font-weight:750;fill:#edf3fb}.legend-line{stroke-width:3}.legend-line.average{stroke-dasharray:7 5}
     .x-axis-label{text-anchor:middle}.y-axis-label{text-anchor:end}
   `;
@@ -1282,11 +1464,149 @@ async function buildChartPngBlob() {
   canvas.width = chartBox.width * 2;
   canvas.height = chartBox.height * 2;
   const context = canvas.getContext("2d");
-  context.fillStyle = "#0a0f1c";
+  context.fillStyle = "#070d18";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
   URL.revokeObjectURL(url);
   return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+}
+
+function mapIsFullscreen() {
+  return document.fullscreenElement === $("map-stage");
+}
+
+function updateMapFullscreenButton() {
+  const active = mapIsFullscreen();
+  const button = $("map-fullscreen");
+  button.textContent = active ? "Vollbild verlassen" : "Karte im Vollbild";
+  button.setAttribute("aria-pressed", String(active));
+}
+
+async function toggleMapFullscreen() {
+  const stage = $("map-stage");
+  if (mapIsFullscreen()) {
+    await document.exitFullscreen();
+  } else if (stage.requestFullscreen) {
+    await stage.requestFullscreen();
+  } else {
+    $("map-availability").textContent = "Dieser Browser unterstützt die Vollbildansicht nicht.";
+  }
+}
+
+function mapFilename(extension) {
+  return `eea-map-${mapMetricId}-${periodLabel(metricDefinition(mapMetricId)).replace(/[^0-9a-z-]+/gi, "-").toLowerCase()}.${extension}`;
+}
+
+function appendExportText(root, text, x, y, className) {
+  root.appendChild(svgElement("text", {x, y, class: className}, text));
+}
+
+async function serializedMapSvg() {
+  if (!mapSvg) throw new Error("Karte ist noch nicht geladen.");
+  const metric = metricDefinition(mapMetricId);
+  const values = [...mapSvg.querySelectorAll(".atlas-country")]
+    .map(path => mapRow(path.dataset.countryCode, metric)?.[metric.id])
+    .filter(Number.isFinite);
+  const scale = mapScale(metric, values);
+  const colors = MAP_PALETTES[mapPaletteName(metric)];
+  const root = svgElement("svg", {xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 1200 760", width: 1200, height: 760, role: "img", "aria-label": `${metric.label_de}, ${periodLabel(metric)}`});
+  root.appendChild(svgElement("rect", {width: 1200, height: 760, fill: "#070d18"}));
+  const style = svgElement("style", {}, `
+    text{font-family:Calibri,"Segoe UI",sans-serif}.export-title{fill:#edf7ff;font-size:28px;font-weight:750}
+    .export-subtitle{fill:#b6c1cc;font-size:16px}.export-label{fill:#f7f5f0;font-size:17px;font-weight:700}
+    .export-small{fill:#b6c1cc;font-size:14px}.map-country{vector-effect:non-scaling-stroke;stroke:#52657a;stroke-width:1}
+    .background-country{fill:#182638;opacity:.84}.background-country[data-clipped=true]{stroke:transparent}
+    .atlas-country{stroke:#c5d0da;stroke-width:1.1}.atlas-country.no-data{fill:#657486}.atlas-country.selected{stroke:#ffffff;stroke-width:4}
+    .map-value-label{fill:#fff;stroke:#070d18;stroke-width:3px;paint-order:stroke;text-anchor:middle;dominant-baseline:middle;font-size:13px;font-weight:750}
+  `);
+  root.appendChild(style);
+  appendExportText(root, "European Electricity Atlas", 36, 45, "export-title");
+  appendExportText(root, `${metric.family}: ${metric.representation}`, 36, 76, "export-label");
+  appendExportText(root, `${metric.unit || "ohne Einheit"} · ${periodLabel(metric, mapRow("DE", metric))}`, 36, 101, "export-subtitle");
+  const mapClone = mapSvg.cloneNode(true);
+  mapClone.setAttribute("x", "30");
+  mapClone.setAttribute("y", "120");
+  mapClone.setAttribute("width", "820");
+  mapClone.setAttribute("height", "585");
+  mapClone.removeAttribute("tabindex");
+  mapClone.querySelectorAll("[tabindex]").forEach(element => element.removeAttribute("tabindex"));
+  root.appendChild(mapClone);
+  appendExportText(root, "Legende", 900, 165, "export-title");
+  colors.forEach((color, index) => {
+    root.appendChild(svgElement("rect", {x: 900 + index * 48, y: 190, width: 50, height: 18, fill: color}));
+  });
+  appendExportText(root, formatMetricValue(scale.min, metric), 900, 232, "export-small");
+  if (scale.midpoint !== null && scale.midpoint !== undefined) appendExportText(root, formatMetricValue(scale.midpoint, metric), 1000, 232, "export-small");
+  appendExportText(root, formatMetricValue(scale.max, metric), 1140, 232, "export-small");
+  appendExportText(root, `${metric.unit || "ohne Einheit"} · Grau = kein Wert`, 900, 260, "export-small");
+  if (focusedMapCountry) {
+    appendExportText(root, "Fokus", 900, 320, "export-label");
+    appendExportText(root, countryName(focusedMapCountry), 900, 350, "export-title");
+    const row = mapRow(focusedMapCountry, metric);
+    const value = row?.[metric.id];
+    appendExportText(root, `${formatMetricValue(value, metric)} ${Number.isFinite(value) ? metric.unit : ""}`.trim(), 900, 382, "export-label");
+  }
+  appendExportText(root, "Lokaler Export · ohne externe Dienste", 900, 695, "export-small");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(root)}`;
+}
+
+async function exportMapSvg() {
+  downloadBlob(new Blob([await serializedMapSvg()], {type: "image/svg+xml;charset=utf-8"}), mapFilename("svg"));
+  $("map-availability").textContent = "SVG-Kartenexport mit Legende wurde erstellt.";
+}
+
+async function buildMapPngBlob() {
+  const source = await serializedMapSvg();
+  const url = URL.createObjectURL(new Blob([source], {type: "image/svg+xml;charset=utf-8"}));
+  const image = new Image();
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = reject;
+    image.src = url;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = 2400;
+  canvas.height = 1520;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#070d18";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  URL.revokeObjectURL(url);
+  return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+}
+
+async function exportMapPng() {
+  downloadBlob(await buildMapPngBlob(), mapFilename("png"));
+  $("map-availability").textContent = "PNG-Kartenexport mit Legende wurde erstellt.";
+}
+
+let activeInfoTrigger = null;
+
+function closeInfoPanel(returnFocus = true) {
+  if (!activeInfoTrigger) return;
+  const panel = $(activeInfoTrigger.dataset.infoTarget);
+  panel.hidden = true;
+  activeInfoTrigger.setAttribute("aria-expanded", "false");
+  const trigger = activeInfoTrigger;
+  activeInfoTrigger = null;
+  if (returnFocus) trigger.focus();
+}
+
+function configureInfoPanels() {
+  document.querySelectorAll?.("[data-info-target]")?.forEach(trigger => trigger.addEventListener("click", () => {
+    const wasOpen = activeInfoTrigger === trigger;
+    closeInfoPanel(false);
+    if (wasOpen) return;
+    activeInfoTrigger = trigger;
+    const panel = $(trigger.dataset.infoTarget);
+    panel.hidden = false;
+    trigger.setAttribute("aria-expanded", "true");
+    panel.querySelector(".info-close")?.focus();
+  }));
+  document.querySelectorAll?.(".info-close")?.forEach(button => button.addEventListener("click", () => closeInfoPanel(true)));
+  document.addEventListener?.("click", event => {
+    if (activeInfoTrigger && !activeInfoTrigger.contains(event.target) && !$(activeInfoTrigger.dataset.infoTarget).contains(event.target)) closeInfoPanel(false);
+  });
 }
 
 async function loadStorage() {
@@ -1349,6 +1669,15 @@ $("period-type").addEventListener("change", syncPeriodControls);
 $("year").max = String(currentYear);
 $("load").addEventListener("click", loadSummary);
 $("compare").addEventListener("click", compare);
+$("clear-selection").addEventListener("click", clearSelection);
+$("summary-toggle").addEventListener("click", () => {
+  summaryExpanded = !summaryExpanded;
+  render();
+});
+$("storage-toggle").addEventListener("click", () => {
+  storageExpanded = !storageExpanded;
+  renderStorage();
+});
 $("compare-load").addEventListener("click", () => loadTimeseries({updateUrl: true}));
 $("compare-country-add").addEventListener("change", event => {
   if (event.target.value) toggleCountry(event.target.value, true);
@@ -1379,15 +1708,22 @@ $("map-family").addEventListener("change", event => {
 });
 $("map-representation").addEventListener("change", event => setMapMetric(event.target.value));
 $("map-values").addEventListener("change", () => renderMapLabels(metricDefinition(mapMetricId)));
+$("map-fullscreen").addEventListener("click", toggleMapFullscreen);
+$("map-export-svg").addEventListener("click", exportMapSvg);
+$("map-export-png").addEventListener("click", exportMapPng);
 document.addEventListener?.("fullscreenchange", () => {
   updateComparisonFullscreenButton();
+  updateMapFullscreenButton();
   renderTimeseriesChart();
 });
 document.addEventListener?.("keydown", event => {
-  if (event.key === "Escape" && comparisonIsFullscreen()) document.exitFullscreen();
+  if (event.key === "Escape") {
+    if (comparisonIsFullscreen() || mapIsFullscreen()) document.exitFullscreen();
+    else if (activeInfoTrigger) closeInfoPanel(true);
+  }
 });
 
-window.__atlasMapTest = {colorForValue, mapScale, NE_TO_ATLAS};
+window.__atlasMapTest = {colorForValue, mapScale, NE_TO_ATLAS, serializedMapSvg, buildMapPngBlob};
 window.__atlasCompareTest = {
   buildComparisonCsv,
   assignCountryColors,
@@ -1401,6 +1737,7 @@ window.__atlasCompareTest = {
 
 syncPeriodControls();
 loadCoverage();
+configureInfoPanels();
 loadMetricCatalog()
   .then(() => Promise.all([loadMapAsset(), loadSummary(), loadStorage()]))
   .then(() => restoreComparisonState())

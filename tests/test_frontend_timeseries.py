@@ -49,6 +49,20 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
             "period,DE,FR,atlas_average\r\n2025-01,1,0,0.5\r\n2025-02,,2,2",
         )
 
+    def test_table_formatter_keeps_two_decimal_places_by_default(self):
+        script = r'''
+global.document = {getElementById: () => ({addEventListener: () => {}})};
+global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
+global.history = {replaceState: () => {}};
+global.fetch = () => new Promise(() => {});
+global.URLSearchParams = URLSearchParams;
+const {formatTableValue} = require("./web/app.js");
+process.stdout.write(JSON.stringify({value: formatTableValue(1.2, "example"), zero: formatTableValue(0, "example")}));
+'''
+        result = self.run_node(script)
+        self.assertEqual(result["value"], "1,20")
+        self.assertEqual(result["zero"], "0,00")
+
     def test_direct_link_state_is_validated_and_restored(self):
         script = r'''
 global.document = {getElementById: () => ({addEventListener: () => {}})};

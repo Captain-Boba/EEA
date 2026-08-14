@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">European Electricity Atlas</title>
+  <desc id="desc">Ein Atlasraster mit einer elektrischen Datenlinie.</desc>
+  <defs>
+    <linearGradient id="pulse" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#b89a5a"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="54" height="54" rx="13" fill="#070d18" stroke="#b89a5a" stroke-width="2"/>
+  <g fill="none" stroke="#52657a" stroke-width="1">
+    <path d="M18 8v48M32 6v52M46 8v48M8 18h48M6 32h52M8 46h48" opacity=".78"/>
+    <ellipse cx="32" cy="32" rx="16" ry="27"/>
+    <ellipse cx="32" cy="32" rx="27" ry="16"/>
+  </g>
+  <path d="M10 39h12l5-12 8 19 6-14h13" fill="none" stroke="url(#pulse)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="10" cy="39" r="2.5" fill="#ffffff"/>
+  <circle cx="54" cy="32" r="2.5" fill="#b89a5a"/>
+</svg>
