@@ -99,6 +99,43 @@ process.stdout.write(JSON.stringify({
         self.assertFalse(result["duplicate"])
         self.assertFalse(result["future"])
 
+    def test_flag_colors_are_preferred_without_conflicts_and_2015_is_the_baseline(self):
+        script = r'''
+global.document = {getElementById: () => ({addEventListener: () => {}})};
+global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
+global.history = {replaceState: () => {}};
+global.fetch = () => new Promise(() => {});
+global.URLSearchParams = URLSearchParams;
+const {assignCountryColors, extractFlagColors, relativeBaselineChange} = require("./web/app.js");
+const candidates = new Map([
+  ["DE", extractFlagColors('<path fill="#fc0"/><path fill="#000001"/><path fill="red"/>')],
+  ["ES", extractFlagColors('<path fill="#aa151b"/><path fill="#f1bf00"/>')],
+  ["FR", extractFlagColors('<path fill="#fff"/><path fill="#000091"/><path fill="#e1000f"/>')],
+  ["UK", extractFlagColors('<path fill="#012169"/><path fill="#fff"/><path fill="#c8102e"/>')],
+]);
+const colors = assignCountryColors(["DE", "ES", "FR", "UK"], candidates);
+const monthly = {
+  values: [{period: "2026-07", value: 15}],
+  baseline_values: [{period: "2015-07", value: 5}],
+};
+const zeroBaseline = {
+  values: [{period: "2026", value: 15}],
+  baseline_values: [{period: "2015", value: 0}],
+};
+process.stdout.write(JSON.stringify({
+  colors: Object.fromEntries(colors),
+  unique: new Set(colors.values()).size,
+  monthlyChange: relativeBaselineChange(monthly, 0, "monthly"),
+  zeroChange: relativeBaselineChange(zeroBaseline, 0, "yearly"),
+}));
+'''
+        result = self.run_node(script)
+        self.assertEqual(result["colors"]["DE"], "#ffcc00")
+        self.assertEqual(result["colors"]["FR"], "#4da3ff")
+        self.assertEqual(result["unique"], 4)
+        self.assertEqual(result["monthlyChange"], 200)
+        self.assertIsNone(result["zeroChange"])
+
 
 if __name__ == "__main__":
     unittest.main()

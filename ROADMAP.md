@@ -40,19 +40,6 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 
 **Abnahme:** Kartenklicks verändern keine Vergleichsauswahl mehr. Maus- und Tastaturbedienung können genau ein Land sichtbar und nachvollziehbar in der Infokachel festhalten.
 
-### 4. Zeitreihenvergleich V2 fachlich und farblich verfeinern
-
-- Den vorhandenen Zeitreihenplot mit bis zu zehn Ländern, Atlas-Durchschnitt, Live-Ranking, Direktlink sowie CSV-, SVG- und PNG-Export beibehalten.
-- Die Linienfarbe nach Möglichkeit aus einer prägenden Farbe der jeweiligen Landesflagge ableiten. Entstünde dadurch innerhalb der aktuellen Auswahl eine Verwechslung, muss eine klar unterscheidbare Ersatzfarbe verwendet werden; die Zuordnung bleibt innerhalb der Ansicht konsistent.
-- Die derzeitige Veränderungsanzeige gegenüber dem sichtbaren Startpunkt durch eine feste Vergleichsbasis 2015 ersetzen.
-- Prozentuale Veränderungen auch bei Prozentkennzahlen ausschließlich als relative Veränderung in `%` ausweisen, nicht in Prozentpunkten (`pp`). Die Berechnung lautet `(aktueller Wert - Vergleichswert) / Vergleichswert × 100`.
-- Als feste Vergleichsbasis dient das Jahr 2015 und nicht der Anfang des gerade sichtbaren Zeitraums. Jahreswerte werden mit dem Jahreswert 2015 verglichen.
-- Monatswerte immer mit demselben Kalendermonat des Jahres 2015 vergleichen: Juli 2026 beispielsweise mit Juli 2015, niemals mit Januar 2015. Diese Basis gilt auch dann, wenn der sichtbare Zeitraum später beginnt.
-- Fehlt der passende Vergleichswert aus 2015 oder beträgt er tatsächlich null, keine prozentuale Veränderung berechnen und stattdessen `—` anzeigen; weder auf einen anderen Monat ausweichen noch einen Wert erfinden.
-- Die API muss die gegebenenfalls außerhalb des sichtbaren Zeitraums liegenden 2015-Basiswerte nachvollziehbar liefern, ohne sie als zusätzliche sichtbare Datenpunkte in den Plot einzuschleusen.
-
-**Abnahme:** Der bestehende Vergleich bleibt vollständig funktionsfähig. Linien bleiben anhand ihrer Flaggenfarben beziehungsweise konfliktfreier Ersatzfarben unterscheidbar. Prozentuale Veränderungen erscheinen in `%`; bei Monatswerten verwendet jeder Datenpunkt ausschließlich denselben Kalendermonat 2015 als Basis. Fehlende Werte und nicht berechenbare Veränderungen werden nicht als Null dargestellt.
-
 ### 5. Ländersteckbrief entwickeln
 
 - Aus der Länderliste eine zusammenhängende Detailansicht für ein einzelnes Land öffnen.
@@ -125,7 +112,9 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 - Batterien und Pumpspeicher sind in Leistung, Energie und äquivalenter Entladedauer getrennt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.
 - `update-storage` respektiert einen monatlichen Cache und ruft ausschließlich JRC nach bewusster CLI-Ausführung ab. Battery-Charts besitzt nur den separaten manuellen JSON-Dateiimport; der frühere manuelle JRC-Import bleibt als veralteter Offline-Fallback erhalten.
 - Das frühere tabellarische Vergleichsprovisorium ist durch einen nativen SVG-Zeitreihenplot für ein bis zehn Länder ersetzt. Monats- und Jahresauflösung stammen aus dem zentralen Kennzahlenkatalog; Snapshot-Kennzahlen bleiben ausgeschlossen.
-- Der Zeitreihenvergleich enthält einen Atlas-Durchschnitt über alle jeweils vorhandenen Länderwerte, echte Datenlücken, Live-Ranking, Hover und Zeitpunktfixierung, lokale Flaggen sowie CSV-, SVG- und PNG-Export.
+- Der Zeitreihenvergleich enthält einen Atlas-Durchschnitt über alle jeweils vorhandenen Länderwerte, echte Datenlücken, ein rein zeitbezogenes Live-Ranking, Zeitpunktfixierung, lokale Flaggen sowie CSV-, SVG- und PNG-Export.
+- Standard- und Vollbildansicht verwenden dieselben Plotproportionen und dieselbe großzügige Live-Ranking-Typografie. Im Vollbild bleibt außerdem die vollständige Steuerleiste sichtbar; der Zustand bleibt beim Wechsel erhalten. Linienfarben orientieren sich an kontrastreichen Flaggenfarben und weichen bei Konflikten auf unterscheidbare Ersatzfarben aus.
+- Relative Veränderungen verwenden unabhängig vom sichtbaren Zeitraum den passenden Vergleichswert aus 2015: jährlich den Jahreswert, monatlich denselben Kalendermonat. Fehlende oder echte Null-Basiswerte bleiben unberechnet.
 - Länderauswahl, Kennzahl und Zeitraum werden in einem defensiv validierten Direktlink gespeichert. Die alte `/api/compare`-Schnittstelle bleibt vorerst erhalten.
 - Kartenklicks verändern die Vergleichsauswahl nicht mehr. Der dauerhafte Kartenfokus muss noch von temporärem Hover beziehungsweise Tastaturfokus getrennt und explizit lösbar gemacht werden.
 - Rohdaten und Provenienz werden lokal gespeichert; fehlerhafte Aktualisierungen dürfen bestehende Daten nicht verändern.
@@ -142,6 +131,15 @@ Diese Datei bündelt die offenen Entwicklungspunkte des Projekts. Abgeschlossene
 - Live-Ranking am letzten beziehungsweise berührten Zeitpunkt, geteilte Ränge, Linienhervorhebung sowie fixierbarer Zeitpunkt.
 - Wiederherstellbarer Direktlink und lokale CSV-, SVG- und PNG-Exporte; CSV-Lücken bleiben leer.
 - 31 lokale SVG-Flaggen aus `flag-icons` einschließlich dokumentierter MIT-Lizenz; keine Diagramm-, Flaggen- oder CDN-Abrufe zur Laufzeit.
+
+### Zeitreihenvergleich V2
+
+- Identisches `15:8`-Plotverhältnis und dieselbe interne Diagrammgeometrie in Standard- und Vollbildansicht; das Ranking scrollt bei Bedarf innerhalb der gemeinsamen Arbeitsfläche.
+- Native Vollbildansicht mit vollständiger Steuerleiste, identisch skaliertem Live-Ranking, sichtbarer Beenden-Aktion und `Escape`; Länder, Kennzahl, Zeitraum und fixierter Zeitpunkt bleiben beim Wechsel erhalten.
+- Dünnere Länder- und Durchschnittslinien sowie rein zeitbezogener Hover ohne Einrasten, Hervorheben oder Abdunkeln einzelner Länderlinien.
+- Dynamische Linienfarben aus kontrastreichen prägenden Flaggenfarben mit konfliktfreien Ersatzfarben für die aktuelle Auswahl.
+- Feste 2015-Vergleichsbasis in API und Ranking: Jahreswert 2015 beziehungsweise derselbe Kalendermonat 2015, auch wenn der sichtbare Zeitraum später beginnt.
+- Relative Veränderung in Prozent für alle Kennzahlen; fehlende und echte Null-Basiswerte ergeben `—`.
 
 ## Leitplanken
 

@@ -89,47 +89,51 @@
           <p class="hint">Eine Kennzahl, bis zu zehn Länder und der Durchschnitt des vollständigen Atlas-Katalogs.</p>
         </div>
       </div>
-      <div class="comparison-controls" aria-label="Zeitreihenvergleich steuern">
-        <div class="country-control">
-          <label>Land hinzufügen
-            <select id="compare-country-add"></select>
-          </label>
-          <div id="compare-chips" class="country-chips" aria-label="Ausgewählte Länder"></div>
-        </div>
-        <label>Kennzahlenfamilie
-          <select id="compare-family"></select>
-        </label>
-        <label>Darstellung
-          <select id="compare-metric"></select>
-        </label>
-        <label id="compare-start-label">Von
-          <input id="compare-start" type="month" min="2015-01">
-        </label>
-        <label id="compare-end-label">Bis
-          <input id="compare-end" type="month" min="2015-01">
-        </label>
-        <button id="compare-load" type="button">Plot aktualisieren</button>
-        <div class="comparison-actions" aria-label="Zeitreihe exportieren">
-          <button id="export-csv" type="button" disabled>CSV</button>
-          <button id="export-svg" type="button" disabled>SVG</button>
-          <button id="export-png" type="button" disabled>PNG</button>
-          <button id="copy-link" type="button" disabled>Link kopieren</button>
-        </div>
-      </div>
-      <p id="comparison-status" class="hint" role="status"></p>
-      <div class="comparison-layout">
-        <div class="chart-panel">
-          <svg id="timeseries-chart" viewBox="0 0 1040 620" role="img" aria-label="Zeitreihenplot"></svg>
-          <button id="unpin-time" class="secondary-action" type="button" hidden>Zeitpunktfixierung aufheben</button>
-        </div>
-        <aside class="ranking-panel" aria-labelledby="ranking-title">
-          <div class="ranking-heading">
-            <h3 id="ranking-title">Live-Ranking</h3>
-            <span id="ranking-period" class="period-flag"></span>
+      <div id="comparison-stage" class="comparison-stage">
+        <div id="comparison-controls" class="comparison-controls" aria-label="Zeitreihenvergleich steuern">
+          <div class="country-control">
+            <label>Land hinzufügen
+              <select id="compare-country-add"></select>
+            </label>
+            <div id="compare-chips" class="country-chips" aria-label="Ausgewählte Länder"></div>
           </div>
-          <div id="atlas-average-value" class="atlas-average-value"></div>
-          <ol id="ranking-list" class="ranking-list"></ol>
-        </aside>
+          <label>Kennzahlenfamilie
+            <select id="compare-family"></select>
+          </label>
+          <label>Darstellung
+            <select id="compare-metric"></select>
+          </label>
+          <label id="compare-start-label">Von
+            <input id="compare-start" type="month" min="2015-01">
+          </label>
+          <label id="compare-end-label">Bis
+            <input id="compare-end" type="month" min="2015-01">
+          </label>
+          <button id="compare-load" type="button">Plot aktualisieren</button>
+          <div class="comparison-actions" aria-label="Zeitreihe exportieren">
+            <button id="export-csv" type="button" disabled>CSV</button>
+            <button id="export-svg" type="button" disabled>SVG</button>
+            <button id="export-png" type="button" disabled>PNG</button>
+            <button id="copy-link" type="button" disabled>Link kopieren</button>
+            <button id="comparison-fullscreen" class="secondary-action" type="button" aria-pressed="false">Vollbild</button>
+          </div>
+        </div>
+        <p id="comparison-status" class="hint" role="status"></p>
+        <div id="comparison-layout" class="comparison-layout">
+          <div class="chart-panel">
+            <svg id="timeseries-chart" viewBox="0 0 1600 500" role="img" aria-label="Zeitreihenplot"></svg>
+            <button id="unpin-time" class="secondary-action" type="button" hidden>Zeitpunktfixierung aufheben</button>
+          </div>
+          <aside class="ranking-panel" aria-labelledby="ranking-title">
+            <div class="ranking-heading">
+              <h3 id="ranking-title">Live-Ranking</h3>
+              <span id="ranking-period" class="period-flag"></span>
+            </div>
+            <div id="atlas-average-value" class="atlas-average-value"></div>
+            <p id="ranking-baseline-note" class="ranking-baseline-note"></p>
+            <ol id="ranking-list" class="ranking-list"></ol>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -212,6 +216,6 @@
       <div id="coverage"></div>
     </details>
   </main>
-  <script src="/app.js?v=timeseries-v1.0.0"></script>
+  <script src="/app.js?v=timeseries-v2.1.0"></script>
 </body>
 </html>

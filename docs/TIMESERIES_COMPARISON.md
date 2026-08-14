@@ -21,6 +21,25 @@ The URL stores the selected countries, metric, and range. Invalid URL values
 are rejected rather than silently applied. CSV, SVG, and PNG exports are
 created locally in the browser.
 
+Each country response also contains `baseline_values`. Yearly metrics use the
+2015 annual value. Monthly metrics use the matching calendar month in 2015,
+even when the visible range starts later. The live ranking reports the relative
+change `(current - baseline) / baseline * 100`. Missing and reported-zero
+baselines produce no percentage instead of a division or fallback value.
+
+The standard chart and fullscreen chart use the same `15:8` plot aspect ratio,
+the same internal SVG geometry and equally prominent ranking typography. The
+ranking scrolls internally when necessary. Native fullscreen includes the
+complete control bar, chart and ranking; the selected countries, metric, date
+range and pinned period remain unchanged when entering or leaving fullscreen.
+The browser's Escape action exits fullscreen.
+
+Country colors are derived from prominent non-neutral colors in the bundled
+flag SVGs. If a flag color is too dark or conflicts with an already assigned
+line, the chart chooses a high-contrast fallback. Hover selects only the
+nearest period for the guide and live ranking; it no longer locks onto or
+dims individual country lines.
+
 ## Local flag assets
 
 The 31 SVG flag files under `web/assets/flags` come from

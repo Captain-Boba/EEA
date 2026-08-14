@@ -11,3 +11,4 @@ EMBER_API_KEY.txt
 BATTERY_CHARTS_API_KEY.txt
 /battery-energy.json
 /battery-power.json
+docs/images/timeseries-comparison-V1.png

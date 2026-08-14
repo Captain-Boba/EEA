@@ -101,10 +101,16 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn('id="timeseries-chart"', html)
         self.assertIn('id="ranking-list"', html)
+        self.assertIn('id="comparison-fullscreen"', html)
+        self.assertLess(html.index('id="comparison-stage"'), html.index('id="comparison-controls"'))
+        self.assertLess(html.index('id="comparison-controls"'), html.index('id="comparison-layout"'))
         self.assertNotIn('id="compare-table"', html)
         self.assertIn("/api/timeseries?", app)
         self.assertIn("buildComparisonCsv", app)
         self.assertIn("history.replaceState", app)
+        self.assertIn("requestFullscreen", app)
+        self.assertNotIn("chartHoverCountry", app)
+        self.assertNotIn(')} pp`', app)
         self.assertIn("prefers-reduced-motion", (ROOT / "web" / "style.css").read_text(encoding="utf-8"))
         expected = {("gb" if code == "UK" else code.lower()) + ".svg" for code in ATLAS_COUNTRIES}
         actual = {path.name for path in FLAG_PATH.glob("*.svg")}

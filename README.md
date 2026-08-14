@@ -12,7 +12,7 @@ Ein lokaler, interaktiver Atlas für den Vergleich europäischer Stromsysteme. D
 - jährliche Bevölkerungs- und BIP-Kennzahlen sowie Pro-Kopf-Auswertungen
 - Batterie- und Pumpspeicherleistung, -energie und äquivalente Entladedauer als getrennte Bestandswerte
 - vollständig lokale Europakarte ohne Kartenkacheln, CDN oder Tracking
-- interaktiver Zeitreihenvergleich für ein bis zehn Länder mit Atlas-Durchschnitt, Direktlink und lokalen Exporten
+- kompakter und maximierbarer Zeitreihenvergleich für ein bis zehn Länder mit Atlas-Durchschnitt, 2015-Basis, Direktlink und lokalen Exporten
 - sichtbare Coverage-Lücken, vorläufige Zeiträume und YTD-Werte statt erfundener Nullwerte
 
 ## Schnellstart mit fertigem Datenstand

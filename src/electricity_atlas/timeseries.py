@@ -74,16 +74,39 @@ def build_timeseries(
             }
         )
 
+    baseline_periods = _baseline_periods(periods, granularity)
+    country_baselines = {
+        code: [
+            _point(
+                baseline_period,
+                aggregate_country(
+                    connection,
+                    code,
+                    int(baseline_period[:4]),
+                    int(baseline_period[5:7]) if granularity == "monthly" else None,
+                ),
+                metric_id,
+            )
+            for baseline_period in baseline_periods
+        ]
+        for code in codes
+    }
+
     return {
         "metric": dict(metric),
         "granularity": granularity,
         "start": periods[0],
         "end": periods[-1],
+        "comparison_baseline": {
+            "year": ATLAS_MIN_YEAR,
+            "method": "same_calendar_month" if granularity == "monthly" else "annual",
+        },
         "countries": [
             {
                 "country_code": code,
                 "country_name": COUNTRIES[code].name,
                 "values": country_points[code],
+                "baseline_values": country_baselines[code],
             }
             for code in codes
         ],
@@ -92,6 +115,13 @@ def build_timeseries(
             "values": average_points,
         },
     }
+
+
+def _baseline_periods(periods: list[str], granularity: str) -> list[str]:
+    if granularity == "yearly":
+        return [str(ATLAS_MIN_YEAR)]
+    months = sorted({period[5:7] for period in periods})
+    return [f"{ATLAS_MIN_YEAR:04d}-{month}" for month in months]
 
 
 def _point(period: str, row: dict[str, Any], metric_id: str) -> dict[str, Any]:

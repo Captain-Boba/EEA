@@ -44,10 +44,11 @@ let mapSvg = null;
 let mapMetricId = "generation_twh";
 const selected = new Set();
 let timeseriesData = null;
+let timeseriesColors = new Map();
 let chartHoverIndex = null;
 let chartPinnedIndex = null;
-let chartHoverCountry = null;
-const CHART_COLORS = [
+const FLAG_COLOR_CACHE = new Map();
+const CHART_FALLBACK_COLORS = [
   "#4da3ff", "#ffb454", "#53d39b", "#d38cff", "#ff718b",
   "#64d7e8", "#d6d957", "#a6a1ff", "#ff9466", "#72c06a",
 ];
@@ -598,6 +599,88 @@ function flagCode(code) {
   return code === "UK" ? "gb" : code.toLowerCase();
 }
 
+const NAMED_FLAG_COLORS = {
+  red: "#ff0000", blue: "#0000ff", green: "#008000", yellow: "#ffff00",
+  gold: "#ffd700", orange: "#ff8c00", white: "#ffffff", black: "#000000",
+};
+
+function normalizedHexColor(value) {
+  let color = value.trim().toLowerCase();
+  color = NAMED_FLAG_COLORS[color] || color;
+  if (/^#[0-9a-f]{3}$/.test(color)) {
+    color = `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`;
+  }
+  return /^#[0-9a-f]{6}$/.test(color) ? color : null;
+}
+
+function rgbColor(color) {
+  const value = normalizedHexColor(color);
+  if (!value) return null;
+  return [1, 3, 5].map(index => Number.parseInt(value.slice(index, index + 2), 16));
+}
+
+function usefulFlagColor(color) {
+  const rgb = rgbColor(color);
+  if (!rgb) return false;
+  const [red, green, blue] = rgb.map(channel => channel / 255);
+  const luminance = .2126 * red + .7152 * green + .0722 * blue;
+  const saturation = Math.max(red, green, blue) - Math.min(red, green, blue);
+  return luminance >= .17 && luminance <= .9 && saturation >= .18;
+}
+
+function extractFlagColors(svgText) {
+  const colors = [...svgText.matchAll(/\bfill=["']([^"']+)["']/gi)]
+    .map(match => normalizedHexColor(match[1]))
+    .filter(color => color && usefulFlagColor(color));
+  return [...new Set(colors)];
+}
+
+function colorDistance(first, second) {
+  const a = rgbColor(first);
+  const b = rgbColor(second);
+  if (!a || !b) return 0;
+  return Math.sqrt(a.reduce((sum, channel, index) => sum + (channel - b[index]) ** 2, 0));
+}
+
+function assignCountryColors(countryCodes, candidatesByCode) {
+  const assigned = new Map();
+  const used = [];
+  countryCodes.forEach((code, index) => {
+    const flagCandidates = candidatesByCode.get(code) || [];
+    const fallbackCandidates = CHART_FALLBACK_COLORS.filter(color => !flagCandidates.includes(color));
+    const distanceFromUsed = color => used.length ? Math.min(...used.map(other => colorDistance(color, other))) : Infinity;
+    const preferred = flagCandidates.find(color => distanceFromUsed(color) >= 82)
+      || fallbackCandidates.find(color => distanceFromUsed(color) >= 82);
+    const pool = [...flagCandidates, ...fallbackCandidates];
+    const color = preferred || pool.sort((a, b) => distanceFromUsed(b) - distanceFromUsed(a))[0]
+      || CHART_FALLBACK_COLORS[index % CHART_FALLBACK_COLORS.length];
+    assigned.set(code, color);
+    used.push(color);
+  });
+  return assigned;
+}
+
+async function prepareTimeseriesColors(payload) {
+  const candidates = new Map();
+  await Promise.all(payload.countries.map(async country => {
+    const code = country.country_code;
+    if (!FLAG_COLOR_CACHE.has(code)) {
+      try {
+        const response = await fetch(`/assets/flags/${flagCode(code)}.svg`);
+        FLAG_COLOR_CACHE.set(code, response.ok ? extractFlagColors(await response.text()) : []);
+      } catch (_error) {
+        FLAG_COLOR_CACHE.set(code, []);
+      }
+    }
+    candidates.set(code, FLAG_COLOR_CACHE.get(code));
+  }));
+  timeseriesColors = assignCountryColors(payload.countries.map(country => country.country_code), candidates);
+}
+
+function chartColor(countryCode, index) {
+  return timeseriesColors.get(countryCode) || CHART_FALLBACK_COLORS[index % CHART_FALLBACK_COLORS.length];
+}
+
 function renderCountryControls() {
   if (!$("compare-country-add")) return;
   const rows = [...data].sort((a, b) => a.country_name.localeCompare(b.country_name, "de"));
@@ -766,9 +849,9 @@ async function loadTimeseries({scroll = false, updateUrl = true} = {}) {
     return;
   }
   timeseriesData = payload;
+  await prepareTimeseriesColors(payload);
   chartHoverIndex = null;
   chartPinnedIndex = null;
-  chartHoverCountry = null;
   renderTimeseriesChart();
   for (const id of ["export-csv", "export-svg", "export-png", "copy-link"]) $(id).disabled = false;
   $("comparison-status").textContent = `${payload.countries.length} Länder · ${payload.granularity === "monthly" ? "Monatswerte" : "Jahreswerte"} · fehlende Werte bleiben als Linienlücken sichtbar.`;
@@ -783,8 +866,29 @@ function svgElement(name, attributes = {}, text = null) {
   return element;
 }
 
+function comparisonIsFullscreen() {
+  return document.fullscreenElement === $("comparison-stage");
+}
+
 function chartGeometry() {
-  return {width: 1040, height: 620, left: 82, right: 850, top: 82, bottom: 490};
+  const height = 640;
+  const chartRect = $("timeseries-chart").getBoundingClientRect();
+  const ratio = chartRect.height > 0 ? chartRect.width / chartRect.height : 2.1;
+  const width = Math.max(1180, Math.round(height * ratio));
+  const left = 100;
+  const right = width - 230;
+  return {
+    width, height, left, right,
+    top: 76,
+    bottom: 510,
+    legendY: 575,
+    legendColumns: 6,
+    legendColumnWidth: (right - left) / 6,
+    connectorX: right + 30,
+    flagX: right + 40,
+    tagX: right + 80,
+    endpointGap: 30,
+  };
 }
 
 function chartScale(payload, geometry) {
@@ -842,8 +946,21 @@ function endpointPositions(payload, scale, geometry) {
       targetY: scale.y(country.values[pointIndex].value),
       y: scale.y(country.values[pointIndex].value),
     };
-  }).filter(Boolean).sort((a, b) => a.targetY - b.targetY);
-  const gap = 25;
+  }).filter(Boolean);
+  const averagePoint = [...payload.atlas_average.values]
+    .map((point, index) => ({point, index}))
+    .reverse()
+    .find(item => Number.isFinite(item.point.value));
+  if (averagePoint) {
+    endpoints.push({
+      average: true,
+      x: scale.x(averagePoint.index),
+      targetY: scale.y(averagePoint.point.value),
+      y: scale.y(averagePoint.point.value),
+    });
+  }
+  endpoints.sort((a, b) => a.targetY - b.targetY);
+  const gap = geometry.endpointGap;
   endpoints.forEach((endpoint, index) => {
     endpoint.y = Math.max(endpoint.targetY, geometry.top + 10, index ? endpoints[index - 1].y + gap : -Infinity);
   });
@@ -864,6 +981,7 @@ function renderTimeseriesChart() {
   const periods = payload.atlas_average.values.map(point => point.period);
   const activeIndex = chartPinnedIndex ?? chartHoverIndex;
   svg.replaceChildren();
+  svg.setAttribute("viewBox", `0 0 ${geometry.width} ${geometry.height}`);
   svg.appendChild(svgElement("rect", {class: "chart-background", x: 0, y: 0, width: geometry.width, height: geometry.height, rx: 12}));
   svg.appendChild(svgElement("text", {class: "chart-title", x: geometry.left, y: 34}, metric.label_de));
   svg.appendChild(svgElement("text", {class: "chart-subtitle", x: geometry.left, y: 57}, `${metric.representation} · ${metric.unit} · ${payload.start} bis ${payload.end}`));
@@ -895,11 +1013,11 @@ function renderTimeseriesChart() {
   payload.countries.forEach((country, index) => {
     const path = linePath(country.values, scale);
     if (!path) return;
-    const muted = chartHoverCountry && chartHoverCountry !== country.country_code;
+    const color = chartColor(country.country_code, index);
     svg.appendChild(svgElement("path", {
-      class: `chart-line country-line${muted ? " muted" : ""}${chartHoverCountry === country.country_code ? " active" : ""}`,
+      class: "chart-line country-line",
       d: path,
-      stroke: CHART_COLORS[index],
+      stroke: color,
       "data-country-line": country.country_code,
     }));
     if (activeIndex !== null && Number.isFinite(country.values[activeIndex]?.value)) {
@@ -907,45 +1025,48 @@ function renderTimeseriesChart() {
         class: "chart-point",
         cx: scale.x(activeIndex),
         cy: scale.y(country.values[activeIndex].value),
-        r: chartHoverCountry === country.country_code ? 6 : 4,
-        fill: CHART_COLORS[index],
+        r: 3.5,
+        fill: color,
       }));
     }
   });
 
   endpointPositions(payload, scale, geometry).forEach(endpoint => {
-    const color = CHART_COLORS[endpoint.countryIndex];
+    if (endpoint.average) {
+      svg.appendChild(svgElement("path", {
+        class: "endpoint-connector average-endpoint-connector",
+        d: `M${endpoint.x},${endpoint.targetY} L${geometry.connectorX},${endpoint.y}`,
+        stroke: "#edf3fb",
+      }));
+      svg.appendChild(svgElement("text", {
+        class: "average-endpoint-tag",
+        x: geometry.flagX,
+        y: endpoint.y + 5,
+      }, "Atlas Ø"));
+      return;
+    }
+    const color = chartColor(endpoint.country.country_code, endpoint.countryIndex);
     svg.appendChild(svgElement("path", {
       class: "endpoint-connector",
-      d: `M${endpoint.x},${endpoint.targetY} L870,${endpoint.y}`,
+      d: `M${endpoint.x},${endpoint.targetY} L${geometry.connectorX},${endpoint.y}`,
       stroke: color,
     }));
     svg.appendChild(svgElement("image", {
       class: "endpoint-flag",
       href: `/assets/flags/${flagCode(endpoint.country.country_code)}.svg`,
-      x: 878,
-      y: endpoint.y - 9,
-      width: 24,
-      height: 18,
+      x: geometry.flagX,
+      y: endpoint.y - 11,
+      width: 30,
+      height: 22,
     }));
-    svg.appendChild(svgElement("text", {class: "endpoint-tag", x: 910, y: endpoint.y + 5, fill: color}, endpoint.country.country_code));
+    svg.appendChild(svgElement("text", {class: "endpoint-tag", x: geometry.tagX, y: endpoint.y + 5, fill: color}, endpoint.country.country_code));
   });
-  const averageEndpoint = [...payload.atlas_average.values].map((point, index) => ({point, index})).reverse().find(item => Number.isFinite(item.point.value));
-  if (averageEndpoint) {
-    svg.appendChild(svgElement("text", {
-      class: "average-endpoint-tag",
-      x: Math.min(geometry.right + 8, scale.x(averageEndpoint.index) + 8),
-      y: scale.y(averageEndpoint.point.value) - 8,
-    }, "Atlas Ø"));
-  }
-
-  const legendY = 548;
-  [...payload.countries.map((country, index) => ({label: country.country_code, color: CHART_COLORS[index]})), {label: "Atlas-Durchschnitt", color: "#edf3fb", average: true}]
+  [...payload.countries.map((country, index) => ({label: country.country_code, color: chartColor(country.country_code, index)})), {label: "Atlas-Durchschnitt", color: "#edf3fb", average: true}]
     .forEach((item, index) => {
-      const column = index % 6;
-      const row = Math.floor(index / 6);
-      const x = geometry.left + column * 145;
-      const y = legendY + row * 28;
+      const column = index % geometry.legendColumns;
+      const row = Math.floor(index / geometry.legendColumns);
+      const x = geometry.left + column * geometry.legendColumnWidth;
+      const y = geometry.legendY + row * 28;
       const line = svgElement("line", {class: item.average ? "legend-line average" : "legend-line", x1: x, x2: x + 24, y1: y, y2: y, stroke: item.color});
       svg.appendChild(line);
       svg.appendChild(svgElement("text", {class: "legend-label", x: x + 32, y: y + 4}, item.label));
@@ -976,27 +1097,14 @@ function bindChartInteraction(svg, scale, geometry) {
     const point = pointerInSvg(svg, event);
     const count = timeseriesData.atlas_average.values.length;
     const index = Math.max(0, Math.min(count - 1, Math.round((point.x - geometry.left) / (geometry.right - geometry.left) * Math.max(1, count - 1))));
-    let closest = null;
-    let distance = Infinity;
-    timeseriesData.countries.forEach(country => {
-      const value = country.values[index]?.value;
-      if (!Number.isFinite(value)) return;
-      const candidate = Math.abs(scale.y(value) - point.y);
-      if (candidate < distance) {
-        closest = country.country_code;
-        distance = candidate;
-      }
-    });
-    if (index !== chartHoverIndex || closest !== chartHoverCountry) {
+    if (index !== chartHoverIndex) {
       chartHoverIndex = index;
-      chartHoverCountry = distance <= 24 ? closest : null;
       renderTimeseriesChart();
     }
   });
   overlay.addEventListener("pointerleave", () => {
-    if (chartPinnedIndex === null && (chartHoverIndex !== null || chartHoverCountry !== null)) {
+    if (chartPinnedIndex === null && chartHoverIndex !== null) {
       chartHoverIndex = null;
-      chartHoverCountry = null;
       renderTimeseriesChart();
     }
   });
@@ -1010,16 +1118,22 @@ function bindChartInteraction(svg, scale, geometry) {
   });
 }
 
-function rankingChange(country, index) {
+function comparisonBaselinePoint(country, period, granularity) {
+  const baselinePeriod = granularity === "monthly" ? `${MIN_YEAR}-${period.slice(5, 7)}` : String(MIN_YEAR);
+  return country.baseline_values?.find(point => point.period === baselinePeriod) || null;
+}
+
+function relativeBaselineChange(country, index, granularity) {
   const current = country.values[index]?.value;
-  const start = country.values[0]?.value;
-  if (!Number.isFinite(current) || !Number.isFinite(start)) return "—";
-  const metric = timeseriesData.metric;
-  const delta = current - start;
-  if (metric.unit === "%") return `${delta >= 0 ? "+" : ""}${formatMetricValue(delta, {...metric, map_config: {...metric.map_config, decimals: 1}})} pp`;
-  if (metric.map_config?.scale === "diverging") return `${delta >= 0 ? "+" : ""}${formatMetricValue(delta, metric)} ${metric.unit}`;
-  if (start === 0) return "—";
-  const change = delta / Math.abs(start) * 100;
+  const period = country.values[index]?.period || "";
+  const baseline = comparisonBaselinePoint(country, period, granularity)?.value;
+  if (!Number.isFinite(current) || !Number.isFinite(baseline) || baseline === 0) return null;
+  return (current - baseline) / baseline * 100;
+}
+
+function rankingChange(country, index) {
+  const change = relativeBaselineChange(country, index, timeseriesData.granularity);
+  if (!Number.isFinite(change)) return "—";
   return `${change >= 0 ? "+" : ""}${new Intl.NumberFormat("de-DE", {maximumFractionDigits: 1}).format(change)} %`;
 }
 
@@ -1047,9 +1161,11 @@ function renderRanking(index) {
   $("ranking-period").textContent = `${period}${periodStatus === "ytd" ? " · YTD" : periodStatus === "provisional_current_month" ? " · vorläufig" : ""}`;
   const average = timeseriesData.atlas_average.values[index].value;
   $("atlas-average-value").textContent = `Atlas-Durchschnitt · ${formatMetricValue(average, timeseriesData.metric)} ${timeseriesData.metric.unit}`;
+  $("ranking-baseline-note").textContent = timeseriesData.granularity === "monthly"
+    ? "Veränderung gegenüber demselben Kalendermonat 2015"
+    : "Veränderung gegenüber dem Jahreswert 2015";
   $("ranking-list").innerHTML = entries.map(entry => {
-    const active = chartHoverCountry === entry.country.country_code;
-    return `<li data-country="${entry.country.country_code}" class="ranking-item${active ? " active" : ""}${Number.isFinite(entry.value) ? "" : " missing-value"}">
+    return `<li data-country="${entry.country.country_code}" class="ranking-item${Number.isFinite(entry.value) ? "" : " missing-value"}">
       <span class="ranking-rank">${entry.rank || "—"}</span>
       <img src="/assets/flags/${flagCode(entry.country.country_code)}.svg" alt="" width="24" height="18">
       <span class="ranking-country"><b>${entry.country.country_code}</b><small>${escapeHtml(entry.country.country_name)}</small></span>
@@ -1089,7 +1205,14 @@ function buildComparisonCsv(payload) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = {buildComparisonCsv, flagCode, parseComparisonUrl};
+  module.exports = {
+    assignCountryColors,
+    buildComparisonCsv,
+    extractFlagColors,
+    flagCode,
+    parseComparisonUrl,
+    relativeBaselineChange,
+  };
 }
 
 function downloadBlob(blob, filename) {
@@ -1112,17 +1235,18 @@ async function serializedChartSvg() {
   const clone = $("timeseries-chart").cloneNode(true);
   clone.querySelectorAll(".chart-interaction").forEach(element => element.remove());
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  clone.setAttribute("width", "1040");
-  clone.setAttribute("height", "620");
+  const viewBox = clone.getAttribute("viewBox").split(/\s+/).map(Number);
+  clone.setAttribute("width", String(viewBox[2]));
+  clone.setAttribute("height", String(viewBox[3]));
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
   style.textContent = `
     .chart-background{fill:#0d1626}.chart-title{fill:#edf3fb;font:750 24px system-ui,sans-serif}
     .chart-subtitle,.axis-label,.legend-label,.average-endpoint-tag{fill:#91a3ba;font:13px system-ui,sans-serif}
     .chart-grid{stroke:#2b3b52;stroke-width:1}.chart-grid.vertical{stroke-opacity:.45}
-    .chart-zero{stroke:#c9d4e2;stroke-width:1.5}.chart-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-    .country-line.muted{opacity:.2}.country-line.active{stroke-width:5}.atlas-average-line{stroke:#edf3fb;stroke-width:2.5;stroke-dasharray:10 7;opacity:.85}
+    .chart-zero{stroke:#c9d4e2;stroke-width:1.5}.chart-line{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .atlas-average-line{stroke:#edf3fb;stroke-width:1.7;stroke-dasharray:10 7;opacity:.85}
     .chart-guide{stroke:#dbe8f6;stroke-width:1.2;stroke-dasharray:4 5}.chart-point{stroke:#08101c;stroke-width:2}
-    .endpoint-connector{fill:none;stroke-width:1.3;opacity:.8}.endpoint-tag{font:800 14px system-ui,sans-serif}
+    .endpoint-connector{fill:none;stroke-width:1;opacity:.8}.average-endpoint-connector{stroke-dasharray:6 5}.endpoint-tag{font:800 14px system-ui,sans-serif}
     .average-endpoint-tag{font-weight:750;fill:#edf3fb}.legend-line{stroke-width:3}.legend-line.average{stroke-dasharray:7 5}
     .x-axis-label{text-anchor:middle}.y-axis-label{text-anchor:end}
   `;
@@ -1154,8 +1278,9 @@ async function buildChartPngBlob() {
     image.src = url;
   });
   const canvas = document.createElement("canvas");
-  canvas.width = 2080;
-  canvas.height = 1240;
+  const chartBox = $("timeseries-chart").viewBox.baseVal;
+  canvas.width = chartBox.width * 2;
+  canvas.height = chartBox.height * 2;
   const context = canvas.getContext("2d");
   context.fillStyle = "#0a0f1c";
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -1202,6 +1327,24 @@ function syncPeriodControls() {
   renderMap();
 }
 
+function updateComparisonFullscreenButton() {
+  const active = comparisonIsFullscreen();
+  const button = $("comparison-fullscreen");
+  button.textContent = active ? "Vollbild verlassen" : "Vollbild";
+  button.setAttribute("aria-pressed", String(active));
+}
+
+async function toggleComparisonFullscreen() {
+  const stage = $("comparison-stage");
+  if (comparisonIsFullscreen()) {
+    await document.exitFullscreen();
+  } else if (stage.requestFullscreen) {
+    await stage.requestFullscreen();
+  } else {
+    $("comparison-status").textContent = "Dieser Browser unterstützt die Vollbildansicht nicht.";
+  }
+}
+
 $("period-type").addEventListener("change", syncPeriodControls);
 $("year").max = String(currentYear);
 $("load").addEventListener("click", loadSummary);
@@ -1213,10 +1356,10 @@ $("compare-country-add").addEventListener("change", event => {
 });
 $("compare-family").addEventListener("change", event => renderComparisonMetricOptions(event.target.value));
 $("compare-metric").addEventListener("change", event => configureComparisonRange(metricDefinition(event.target.value)));
+$("comparison-fullscreen").addEventListener("click", toggleComparisonFullscreen);
 $("unpin-time").addEventListener("click", () => {
   chartPinnedIndex = null;
   chartHoverIndex = null;
-  chartHoverCountry = null;
   renderTimeseriesChart();
 });
 $("export-csv").addEventListener("click", () => {
@@ -1236,12 +1379,22 @@ $("map-family").addEventListener("change", event => {
 });
 $("map-representation").addEventListener("change", event => setMapMetric(event.target.value));
 $("map-values").addEventListener("change", () => renderMapLabels(metricDefinition(mapMetricId)));
+document.addEventListener?.("fullscreenchange", () => {
+  updateComparisonFullscreenButton();
+  renderTimeseriesChart();
+});
+document.addEventListener?.("keydown", event => {
+  if (event.key === "Escape" && comparisonIsFullscreen()) document.exitFullscreen();
+});
 
 window.__atlasMapTest = {colorForValue, mapScale, NE_TO_ATLAS};
 window.__atlasCompareTest = {
   buildComparisonCsv,
+  assignCountryColors,
+  extractFlagColors,
   flagCode,
   parseComparisonUrl,
+  relativeBaselineChange,
   serializedChartSvg,
   buildChartPngBlob,
 };
