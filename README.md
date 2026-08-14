@@ -1,48 +1,48 @@
 # European Electricity Atlas
 
-Ein lokaler, interaktiver Atlas für den Vergleich europäischer Stromsysteme. Die Weboberfläche verbindet eine kennzahlengesteuerte Europakarte mit sortierbaren Tabellen, Länder­vergleichen und transparenten Angaben zu Datenstatus und Quellen.
+A local, interactive atlas for comparing European electricity systems. The web interface combines a metric-driven map of Europe with sortable rankings, country comparisons, and transparent information about data status and sources.
 
-## Die Oberfläche
+## The interface
 
-### Europas Stromsysteme im direkten Ranking
+### European electricity systems ranked side by side
 
-Die zentrale Ländertabelle stellt alle 31 Atlas-Länder mit einheitlich formatierten Kennzahlen gegenüber. Jede Spalte lässt sich sortieren und unmittelbar als Kartenkennzahl öffnen; die Rangnummern folgen immer der aktiven Sortierung. Länder können direkt in der Tabelle für den Zeitreihenvergleich ausgewählt werden, während die mitlaufende Steuerleiste Jahr, Zeitraum und Vergleichsauswahl erreichbar hält.
+The main country table compares all 31 Atlas countries using consistently formatted metrics. Every column can be sorted and opened directly as a map layer, while rank numbers always follow the active sorting. Countries can be selected in the table for time-series comparison, and the sticky control bar keeps the year, period, and comparison selection within reach while scrolling.
 
-[![Sortierbares Länder-Ranking des European Electricity Atlas](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)
+[![Sortable country ranking in the European Electricity Atlas](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)
 
-### Jede Kennzahl auf der Europakarte
+### Every metric on the map of Europe
 
-Die vollständig lokale SVG-Karte visualisiert absolute und relative Kennzahlen mit passenden Farbskalen und sichtbaren Länderwerten. Kennzahlenfamilie und Darstellung lassen sich unabhängig wählen. Im Vollbild bleibt die Legende direkt neben der Karte; der aktuelle Kartenstand kann einschließlich Titel, Zeitraum, Einheit, Farbskala und Legende als SVG oder PNG exportiert werden.
+The fully local SVG map visualizes absolute and relative metrics with dedicated color scales and visible country values. Metric family and representation can be selected independently. In fullscreen mode, the legend remains available beside the map. The current map state can be exported as SVG or PNG, including its title, period, unit, color scale, and legend.
 
-[![Vollbildkarte mit dem Anteil erneuerbarer Stromerzeugung in Europa](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)
+[![Fullscreen map showing the share of renewable electricity generation across Europe](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)
 
-### Zeitreihen für bis zu zehn Länder
+### Time series for up to ten countries
 
-Der Zeitreihenvergleich verbindet Monats- oder Jahreswerte mit einem Atlas-Durchschnitt und einem Live-Ranking. Vordefinierte Bereiche von YTD bis zur maximalen Historie ergänzen die freie Zeitraumwahl. Relative Veränderungen verwenden eine feste Basis von 2015; Monatswerte werden dabei stets mit demselben Kalendermonat 2015 verglichen. Fehlende Werte bleiben als echte Linienlücken sichtbar. Der aktuelle Vergleich lässt sich per Direktlink teilen oder lokal als CSV, SVG und PNG exportieren.
+The time-series comparison combines monthly or annual values with an Atlas average and a live ranking. Preset ranges from YTD to the full available history complement the custom date range. Relative changes use a fixed 2015 baseline; monthly values are always compared with the same calendar month in 2015. Missing values remain visible as genuine gaps in the lines. The current comparison can be shared through a direct link or exported locally as CSV, SVG, and PNG.
 
-[![Zeitreihenvergleich mit Länderlinien, Atlas-Durchschnitt und Live-Ranking](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)
+[![Time-series comparison with country lines, Atlas average, and live ranking](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)
 
-## Was der Atlas bietet
+## What the Atlas offers
 
-- 31 europäische Länder mit Monats- und Jahreswerten ab 2015
-- Stromerzeugung, Nachfrage, Energiemix, Nettoimporte und CO₂-Intensität
-- nationale monatliche und jährliche Großhandelspreise
-- jährliche Bevölkerungs- und BIP-Kennzahlen sowie Pro-Kopf-Auswertungen
-- Batterie- und Pumpspeicherleistung, -energie und äquivalente Entladedauer als getrennte Bestandswerte
-- vollständig lokale Europakarte ohne Kartenkacheln, CDN oder Tracking
-- kompakter und maximierbarer Zeitreihenvergleich für ein bis zehn Länder mit Atlas-Durchschnitt, 2015-Basis, Direktlink und lokalen Exporten
-- sichtbare Coverage-Lücken, vorläufige Zeiträume und YTD-Werte statt erfundener Nullwerte
+- 31 European countries with monthly and annual values from 2015 onwards
+- electricity generation, demand, generation mix, net imports, and CO₂ intensity
+- national monthly and annual wholesale electricity prices
+- annual population and GDP metrics, including per-capita evaluations
+- separate battery and pumped-storage power, energy capacity, and equivalent discharge duration snapshots
+- a fully local map of Europe without map tiles, CDNs, or tracking
+- a compact, fullscreen-capable time-series comparison for one to ten countries with an Atlas average, 2015 baseline, shareable links, and local exports
+- visible coverage gaps, provisional periods, and YTD values instead of fabricated zeroes
 
-## Schnellstart mit fertigem Datenstand
+## Quick start with a ready-made data snapshot
 
-### Voraussetzungen
+### Prerequisites
 
-- Windows mit PowerShell
+- Windows with PowerShell
 - Git
-- Python 3.11 oder neuer
-- Zugriff auf dieses private GitHub-Repository
+- Python 3.11 or newer
+- access to this private GitHub repository
 
-Repository klonen und eine lokale Python-Umgebung einrichten:
+Clone the repository and create a local Python environment:
 
 ```powershell
 git clone https://github.com/Captain-Boba/EEA.git
@@ -52,44 +52,44 @@ py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
 ```
 
-Im [aktuellen Release](https://github.com/Captain-Boba/EEA/releases/latest) unter **Assets** die Datei `atlas.sqlite3` herunterladen und im geklonten Projekt unter `data\atlas.sqlite3` ablegen. Der Release-Datenstand benötigt weder einen Ember-API-Key noch einen erneuten Import.
+Download `atlas.sqlite3` from the **Assets** section of the [latest release](https://github.com/Captain-Boba/EEA/releases/latest) and place it at `data\atlas.sqlite3` inside the cloned repository. The release snapshot requires neither an Ember API key nor a fresh import.
 
-Server starten:
+Start the server:
 
 ```powershell
 .\.venv\Scripts\eea.exe serve --port 8765
 ```
 
-Danach [http://127.0.0.1:8765](http://127.0.0.1:8765) öffnen. `Strg+C` beendet den Server; sobald wieder der PowerShell-Prompt erscheint, ist er gestoppt.
+Open [http://127.0.0.1:8765](http://127.0.0.1:8765). Press `Ctrl+C` to stop the server; it is stopped once the PowerShell prompt returns.
 
-## Datenquellen
+## Data sources
 
-| Quelle | Verwendung | Zeitbezug |
+| Source | Use | Time basis |
 | --- | --- | --- |
-| [Ember](https://ember-energy.org/) | Erzeugung, Nachfrage, Energiemix, Nettoimporte und CO₂-Intensität | Monat und Jahr |
-| [Ember Wholesale Electricity Price Data](https://ember-energy.org/data/european-wholesale-electricity-price-data/) | nationale Großhandelspreise | Monat und daraus gewichtetes Jahr |
-| [Eurostat](https://ec.europa.eu/eurostat/) | Bevölkerung, BIP und BIP pro Kopf | Jahr |
-| [Battery-Charts](https://battery-charts.de/) | vollständiger deutscher stationärer Batteriebestand aus dem bereinigten MaStR | monatlicher Bestandswert |
-| [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory) | operative Batterieprojekte außerhalb Deutschlands und Pumpspeicher aller Länder | API-Snapshot |
-| [Natural Earth](https://www.naturalearthdata.com/) | lokale Ländergeometrien der Europakarte | Version 5.1.1 |
-| [flag-icons](https://github.com/lipis/flag-icons) | lokale SVG-Länderflaggen im Zeitreihenvergleich | Version 7.4.0, MIT |
+| [Ember](https://ember-energy.org/) | generation, demand, generation mix, net imports, and CO₂ intensity | month and year |
+| [Ember Wholesale Electricity Price Data](https://ember-energy.org/data/european-wholesale-electricity-price-data/) | national wholesale electricity prices | month and weighted annual value |
+| [Eurostat](https://ec.europa.eu/eurostat/) | population, GDP, and GDP per capita | year |
+| [Battery-Charts](https://battery-charts.de/) | complete German stationary battery fleet from the cleaned MaStR | monthly inventory value |
+| [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory) | operational battery projects outside Germany and pumped storage in all countries | API snapshot |
+| [Natural Earth](https://www.naturalearthdata.com/) | local country geometries for the map of Europe | version 5.1.1 |
+| [flag-icons](https://github.com/lipis/flag-icons) | local SVG country flags in the time-series comparison | version 7.4.0, MIT |
 
-Ember- und Battery-Charts-Daten werden als `CC BY 4.0` gekennzeichnet. Natural-Earth-Geometrien sind gemeinfrei. Für Eurostat gelten dessen Wiederverwendungsbedingungen und Ausnahmen. Die JRC-Bestandsdaten können Schätzungen sowie Daten externer Anbieter enthalten; ihre Weitergabe muss vor einer öffentlichen oder kommerziellen Veröffentlichung gesondert geprüft werden.
+Ember and Battery-Charts data are identified as `CC BY 4.0`. Natural Earth geometries are in the public domain. Eurostat data are subject to Eurostat's reuse policy and exceptions. JRC inventory data may include estimates and third-party data; redistribution must be reviewed separately before any public or commercial data release.
 
-## Daten selbst aktualisieren
+## Updating the data yourself
 
-Dieser Abschnitt ist nur erforderlich, wenn nicht der fertige Release-Snapshot verwendet wird oder ein neuerer Datenstand aufgebaut werden soll.
+This section is only required when the ready-made release snapshot is not used or a newer data snapshot needs to be built.
 
-### Ember-Stromdaten
+### Ember electricity data
 
-Der Key wird zuerst aus `EMBER_API_KEY` und andernfalls aus der lokalen, von Git ignorierten Datei `EMBER_API_KEY.txt` gelesen. Er wird weder ausgegeben noch in SQLite gespeichert; gecachte Request-URLs enthalten ausschließlich `api_key=REDACTED`.
+The key is read first from `EMBER_API_KEY` and otherwise from the local, Git-ignored `EMBER_API_KEY.txt` file. It is neither printed nor stored in SQLite; cached request URLs contain only `api_key=REDACTED`.
 
 ```powershell
 $env:EMBER_API_KEY = "<API-Key>"
 .\.venv\Scripts\eea.exe import --from-year 2015
 ```
 
-Der historische Cache wird wiederverwendet. `--refresh` erzwingt den erneuten Abruf und atomaren Ersatz des ausdrücklich angeforderten Zeitraums. Alternativ lassen sich einzelne Jahre, Monate oder Länder importieren:
+The historical cache is reused. `--refresh` forces a new request and atomically replaces only the explicitly requested period. Individual years, months, or countries can also be imported:
 
 ```powershell
 .\.venv\Scripts\eea.exe import --year 2025
@@ -97,18 +97,18 @@ Der historische Cache wird wiederverwendet. `--refresh` erzwingt den erneuten Ab
 .\.venv\Scripts\eea.exe import --year 2025 --months 1 7
 ```
 
-### Großhandelspreise und Eurostat
+### Wholesale electricity prices and Eurostat
 
 ```powershell
 .\.venv\Scripts\eea.exe import-prices
 .\.venv\Scripts\eea.exe import-eurostat --from-year 2015
 ```
 
-Beide Befehle benötigen Internetzugang, aber keinen API-Key. Antworten werden vollständig validiert, bevor vorhandene Daten atomar ersetzt werden. Eurostat-Anfragen laufen bewusst sequenziell und beachten begrenztes Backoff sowie `Retry-After`.
+Both commands require internet access but no API key. Responses are fully validated before existing data are replaced atomically. Eurostat requests run sequentially by design and respect limited backoff and `Retry-After`.
 
-### Batterie- und Pumpspeicherbestand
+### Battery and pumped-storage inventories
 
-Battery-Charts wird derzeit ausschließlich aus zwei manuell gespeicherten JSON-Antworten importiert. Der Atlas verwendet keinen Battery-Charts-Key und führt keinen Request an deren JSON-Endpunkt aus:
+Battery-Charts is currently imported exclusively from two manually saved JSON responses. The Atlas does not use a Battery-Charts key and never requests its JSON endpoint:
 
 ```powershell
 .\.venv\Scripts\eea.exe import-battery-storage `
@@ -116,33 +116,33 @@ Battery-Charts wird derzeit ausschließlich aus zwei manuell gespeicherten JSON-
   --power-file .\battery-power.json
 ```
 
-Beide Dateien werden gemeinsam vollständig validiert und erst danach atomar importiert. Rohantworten und SHA-256 bleiben im lokalen Quellcache erhalten. Bei einem Fehler bleibt der bisherige deutsche Batteriebestand unverändert.
+Both files are validated together and imported atomically only after validation succeeds. Raw responses and their SHA-256 hashes remain in the local source cache. If validation fails, the existing German battery inventory remains unchanged.
 
-JRC besitzt davon getrennt einen bewussten Online-Aktualisierungsbefehl:
+JRC has a separate, explicitly triggered online update command:
 
 ```powershell
 .\.venv\Scripts\eea.exe update-storage
 ```
 
-Ein frischer Monatscache verhindert den JRC-Netzwerkaufruf. `--refresh` umgeht diese Monatsprüfung bewusst, bleibt aber auf einen JRC-Request begrenzt. Bei 403 oder 429 erfolgt kein Retry; bei Timeout oder 5xx höchstens einer nach mindestens zehn Sekunden. Der Befehl kann Battery-Charts technisch nicht abrufen.
+A fresh monthly cache prevents a JRC network request. `--refresh` deliberately bypasses the monthly cache check but remains limited to one JRC request. HTTP 403 and 429 responses are never retried; timeouts and 5xx responses receive at most one retry after at least ten seconds. The command cannot access Battery-Charts.
 
-Deutschland verwendet für Batterien ausschließlich den nationalen Battery-Charts-Gesamtbestand. Andere Länder verwenden den bei JRC erfassten Projektbestand; Pumpspeicher stammen für alle Länder aus JRC. Werte unterschiedlicher Quellen werden niemals addiert. Der bisherige Befehl `import-storage` bleibt als veralteter Offline-Fallback für geprüfte JRC-CSV/XLSX-Dateien verfügbar. Details stehen in [JRC_STORAGE_IMPORT.md](docs/JRC_STORAGE_IMPORT.md).
+Germany uses only the national Battery-Charts total for batteries. Other countries use the project inventory recorded by JRC, while pumped storage comes from JRC for every country. Values from different sources are never added together. The existing `import-storage` command remains available as a deprecated offline fallback for reviewed JRC CSV/XLSX files. See [JRC_STORAGE_IMPORT.md](docs/JRC_STORAGE_IMPORT.md) for details.
 
-## Datenmodell und Qualitätsregeln
+## Data model and quality rules
 
-`period_observation` ist die kanonische Faktentabelle. Der Monat ist die kleinste Einheit für Strom- und Preisdaten; geprüfte Jahreswerte sowie separat datierte Speicherbestände werden getrennt gespeichert. `api_cache` enthält redigierte Ember-JSON-Antworten, `source_cache` unveränderte Preis-, Eurostat-, JRC- und Battery-Charts-Rohantworten samt Abrufmetadaten und SHA-256.
+`period_observation` is the canonical fact table. Month is the smallest unit for electricity and price data; validated annual values and separately dated storage inventories are stored independently. `api_cache` contains redacted Ember JSON responses. `source_cache` stores unchanged price, Eurostat, JRC, and Battery-Charts source responses together with retrieval metadata and SHA-256 hashes.
 
-- fehlende Werte bleiben `null` und erscheinen in der Oberfläche als `—`
-- aktuelle Monate und Jahre werden als vorläufig beziehungsweise YTD gekennzeichnet
-- Jahresnachfrage wird nur aus genau zwölf vorhandenen Monatswerten abgeleitet
-- Jahrespreise werden nach tatsächlicher Monatsdauer gewichtet
-- positive Nettoimporte bedeuten Importüberschuss, negative Werte Exportüberschuss
-- Eurostat-Denominatoren werden nur mit Stromwerten desselben Kalenderjahres kombiniert
-- fehlerhafte Aktualisierungen dürfen vorhandene Daten nicht verändern
+- missing values remain `null` and appear as `—` in the interface
+- current months and years are marked as provisional or YTD
+- annual demand is derived only when exactly twelve monthly values are available
+- annual prices are weighted by the actual duration of each month
+- positive net imports indicate an import surplus; negative values indicate an export surplus
+- Eurostat denominators are combined only with electricity values from the same calendar year
+- failed updates must not modify existing data
 
-Eine frische, noch nicht vorhandene SQLite-Datei wird beim Serverstart initialisiert. Die API arbeitet anschließend read-only.
+A new SQLite file is initialized automatically when the server starts. The API operates read-only afterwards.
 
-## Lokale API
+## Local API
 
 - `/api/countries`
 - `/api/metrics`
@@ -153,11 +153,11 @@ Eine frische, noch nicht vorhandene SQLite-Datei wird beim Serverstart initialis
 - `/api/coverage?year=2025`
 - `/api/storage`
 
-Die Weboberfläche führt selbst keine Importe aus und lädt zur Laufzeit keine externen Kartenressourcen.
+The web interface never performs imports and loads no external map resources at runtime.
 
-## Entwicklung und Tests
+## Development and tests
 
-Es gibt keine Laufzeitabhängigkeiten außerhalb der Python-Standardbibliothek.
+There are no runtime dependencies outside the Python standard library.
 
 ```powershell
 $env:PYTHONPATH = "$PWD\src"
@@ -165,20 +165,20 @@ $env:PYTHONPATH = "$PWD\src"
 git diff --check
 ```
 
-Die Tests verwenden ausschließlich lokale Fixtures und führen keine Live-Importe aus.
+Tests use local fixtures exclusively and never perform live imports.
 
-## Weiterführende Dokumentation
+## Further documentation
 
-- [Projekt-Roadmap](ROADMAP.md)
-- [Ember-Coverage](docs/EMBER_COVERAGE.md)
-- [JRC-Speicherimport](docs/JRC_STORAGE_IMPORT.md)
-- [Lokale Europakarte und Natural-Earth-Provenienz](docs/MAP_ASSET.md)
+- [Project roadmap](ROADMAP.md)
+- [Ember coverage](docs/EMBER_COVERAGE.md)
+- [JRC storage import](docs/JRC_STORAGE_IMPORT.md)
+- [Local map of Europe and Natural Earth provenance](docs/MAP_ASSET.md)
 
-## Bekannte Einschränkungen
+## Known limitations
 
-- Einzelne historische Land-Monat-Kombinationen können reguläre Coverage-Lücken besitzen.
-- Bruttoimport, Bruttoexport, negative Preisstunden und operative Intervallstatistiken sind nicht Teil des Monatsatlas.
-- JRC-Speicherwerte bilden den erfassten operativen Projektbestand ab, nicht zwingend einen vollständigen nationalen Gesamtbestand und nicht die Wasserkraft-Magazinkapazität.
-- Zeitreihenplots interpolieren keine Lücken. Der Atlas-Durchschnitt ist je Zeitpunkt das arithmetische Mittel aller vorhandenen Werte des vollständigen Länderkatalogs.
-- Außerhalb Deutschlands werden fehlende Heim- oder Gewerbebatterien nicht geschätzt. Fehlende JRC-Energie bleibt leer und wird nicht aus Leistung oder Projektdaten erfunden.
-- Die öffentliche JRC-Projekt-API ist nicht formal versioniert; Strukturänderungen führen deshalb bewusst zu einem abgebrochenen, bestandserhaltenden Import.
+- Individual historical country-month combinations may contain legitimate coverage gaps.
+- Gross imports, gross exports, negative-price hours, and operational interval statistics are outside the scope of the monthly Atlas.
+- JRC storage values represent its recorded operational project inventory, not necessarily a complete national inventory and not the energy capacity of conventional hydropower reservoirs.
+- Time-series plots do not interpolate gaps. At each point, the Atlas average is the arithmetic mean of all available values across the complete country catalog.
+- Missing residential or commercial batteries outside Germany are not estimated. Missing JRC energy values remain empty and are not inferred from power or project metadata.
+- The public JRC project API is not formally versioned. Structural changes therefore cause a deliberate, state-preserving import failure.
