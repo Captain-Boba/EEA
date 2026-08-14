@@ -101,11 +101,34 @@ EUROSTAT_SOURCE_LABEL = "Eurostat"
 EUROSTAT_GEO = {code: ("EL" if code == "GR" else code) for code in ATLAS_COUNTRIES}
 EUROSTAT_GEO_TO_ATLAS = {geo: code for code, geo in EUROSTAT_GEO.items()}
 
+EUROSTAT_CAPACITY_SOURCE_LABEL = "Eurostat – installierte Nettoleistung"
+EUROSTAT_RETAIL_PRICE_SOURCE_LABEL = "Eurostat – Strompreise und Preisbestandteile"
+EUROSTAT_BALANCE_SOURCE_LABEL = "Eurostat – Strombilanz"
+EUROSTAT_ROAD_SOURCE_LABEL = "Eurostat – Straßenverkehrsbestand und Neuzulassungen"
+
 JRC_SOURCE_NAME = "jrc"
 JRC_STORAGE_ENDPOINT = "european-energy-storage-inventory/manual-export"
 JRC_STORAGE_API_ENDPOINT = "european-energy-storage-inventory/api/projects"
 JRC_STORAGE_API_URL = "https://ses.jrc.ec.europa.eu/storage-inventory-tool/api/projects"
 JRC_STORAGE_SOURCE_LABEL = "European Commission JRC – European Energy Storage Inventory"
+
+JRC_HYDRO_ENDPOINT = "jrc-hydro-power-database/release-01"
+JRC_HYDRO_URL = (
+    "https://raw.githubusercontent.com/energy-modelling-toolkit/"
+    "hydro-power-database/master/data/jrc-hydro-power-plant-database.csv"
+)
+JRC_HYDRO_RELEASE_DATE = "2023-10-25"
+JRC_HYDRO_SOURCE_LABEL = "European Commission JRC – Hydro-power database, CC BY 4.0"
+
+EEA_SOURCE_NAME = "eea"
+EEA_GHG_ENDPOINT = "national-emissions-reported/2026-v1"
+EEA_GHG_URL = "https://sdi.eea.europa.eu/data/83ee8f8c-1422-4e3f-af63-ba88146811e5"
+EEA_GHG_SOURCE_LABEL = "European Environment Agency – GHG inventory, CC BY 4.0"
+
+# This is deliberately a transparent scenario rather than an asserted fleet fact.
+# It estimates nominal traction-battery energy and must never be described as
+# grid-available or bidirectionally accessible V2G storage.
+EV_NOMINAL_BATTERY_KWH_PER_BEV = 60.0
 
 BATTERY_CHARTS_SOURCE_NAME = "battery_charts"
 BATTERY_CHARTS_API_URL = "https://battery-charts.de/wp-json/isea/v1/data"

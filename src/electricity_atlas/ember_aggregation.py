@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import calendar
 import sqlite3
 from datetime import date
 from typing import Any, Iterable
@@ -12,6 +13,8 @@ from .config import (
     EMBER_SOURCE_LABEL,
     EMBER_SOURCE_NAME,
     EUROSTAT_SOURCE_NAME,
+    EEA_SOURCE_NAME,
+    EV_NOMINAL_BATTERY_KWH_PER_BEV,
 )
 
 
@@ -27,6 +30,43 @@ EMBER_FOSSIL_METRICS = (
     "generation_gas",
     "generation_other_fossil",
 )
+
+EUROSTAT_DIRECT_METRICS = (
+    "capacity_total_gw",
+    "capacity_wind_gw",
+    "capacity_solar_gw",
+    "capacity_hydro_gw",
+    "capacity_fossil_gw",
+    "capacity_nuclear_gw",
+    "household_price_energy_eur_mwh",
+    "household_price_network_eur_mwh",
+    "household_price_taxes_eur_mwh",
+    "nonhousehold_price_energy_eur_mwh",
+    "nonhousehold_price_network_eur_mwh",
+    "nonhousehold_price_taxes_eur_mwh",
+    "gross_imports_twh",
+    "gross_exports_twh",
+    "bev_stock",
+    "bev_new_registrations",
+)
+
+
+def _capacity_factor(generation_twh: float | None, capacity_gw: float | None, year: int) -> float | None:
+    if generation_twh is None or capacity_gw is None or capacity_gw <= 0:
+        return None
+    hours = (366 if calendar.isleap(year) else 365) * 24
+    return generation_twh * 1000.0 / (capacity_gw * hours) * 100.0
+
+
+def _yearly_carbon_intensity(connection: sqlite3.Connection, code: str, year: int) -> float | None:
+    row = connection.execute(
+        """SELECT value FROM period_observation
+           WHERE source=? AND country_code=? AND granularity='yearly'
+             AND metric='carbon_intensity' AND unit='gCO2/kWh' AND period_start=?
+           ORDER BY source_endpoint LIMIT 1""",
+        (EMBER_SOURCE_NAME, code, f"{year:04d}-01-01"),
+    ).fetchone()
+    return float(row["value"]) if row else None
 
 
 def _sum_present(values: dict[str, float], metrics: Iterable[str]) -> float | None:
@@ -141,6 +181,14 @@ def aggregate_ember_country(
     for period_start, value in monthly_component_generation.items():
         monthly_generation.setdefault(period_start, value)
 
+    negative_residual_metrics = [
+        metric
+        for metric in ("generation_other_renewables", "generation_other_fossil")
+        if values.get(metric) is not None and values[metric] < 0
+    ]
+    for metric in negative_residual_metrics:
+        values.pop(metric)
+
     component_values = {
         metric: value
         for metric, value in values.items()
@@ -155,6 +203,12 @@ def aggregate_ember_country(
     fossil_twh = values.get("generation_fossil")
     if fossil_twh is None:
         fossil_twh = _sum_present(component_values, EMBER_FOSSIL_METRICS)
+    nuclear_twh = values.get("generation_nuclear")
+    if month is not None and generation_twh is not None and nuclear_twh is None:
+        # Product decision: absent monthly nuclear series are interpreted as
+        # zero for the low-carbon calculation. Other absent technologies stay null.
+        nuclear_twh = 0.0
+        component_values["generation_nuclear"] = 0.0
     consumption_rows = [
         row for row in rows if row["metric"] == "consumption" and row["unit"] == "TWh"
     ]
@@ -172,6 +226,14 @@ def aggregate_ember_country(
     if consumption_twh is None:
         consumption_twh = fallback_consumption
     quality_issues: list[dict[str, str]] = []
+    if negative_residual_metrics:
+        quality_issues.append(
+            {
+                "issue_type": "negative_source_residual_treated_as_missing",
+                "severity": "warning",
+                "details": "Negative Ember residual categories are exposed as missing by product decision.",
+            }
+        )
     if month is None and consumption_twh is None:
         monthly_demand = list(
             connection.execute(
@@ -230,6 +292,26 @@ def aggregate_ember_country(
         population = socioeconomic.get("population")
         gdp_current_billion_eur = socioeconomic.get("gdp_current_billion_eur")
         gdp_per_capita_pps = socioeconomic.get("gdp_per_capita_pps")
+        supplemental = {
+            row["metric"]: row["value"]
+            for row in connection.execute(
+                f"""SELECT metric,value FROM period_observation
+                    WHERE source=? AND country_code=? AND granularity='yearly'
+                      AND period_start=? AND metric IN ({','.join('?' for _ in EUROSTAT_DIRECT_METRICS)})""",
+                (EUROSTAT_SOURCE_NAME, code, f"{year:04d}-01-01", *EUROSTAT_DIRECT_METRICS),
+            )
+        }
+        eea_row = connection.execute(
+            """SELECT value FROM period_observation
+               WHERE source=? AND country_code=? AND granularity='yearly'
+                 AND period_start=? AND metric='eea_public_electricity_heat_emissions_mtco2eq'
+               ORDER BY source_endpoint LIMIT 1""",
+            (EEA_SOURCE_NAME, code, f"{year:04d}-01-01"),
+        ).fetchone()
+        eea_emissions = eea_row["value"] if eea_row else None
+    else:
+        supplemental = {}
+        eea_emissions = None
     generation_per_capita = (
         generation_twh * 1_000_000 / population
         if generation_twh is not None and population and population > 0
@@ -240,10 +322,63 @@ def aggregate_ember_country(
         if consumption_twh is not None and population and population > 0
         else None
     )
+    renewable_per_capita = (
+        renewable_twh * 1_000_000 / population
+        if renewable_twh is not None and population and population > 0
+        else None
+    )
     net_imports_twh = values.get("net_imports")
     net_import_share = (
         net_imports_twh / consumption_twh * 100.0
         if net_imports_twh is not None and consumption_twh not in (None, 0)
+        else None
+    )
+    low_carbon_share = (
+        (renewable_twh + nuclear_twh) / generation_twh * 100.0
+        if renewable_twh is not None and nuclear_twh is not None and generation_twh not in (None, 0)
+        else None
+    )
+    self_sufficiency = (
+        generation_twh / consumption_twh * 100.0
+        if generation_twh is not None and consumption_twh not in (None, 0)
+        else None
+    )
+    estimated_emissions = (
+        carbon_intensity * generation_twh / 1000.0
+        if carbon_intensity is not None and generation_twh is not None
+        else None
+    )
+    previous_carbon = (
+        _yearly_carbon_intensity(connection, code, year - 1)
+        if month is None and year < date.today().year
+        else None
+    )
+    decarbonization_rate = (
+        (previous_carbon - carbon_intensity) / previous_carbon * 100.0
+        if carbon_intensity is not None and previous_carbon not in (None, 0)
+        else None
+    )
+    household_components = [
+        supplemental.get(metric)
+        for metric in (
+            "household_price_energy_eur_mwh",
+            "household_price_network_eur_mwh",
+            "household_price_taxes_eur_mwh",
+        )
+    ]
+    nonhousehold_components = [
+        supplemental.get(metric)
+        for metric in (
+            "nonhousehold_price_energy_eur_mwh",
+            "nonhousehold_price_network_eur_mwh",
+            "nonhousehold_price_taxes_eur_mwh",
+        )
+    ]
+    household_price = sum(household_components) if all(value is not None for value in household_components) else None
+    nonhousehold_price = sum(nonhousehold_components) if all(value is not None for value in nonhousehold_components) else None
+    ev_battery_capacity = (
+        supplemental["bev_stock"] * EV_NOMINAL_BATTERY_KWH_PER_BEV / 1_000_000.0
+        if supplemental.get("bev_stock") is not None
         else None
     )
     available_groups = sum(value is not None for value in (generation_twh, consumption_twh, carbon_intensity))
@@ -278,6 +413,9 @@ def aggregate_ember_country(
         "consumption_twh": consumption_twh,
         "generation_per_capita_mwh": generation_per_capita,
         "consumption_per_capita_mwh": consumption_per_capita,
+        "renewable_per_capita_mwh": renewable_per_capita,
+        "low_carbon_share_pct": low_carbon_share,
+        "self_sufficiency_pct": self_sufficiency,
         "renewable_twh": renewable_twh,
         "renewable_share_pct": renewable_share(renewable_twh, generation_twh)
         if renewable_twh is not None and generation_twh is not None
@@ -292,7 +430,7 @@ def aggregate_ember_country(
         "bioenergy_share_pct": mix_value("generation_biomass", "pct"),
         "other_renewables_twh": values.get("generation_other_renewables"),
         "other_renewables_share_pct": mix_value("generation_other_renewables", "pct"),
-        "nuclear_twh": values.get("generation_nuclear"),
+        "nuclear_twh": nuclear_twh,
         "nuclear_share_pct": mix_value("generation_nuclear", "pct"),
         "fossil_twh": fossil_twh,
         "fossil_share_pct": renewable_share(fossil_twh, generation_twh)
@@ -312,9 +450,21 @@ def aggregate_ember_country(
         "price_months_complete": price["price_months_complete"],
         "price_source_label": price["price_source_label"],
         "carbon_intensity_gco2eq_kwh": carbon_intensity,
+        "estimated_generation_emissions_mtco2eq": estimated_emissions,
+        "decarbonization_rate_pct": decarbonization_rate,
+        "eea_public_electricity_heat_emissions_mtco2eq": eea_emissions,
         "population": population,
         "gdp_current_billion_eur": gdp_current_billion_eur,
         "gdp_per_capita_pps": gdp_per_capita_pps,
+        **supplemental,
+        "household_electricity_price_eur_mwh": household_price,
+        "nonhousehold_electricity_price_eur_mwh": nonhousehold_price,
+        "capacity_factor_wind_pct": _capacity_factor(values.get("generation_wind"), supplemental.get("capacity_wind_gw"), year),
+        "capacity_factor_solar_pct": _capacity_factor(values.get("generation_solar"), supplemental.get("capacity_solar_gw"), year),
+        "capacity_factor_hydro_pct": _capacity_factor(values.get("generation_hydro"), supplemental.get("capacity_hydro_gw"), year),
+        "capacity_factor_fossil_pct": _capacity_factor(fossil_twh, supplemental.get("capacity_fossil_gw"), year),
+        "capacity_factor_nuclear_pct": _capacity_factor(nuclear_twh, supplemental.get("capacity_nuclear_gw"), year),
+        "ev_battery_nominal_capacity_est_gwh": ev_battery_capacity,
         "mix": mix,
         "quality_issues": quality_issues,
         "data_status": (

@@ -12,6 +12,9 @@ from .db import database, migrate_atlas_catalog, read_database, reset
 from .ember_client import EmberKeyError, load_ember_api_key
 from .ember_importer import EmberImporter
 from .eurostat_importer import EurostatImporter
+from .eurostat_supplement import EurostatSupplementImporter
+from .eea_ghg_importer import EeaGhgImporter
+from .hydro_importer import JrcHydroImporter
 from .price_importer import WholesalePriceImporter
 from .server import serve
 from .storage_importer import JrcStorageImporter
@@ -39,6 +42,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     eurostat_parser.add_argument("--from-year", type=int, default=2015)
     eurostat_parser.add_argument("--to-year", type=int)
+    supplement_parser = subparsers.add_parser(
+        "import-eurostat-supplement",
+        help="Import selected capacity, retail-price, trade and battery-electric car data",
+    )
+    supplement_parser.add_argument("--from-year", type=int, default=2015)
+    supplement_parser.add_argument("--to-year", type=int)
+    subparsers.add_parser(
+        "import-hydro-inventory",
+        help="Import the CC BY 4.0 JRC hydro-power plant inventory",
+    )
+    eea_parser = subparsers.add_parser(
+        "import-eea-ghg",
+        help="Import EEA CRT 1.A.1.a public electricity and heat GHG emissions",
+    )
+    eea_parser.add_argument("--file", type=Path, help="Optional reviewed EEA CSV or ZIP; default official URL")
     storage_parser = subparsers.add_parser(
         "import-storage",
         help="Deprecated offline fallback: import reviewed JRC CSV or paired XLSX exports",
@@ -106,6 +124,34 @@ def main(argv: list[str] | None = None) -> int:
                 result = EurostatImporter(connection).import_years(args.from_year, args.to_year)
         except Exception as exc:
             print(f"Eurostat import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command == "import-eurostat-supplement":
+        try:
+            with database(args.db) as connection:
+                result = EurostatSupplementImporter(connection).import_years(args.from_year, args.to_year)
+        except Exception as exc:
+            print(f"Eurostat supplement import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command == "import-hydro-inventory":
+        try:
+            with database(args.db) as connection:
+                result = JrcHydroImporter(connection).import_release()
+        except Exception as exc:
+            print(f"JRC hydro import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command == "import-eea-ghg":
+        try:
+            with database(args.db) as connection:
+                importer = EeaGhgImporter(connection)
+                result = importer.import_file(args.file) if args.file else importer.import_url()
+        except Exception as exc:
+            print(f"EEA GHG import aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
             return 1
         print(json.dumps(result, ensure_ascii=False))
         return 0

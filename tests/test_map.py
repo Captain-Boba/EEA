@@ -172,7 +172,13 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         for metric in mapped:
             family_palettes.setdefault(metric["family"], set()).add(metric["map_config"]["palette"])
         self.assertTrue(all(len(value) == 1 for value in family_palettes.values()))
-        self.assertEqual(len(family_palettes), 21)
+        self.assertEqual(len(family_palettes), 31)
+        self.assertTrue({
+            "CO₂-arme Erzeugung", "Eigenversorgung", "Erzeugungsemissionen",
+            "Inventaremissionen", "Installierte Leistung", "Haushaltsstrompreis",
+            "Nicht-Haushaltsstrompreis", "Stromhandel", "Batterieelektrische Pkw",
+            "Wasserkraftinventar",
+        }.issubset(family_palettes))
         self.assertEqual({metric["map_config"]["palette"] for metric in mapped}, palettes)
         app = APP_PATH.read_text(encoding="utf-8")
         palette_block = re.search(r"const MAP_PALETTES = \{(.*?)\n\};", app, re.DOTALL)

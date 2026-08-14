@@ -28,6 +28,8 @@ from .config import (
     JRC_STORAGE_API_ENDPOINT,
     JRC_STORAGE_API_URL,
     JRC_STORAGE_SOURCE_LABEL,
+    JRC_HYDRO_ENDPOINT,
+    JRC_HYDRO_SOURCE_LABEL,
     JRC_SOURCE_NAME,
 )
 from .storage_importer import JRC_EXPORT_COUNTRIES, KNOWN_NON_ATLAS_EXPORT_COUNTRIES
@@ -41,6 +43,12 @@ STORAGE_METRICS = (
     "pumped_storage_energy_gwh",
     "pumped_storage_duration_hours",
 )
+HYDRO_INVENTORY_METRICS = (
+    "hydro_plant_capacity_gw",
+    "hydro_pumping_power_gw",
+    "hydro_reservoir_energy_gwh",
+)
+SNAPSHOT_METRICS = STORAGE_METRICS + HYDRO_INVENTORY_METRICS
 BATTERY_SEGMENTS = ("home", "industrial", "grossspeicher")
 BATTERY_TOTAL_SERIES = "national_registry_total"
 JRC_INVENTORY_SERIES = "tracked_project_inventory"
@@ -670,20 +678,20 @@ def latest_storage(connection: sqlite3.Connection) -> dict[str, Any]:
         code: {
             "country_code": code,
             "country_name": country.name,
-            **{metric: None for metric in STORAGE_METRICS},
+            **{metric: None for metric in SNAPSHOT_METRICS},
             "metric_provenance": {},
             "quality_status": "missing",
         }
         for code, country in ATLAS_COUNTRIES.items()
     }
-    rows = connection.execute(
-        """SELECT country_code,period_start,period_end,source,source_endpoint,source_series,
-                  metric,value,unit,quality_status
-           FROM period_observation
-           WHERE metric IN (?,?,?,?,?,?)
-           ORDER BY period_end,period_start""",
-        STORAGE_METRICS,
+    snapshot_query = """SELECT country_code,period_start,period_end,source,source_endpoint,source_series,
+                               metric,value,unit,quality_status
+                        FROM period_observation
+                        WHERE metric IN ({})
+                        ORDER BY period_end,period_start""".format(
+        ",".join("?" for _ in SNAPSHOT_METRICS)
     )
+    rows = connection.execute(snapshot_query, SNAPSHOT_METRICS)
     for row in rows:
         code = row["country_code"]
         if code not in countries:
@@ -699,6 +707,11 @@ def latest_storage(connection: sqlite3.Connection) -> dict[str, Any]:
                     continue
                 coverage_type = "tracked_project_inventory"
                 source_label = JRC_STORAGE_SOURCE_LABEL
+        elif row["metric"] in HYDRO_INVENTORY_METRICS:
+            if row["source"] != JRC_SOURCE_NAME or row["source_endpoint"] != JRC_HYDRO_ENDPOINT:
+                continue
+            coverage_type = "reported_plant_inventory"
+            source_label = JRC_HYDRO_SOURCE_LABEL
         else:
             if row["source"] != JRC_SOURCE_NAME or not row["source_series"].endswith(":pumped_storage"):
                 continue
@@ -723,14 +736,30 @@ def latest_storage(connection: sqlite3.Connection) -> dict[str, Any]:
         if qualities:
             country["quality_status"] = "observed_with_estimates" if any("estimate" in value for value in qualities) else "observed"
     country_rows = list(countries.values())
-    dates = sorted({item["date"] for country in country_rows for item in country["metric_provenance"].values()})
+    dates = sorted({
+        country["metric_provenance"][metric]["date"]
+        for country in country_rows
+        for metric in STORAGE_METRICS
+        if metric in country["metric_provenance"]
+    })
+    inventory_dates = sorted({
+        country["metric_provenance"][metric]["date"]
+        for country in country_rows
+        for metric in HYDRO_INVENTORY_METRICS
+        if metric in country["metric_provenance"]
+    })
     with_values = sum(any(country[metric] is not None for metric in STORAGE_METRICS) for country in country_rows)
     return {
         "snapshot_date": dates[-1] if dates else None,
         "snapshot_dates": dates,
+        "hydro_inventory_snapshot_dates": inventory_dates,
         "source": "resolved_storage_sources",
         "source_label": f"{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}",
         "countries_with_values": with_values,
-        "countries_missing": [country["country_code"] for country in country_rows if not country["metric_provenance"]],
+        "countries_missing": [
+            country["country_code"]
+            for country in country_rows
+            if not any(country[metric] is not None for metric in STORAGE_METRICS)
+        ],
         "countries": country_rows if dates else [],
     }

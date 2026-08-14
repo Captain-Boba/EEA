@@ -122,6 +122,35 @@
       </article>
     </section>
 
+    <section id="electromobility" class="data-table-section" aria-labelledby="ev-title">
+      <article class="table-card ev-card">
+        <header class="table-card-header">
+          <div class="table-card-title">
+            <span class="table-kicker">Straßenverkehr</span>
+            <h2 id="ev-title">Elektromobilität</h2>
+            <p id="ev-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
+          </div>
+          <div class="table-card-tools">
+            <span id="ev-count" class="table-count" aria-live="polite"></span>
+          </div>
+        </header>
+        <div class="table-card-context">
+          <p id="ev-note" class="hint" role="status"></p>
+          <p class="ev-capacity-note"><strong>Schätzung:</strong> Theoretische nominale Batteriekapazität = BEV-Bestand × 60 kWh. Das ist weder nutzbare Energie noch eine V2G- oder netzverfügbare Speicherkapazität.</p>
+        </div>
+        <div id="ev-table-region" class="table-wrap">
+          <table id="ev-table">
+            <thead><tr id="ev-head"></tr></thead>
+            <tbody id="ev-body"></tbody>
+          </table>
+        </div>
+        <button id="ev-toggle" class="table-toggle table-edge-toggle" type="button" aria-expanded="false" aria-controls="ev-table-region">
+          <span class="table-toggle-label">Alle Länder anzeigen</span>
+          <span class="table-toggle-chevron" aria-hidden="true"></span>
+        </button>
+      </article>
+    </section>
+
     <section id="comparison" hidden>
       <div class="section-heading">
         <div>
@@ -238,9 +267,16 @@
         <article>
           <h3>Eurostat</h3>
           <p><strong>Anbieter:</strong> Statistisches Amt der Europäischen Union.</p>
-          <p><strong>Datensätze:</strong> Bevölkerung zum Jahresanfang (<code>demo_gind</code>), BIP zu laufenden Preisen (<code>nama_10_gdp</code>) und BIP pro Kopf in Kaufkraftstandards (<code>nama_10_pc</code>).</p>
-          <p><strong>Verarbeitung:</strong> Der Import arbeitet seriell mit höchstens einer laufenden Anfrage. Pro-Kopf-Stromwerte werden nur für Jahresansichten und nur mit Bevölkerung aus demselben Kalenderjahr berechnet.</p>
+          <p><strong>Datensätze:</strong> Bevölkerung und BIP, installierte Nettoleistung, jährliche Haushalts- und Nicht-Haushaltsstrompreise samt Komponenten, Bruttostromimporte und -exporte sowie Bestand und Neuzulassungen batterieelektrischer Pkw.</p>
+          <p><strong>Verarbeitung:</strong> Der Import arbeitet seriell mit höchstens einer laufenden Anfrage. Jahreskennzahlen und daraus berechnete Pro-Kopf-Werte werden nur mit Daten desselben Kalenderjahres gebildet; fehlende Land-Jahr-Werte bleiben leer.</p>
           <p><strong>Quelle:</strong> <a href="https://ec.europa.eu/eurostat/web/main/data/database" target="_blank" rel="noopener noreferrer">Eurostat-Datenbank</a>.</p>
+        </article>
+        <article>
+          <h3>European Environment Agency</h3>
+          <p><strong>Inhalt:</strong> Jährliches Treibhausgasinventar für CRT/IPCC-Kategorie <code>1.A.1.a</code>.</p>
+          <p><strong>Abgrenzung:</strong> Die Kategorie umfasst die öffentliche Strom- <strong>und Wärmeerzeugung</strong>. Sie ist kein reiner Stromerzeugungswert und wird nicht mit den geschätzten Erzeugungsemissionen gleichgesetzt.</p>
+          <p><strong>Quelle:</strong> <a href="https://www.eea.europa.eu/en/datahub/datahubitem-view/3b7fe76c-524a-439a-bfd2-a6e4046302a2" target="_blank" rel="noopener noreferrer">EEA GHG inventory</a>.</p>
+          <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quelle: European Environment Agency.</p>
         </article>
         <article>
           <h3>Battery-Charts Deutschland</h3>
@@ -260,6 +296,21 @@
           <p><strong>Quelle:</strong> <a href="https://ses.jrc.ec.europa.eu/storage-inventory" target="_blank" rel="noopener noreferrer">European Energy Storage Inventory</a>.</p>
         </article>
         <article>
+          <h3>JRC Hydro-power database</h3>
+          <p><strong>Inhalt:</strong> Statischer Anlagen-Snapshot zu erfasster Wasserkraftwerksleistung, Pumpleistung und direkt berichteter Speicherenergie.</p>
+          <p><strong>Abgrenzung:</strong> Dieses Anlageninventar ist vom laufend gepflegten JRC Energy Storage Inventory getrennt. Fehlende Speicherenergie wird weder aus Leistung noch aus anderen Anlagendaten geschätzt.</p>
+          <p><strong>Datenstand:</strong> Der jeweilige Snapshot wird kennzahlspezifisch in Karte und Länderdetail ausgewiesen.</p>
+          <p><strong>Quelle:</strong> <a href="https://data.jrc.ec.europa.eu/dataset/52b00441-d3e0-44e0-8281-fda86a63546d" target="_blank" rel="noopener noreferrer">JRC Hydro-power database</a>.</p>
+          <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quelle: European Commission JRC.</p>
+        </article>
+        <article>
+          <h3>Atlas-Ableitungen</h3>
+          <p><strong>Erneuerbare pro Kopf:</strong> erneuerbare Erzeugung geteilt durch die Bevölkerung desselben Jahres.</p>
+          <p><strong>CO₂-armer Anteil:</strong> erneuerbare und nukleare Erzeugung im Verhältnis zur Gesamterzeugung. <strong>Eigenversorgung:</strong> Erzeugung im Verhältnis zum Verbrauch.</p>
+          <p><strong>Geschätzte Erzeugungsemissionen:</strong> CO₂-Intensität × Erzeugung. Das Ergebnis ist eine rechnerische Schätzung und kein Treibhausgasinventar.</p>
+          <p><strong>Dekarbonisierungsrate:</strong> Veränderung der CO₂-Intensität zum abgeschlossenen Vorjahr. Positive Werte bedeuten sinkende, negative Werte steigende CO₂-Intensität.</p>
+        </article>
+        <article>
           <h3>Natural Earth</h3>
           <p><strong>Kartengrundlage:</strong> Natural Earth 1:50m Admin 0 Countries, Version 5.1.1.</p>
           <p><strong>Verarbeitung:</strong> Während der Entwicklung auf den europäischen Ausschnitt begrenzt, geometrisch vereinfacht und als lokales SVG gespeichert. Beim Öffnen der Anwendung werden keine Kartenkacheln oder externen Dienste geladen.</p>
@@ -275,16 +326,20 @@
       <ul>
         <li>Erzeugung, Energiemix, Verbrauch und CO₂-Intensität stammen aus Embers kuratierten Monats- und Jahresdaten.</li>
         <li>Preise sind nationale Monatswerte von Ember und werden bei vollständigen Jahren kalendertäglich gewichtet.</li>
-        <li>Bruttoimport, Bruttoexport, negative Preisstunden und operative Intervallwerte sind nicht Teil dieses Monatsatlas.</li>
+        <li>Bruttostromimporte und -exporte stammen als Jahreswerte aus Eurostat. Negative Preisstunden und operative Intervallwerte sind nicht Teil dieses Monatsatlas.</li>
         <li>Nettoimporte sind positiv bei Nettoimport und negativ bei Nettoexport. Die Nettoimportquote bezieht sich auf den Verbrauch desselben Zeitraums.</li>
-        <li>Eurostat-Kennzahlen und daraus berechnete Pro-Kopf-Werte sind ausschließlich in der Jahresansicht verfügbar.</li>
+        <li>Eurostat-Kennzahlen und daraus berechnete Pro-Kopf-, Kapazitätsfaktor- und EV-Werte sind ausschließlich in der Jahresansicht verfügbar.</li>
+        <li>Die theoretische nominale EV-Batteriekapazität verwendet fest 60 kWh je BEV. Sie beschreibt weder nutzbare Energie noch V2G- oder netzverfügbare Speicherkapazität.</li>
+        <li>EEA CRT 1.A.1.a umfasst öffentliche Strom- und Wärmeerzeugung und ist kein reiner Stromwert.</li>
+        <li>Geschätzte Erzeugungsemissionen sind eine rechnerische Ableitung aus CO₂-Intensität und Erzeugung. Eine positive Dekarbonisierungsrate bedeutet sinkende CO₂-Intensität gegenüber dem Vorjahr.</li>
         <li>Speicherwerte sind separat datierte Bestandswerte und werden nicht wie Monats- oder Jahresflüsse behandelt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.</li>
+        <li>Das JRC-Wasserkraftinventar ist ein separater Anlagen-Snapshot. Nur direkt berichtete Speicherenergie wird angezeigt; fehlende Energie bleibt fehlend.</li>
         <li>Der laufende Monat ist vorläufig. Das laufende Jahr wird nur aus abgeschlossenen Monaten als YTD ausgewiesen.</li>
         <li>Ein leerer Wert bedeutet, dass die angegebene Quelle für Land und Zeitraum keine Kennzahl liefert.</li>
       </ul>
       <div id="coverage"></div>
     </details>
   </main>
-  <script src="/app.js?v=timeseries-v2.1.0"></script>
+  <script src="/app.js?v=data-expansion-ui-v1"></script>
 </body>
 </html>

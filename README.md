@@ -68,13 +68,15 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765). Press `Ctrl+C` to stop the 
 | --- | --- | --- |
 | [Ember](https://ember-energy.org/) | generation, demand, generation mix, net imports, and CO₂ intensity | month and year |
 | [Ember Wholesale Electricity Price Data](https://ember-energy.org/data/european-wholesale-electricity-price-data/) | national wholesale electricity prices | month and weighted annual value |
-| [Eurostat](https://ec.europa.eu/eurostat/) | population, GDP, and GDP per capita | year |
+| [Eurostat](https://ec.europa.eu/eurostat/) | population, GDP, installed capacity, retail-price components, gross electricity trade, and battery-electric passenger cars | year |
 | [Battery-Charts](https://battery-charts.de/) | complete German stationary battery fleet from the cleaned MaStR | monthly inventory value |
 | [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory) | operational battery projects outside Germany and pumped storage in all countries | API snapshot |
+| [JRC Hydro-power database](https://data.jrc.ec.europa.eu/dataset/52b00441-d3e0-44e0-8281-fda86a63546d) | reported plant, pumping, and reservoir-energy inventory | release snapshot |
+| [EEA GHG inventory](https://www.eea.europa.eu/en/datahub/datahubitem-view/3b7fe76c-524a-439a-bfd2-a6e4046302a2) | CRT 1.A.1.a emissions from public electricity and heat production | year |
 | [Natural Earth](https://www.naturalearthdata.com/) | local country geometries for the map of Europe | version 5.1.1 |
 | [flag-icons](https://github.com/lipis/flag-icons) | local SVG country flags in the time-series comparison | version 7.4.0, MIT |
 
-Ember and Battery-Charts data are identified as `CC BY 4.0`. Natural Earth geometries are in the public domain. Eurostat data are subject to Eurostat's reuse policy and exceptions. JRC inventory data may include estimates and third-party data; redistribution must be reviewed separately before any public or commercial data release.
+Ember, Battery-Charts, the JRC Hydro-power database, and the EEA GHG inventory are identified as `CC BY 4.0`. Natural Earth geometries are in the public domain. Eurostat data are subject to Eurostat's reuse policy and exceptions. JRC storage-inventory data may include estimates and third-party data; redistribution must be reviewed separately before any public or commercial data release.
 
 ## Updating the data yourself
 
@@ -102,9 +104,19 @@ The historical cache is reused. `--refresh` forces a new request and atomically 
 ```powershell
 .\.venv\Scripts\eea.exe import-prices
 .\.venv\Scripts\eea.exe import-eurostat --from-year 2015
+.\.venv\Scripts\eea.exe import-eurostat-supplement --from-year 2015
 ```
 
-Both commands require internet access but no API key. Responses are fully validated before existing data are replaced atomically. Eurostat requests run sequentially by design and respect limited backoff and `Retry-After`.
+These commands require internet access but no API key. Responses are fully validated before existing data are replaced atomically. Eurostat requests run sequentially by design and respect limited backoff and `Retry-After`. The supplement deliberately imports selected dimensions only: net installed capacity, annual household band DC and non-household band IC price components in EUR, gross imports/exports, and battery-electric passenger-car stock and new registrations.
+
+### JRC hydropower and EEA inventory emissions
+
+```powershell
+.\.venv\Scripts\eea.exe import-hydro-inventory
+.\.venv\Scripts\eea.exe import-eea-ghg
+```
+
+The JRC command imports the CC BY 4.0 release inventory without estimating missing plant storage values. The EEA command selects aggregate greenhouse gases for CRT `1.A.1.a`; this category includes public electricity **and heat** production. A reviewed local EEA CSV or ZIP can be supplied with `import-eea-ghg --file <path>` if the official Datahub download is temporarily unavailable.
 
 ### Battery and pumped-storage inventories
 
@@ -130,7 +142,7 @@ Germany uses only the national Battery-Charts total for batteries. Other countri
 
 ## Data model and quality rules
 
-`period_observation` is the canonical fact table. Month is the smallest unit for electricity and price data; validated annual values and separately dated storage inventories are stored independently. `api_cache` contains redacted Ember JSON responses. `source_cache` stores unchanged price, Eurostat, JRC, and Battery-Charts source responses together with retrieval metadata and SHA-256 hashes.
+`period_observation` is the canonical fact table. Month is the smallest unit for electricity and price data; validated annual values and separately dated storage inventories are stored independently. `api_cache` contains redacted Ember JSON responses. `source_cache` stores source responses or, for a multi-format EEA bundle, the selected gzip-compressed source CSV together with retrieval metadata and SHA-256 hashes.
 
 - missing values remain `null` and appear as `—` in the interface
 - current months and years are marked as provisional or YTD
@@ -138,6 +150,10 @@ Germany uses only the national Battery-Charts total for batteries. Other countri
 - annual prices are weighted by the actual duration of each month
 - positive net imports indicate an import surplus; negative values indicate an export surplus
 - Eurostat denominators are combined only with electricity values from the same calendar year
+- absent monthly nuclear generation is treated as zero for the approved low-carbon calculation; other missing technologies remain missing
+- negative Ember residual categories (`other renewables` and `other fossil`) are exposed as missing rather than as negative generation
+- estimated total generation emissions are explicitly derived from Ember intensity multiplied by Ember generation
+- theoretical EV battery capacity uses `BEV stock × 60 kWh`; it is nominal traction-battery energy, not grid-accessible V2G storage
 - failed updates must not modify existing data
 
 A new SQLite file is initialized automatically when the server starts. The API operates read-only afterwards.
@@ -177,7 +193,10 @@ Tests use local fixtures exclusively and never perform live imports.
 ## Known limitations
 
 - Individual historical country-month combinations may contain legitimate coverage gaps.
-- Gross imports, gross exports, negative-price hours, and operational interval statistics are outside the scope of the monthly Atlas.
+- Gross imports and exports are annual Eurostat balance values; negative-price hours and operational interval statistics remain outside the scope of the monthly Atlas.
+- Eurostat installed capacity currently ends in 2024, while several price, trade, and BEV series already reach 2025. Missing later values are not carried forward.
+- EEA CRT 1.A.1.a combines public electricity and heat production and is not a pure electricity-only inventory value.
+- The JRC Hydro-power database is an incomplete reported-plant inventory with an unknown update frequency; missing reservoir energy is not estimated.
 - JRC storage values represent its recorded operational project inventory, not necessarily a complete national inventory and not the energy capacity of conventional hydropower reservoirs.
 - Time-series plots do not interpolate gaps. At each point, the Atlas average is the arithmetic mean of all available values across the complete country catalog.
 - Missing residential or commercial batteries outside Germany are not estimated. Missing JRC energy values remain empty and are not inferred from power or project metadata.

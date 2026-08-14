@@ -81,7 +81,7 @@ def initialize(connection: sqlite3.Connection) -> None:
     connection.commit()
 
 
-SUPPORTED_SOURCES = ("ember", "eurostat", "jrc", "battery_charts")
+SUPPORTED_SOURCES = ("ember", "eurostat", "jrc", "battery_charts", "eea")
 
 
 def migrate_atlas_catalog(connection: sqlite3.Connection) -> dict[str, Any]:

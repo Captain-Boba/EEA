@@ -652,6 +652,12 @@ a { color: var(--accent); }
   #storage-table { min-width: 72rem; }
   .comparison-controls { grid-template-columns: 1fr; }
   .country-control { grid-column: auto; }
+  .comparison-presets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: 1.2rem;
+  }
+  .comparison-presets::before { display: none; }
+  .comparison-presets button.active { background: linear-gradient(135deg, #fff, #dce4ea); }
   #timeseries-chart { min-width: 50rem; }
   .comparison-layout, .chart-panel { width: 100%; min-width: 0; max-width: 100%; }
   .chart-panel { overflow-x: auto; aspect-ratio: auto; }
@@ -987,6 +993,7 @@ header p { color: var(--muted); }
   font-variant-numeric: tabular-nums;
 }
 .table-card #storage-table { min-width: 78rem; }
+.table-card #ev-table { min-width: 58rem; }
 .table-card th,
 .table-card td {
   padding: .72rem .65rem;
@@ -1050,6 +1057,16 @@ header p { color: var(--muted); }
 .table-card #summary-table thead th:nth-child(2),
 .table-card #storage-table thead th:first-child,
 .table-card #storage-table thead th:nth-child(2) { z-index: 6; background: rgba(7,16,29,.99); }
+.ev-card #ev-table th:first-child,
+.ev-card #ev-table td:first-child { width: 5.25rem; text-align: center; }
+.ev-card #ev-table th:nth-child(2) { width: 14.5rem; text-align: left; }
+.ev-card #ev-table thead th:first-child,
+.ev-card #ev-table tbody td:first-child { position: sticky; left: 0; z-index: 3; }
+.ev-card #ev-table thead th:nth-child(2),
+.ev-card #ev-table tbody th:nth-child(2) { position: sticky; left: 5.25rem; z-index: 3; }
+.ev-card #ev-table thead th:first-child,
+.ev-card #ev-table thead th:nth-child(2) { z-index: 6; background: rgba(7,16,29,.99); }
+.ev-capacity-note { color: #d9c89b; }
 .table-rank {
   display: inline-grid;
   width: 2rem;

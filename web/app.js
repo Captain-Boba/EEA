@@ -17,6 +17,11 @@ const STORAGE_METRIC_IDS = [
   "pumped_storage_power_gw",
   "pumped_storage_duration_hours",
 ];
+const EV_METRIC_IDS = [
+  "bev_stock",
+  "bev_new_registrations",
+  "ev_battery_nominal_capacity_est_gwh",
+];
 const COMPARISON_PRESETS = ["ytd", "1y", "3y", "5y", "10y", "max"];
 const NE_TO_ATLAS = {
   "AUT": "AT", "BEL": "BE", "BGR": "BG", "CHE": "CH", "CZE": "CZ", "DEU": "DE", "DNK": "DK",
@@ -84,6 +89,9 @@ let storageSourceLabel = "";
 let storageSortKey = "battery_energy_gwh";
 let storageSortDirection = -1;
 let storageExpanded = false;
+let evSortKey = "bev_stock";
+let evSortDirection = -1;
+let evExpanded = false;
 let mapSvg = null;
 let mapMetricId = "generation_twh";
 let focusedMapCountry = null;
@@ -97,9 +105,10 @@ let activeComparisonPreset = null;
 let knownMaximumComparisonRange = null;
 const FLAG_COLOR_CACHE = new Map();
 const CHART_FALLBACK_COLORS = [
-  "#4da3ff", "#ffb454", "#53d39b", "#d38cff", "#ff718b",
-  "#64d7e8", "#d6d957", "#a6a1ff", "#ff9466", "#72c06a",
+  "#c0e040", "#e04000", "#4090ff", "#e020e0", "#00e000",
+  "#00a080", "#60a000", "#00e0e0", "#8040e0", "#e04080",
 ];
+const MIN_CHART_COLOR_DISTANCE = 96;
 
 const $ = id => document.getElementById(id);
 const MIN_YEAR = 2015;
@@ -332,6 +341,50 @@ function renderStorage() {
   animateRowReorder("#storage-body tr", previousPositions, row => row.dataset.storageRow);
 }
 
+function electromobilityRowsForView(rows, monthly, key, direction, expanded) {
+  if (monthly) return [];
+  const sorted = sortRows(rows, key, direction);
+  return expanded ? sorted : sorted.slice(0, TABLE_PREVIEW_LIMIT);
+}
+
+function renderElectromobility() {
+  const head = $("ev-head");
+  if (!head || typeof head.querySelectorAll !== "function") return;
+  const monthly = isMonthView();
+  const region = $("ev-table-region");
+  const toggle = $("ev-toggle");
+  const state = $("ev-table-state");
+  const count = $("ev-count");
+  if (monthly) {
+    region.hidden = true;
+    toggle.hidden = true;
+    toggle.setAttribute("aria-expanded", "false");
+    state.textContent = "Nur in der Jahresansicht verfügbar";
+    count.textContent = "Jahresansicht erforderlich";
+    $("ev-note").textContent = "Elektromobilitätswerte sind jährliche Eurostat-Daten. In der Monatsansicht werden keine Jahreswerte eingeblendet.";
+    return;
+  }
+
+  region.hidden = false;
+  $("ev-note").textContent = `Eurostat-Jahreswerte für ${selectedYear()}. Fehlende Land-Jahr-Werte bleiben leer und werden nicht aus Vorjahren fortgeschrieben.`;
+  head.innerHTML = rankHeader()
+    + countryHeader(evSortKey, evSortDirection)
+    + EV_METRIC_IDS.map(id => metricHeader(id, evSortKey, evSortDirection)).join("");
+  bindSort("#ev-head [data-sort-key]", key => {
+    if (evSortKey === key) evSortDirection *= -1;
+    else { evSortKey = key; evSortDirection = -1; }
+    renderElectromobility();
+  });
+  const sorted = sortRows(data, evSortKey, evSortDirection);
+  const visibleRows = electromobilityRowsForView(data, false, evSortKey, evSortDirection, evExpanded);
+  $("ev-body").innerHTML = visibleRows.map((row, index) => `<tr data-ev-row="${row.country_code}" style="--row-index:${index}">
+    <td class="rank-column"><span class="table-rank">${index + 1}</span></td>
+    <th scope="row">${tableCountry(row)}</th>
+    ${EV_METRIC_IDS.map(id => `<td data-metric="${id}">${formatTableValue(row[id], id)}</td>`).join("")}
+  </tr>`).join("");
+  updateTableDisclosure("ev", evExpanded, sorted.length);
+}
+
 function storageCell(row, metricId) {
   const provenance = row.metric_provenance?.[metricId];
   if (!provenance) return `<td>${formatTableValue(null, metricId)}</td>`;
@@ -483,7 +536,7 @@ function renderMapControls() {
 
   if (metricAvailable(activeMetric)) {
     $("map-availability").textContent = activeMetric.temporal_availability.snapshot
-      ? "Speicherkennzahlen verwenden getrennte Battery-Charts- und JRC-Snapshots; Jahr und Monat gelten hier nicht."
+      ? "Snapshot-Kennzahlen verwenden ihren jeweils ausgewiesenen Datenstand; Jahr und Monat gelten hier nicht."
       : "";
   } else if (activeMetric.temporal_availability.yearly && isMonthView()) {
     $("map-availability").textContent = "Nur in der Jahresansicht verfügbar.";
@@ -811,6 +864,7 @@ async function loadSummary() {
     if (!response.ok) throw new Error((await response.json()).error || response.statusText);
     data = await response.json();
     render();
+    renderElectromobility();
     renderCountryControls();
     renderMapControls();
     renderMap();
@@ -881,21 +935,14 @@ function colorDistance(first, second) {
 }
 
 function assignCountryColors(countryCodes, candidatesByCode) {
-  const assigned = new Map();
-  const used = [];
+  const colors = countryCodes.map((_code, index) => CHART_FALLBACK_COLORS[index % CHART_FALLBACK_COLORS.length]);
   countryCodes.forEach((code, index) => {
-    const flagCandidates = candidatesByCode.get(code) || [];
-    const fallbackCandidates = CHART_FALLBACK_COLORS.filter(color => !flagCandidates.includes(color));
-    const distanceFromUsed = color => used.length ? Math.min(...used.map(other => colorDistance(color, other))) : Infinity;
-    const preferred = flagCandidates.find(color => distanceFromUsed(color) >= 82)
-      || fallbackCandidates.find(color => distanceFromUsed(color) >= 82);
-    const pool = [...flagCandidates, ...fallbackCandidates];
-    const color = preferred || pool.sort((a, b) => distanceFromUsed(b) - distanceFromUsed(a))[0]
-      || CHART_FALLBACK_COLORS[index % CHART_FALLBACK_COLORS.length];
-    assigned.set(code, color);
-    used.push(color);
+    const preferred = (candidatesByCode.get(code) || []).find(candidate => colors.every((other, otherIndex) => (
+      otherIndex === index || colorDistance(candidate, other) >= MIN_CHART_COLOR_DISTANCE
+    )));
+    if (preferred) colors[index] = preferred;
   });
-  return assigned;
+  return new Map(countryCodes.map((code, index) => [code, colors[index]]));
 }
 
 async function prepareTimeseriesColors(payload) {
@@ -1573,6 +1620,8 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     assignCountryColors,
     buildComparisonCsv,
+    colorDistance,
+    electromobilityRowsForView,
     extractFlagColors,
     flagCode,
     formatTableValue,
@@ -1841,6 +1890,7 @@ function syncPeriodControls() {
   const showMonth = isMonthView();
   $("month-label").hidden = !showMonth;
   $("month").disabled = !showMonth;
+  renderElectromobility();
   renderMapControls();
   renderMap();
 }
@@ -1871,6 +1921,10 @@ $("clear-selection").addEventListener("click", clearSelection);
 $("summary-toggle").addEventListener("click", () => {
   summaryExpanded = !summaryExpanded;
   render();
+});
+$("ev-toggle").addEventListener("click", () => {
+  evExpanded = !evExpanded;
+  renderElectromobility();
 });
 $("storage-toggle").addEventListener("click", () => {
   storageExpanded = !storageExpanded;
@@ -1935,6 +1989,7 @@ window.__atlasMapTest = {colorForValue, mapScale, NE_TO_ATLAS, serializedMapSvg,
 window.__atlasCompareTest = {
   availableComparisonRange,
   buildComparisonCsv,
+  colorDistance,
   comparisonPresetRange,
   assignCountryColors,
   extractFlagColors,

@@ -158,7 +158,7 @@ global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matc
 global.history = {replaceState: () => {}};
 global.fetch = () => new Promise(() => {});
 global.URLSearchParams = URLSearchParams;
-const {assignCountryColors, extractFlagColors, relativeBaselineChange} = require("./web/app.js");
+const {assignCountryColors, colorDistance, extractFlagColors, relativeBaselineChange} = require("./web/app.js");
 const candidates = new Map([
   ["DE", extractFlagColors('<path fill="#fc0"/><path fill="#000001"/><path fill="red"/>')],
   ["ES", extractFlagColors('<path fill="#aa151b"/><path fill="#f1bf00"/>')],
@@ -166,6 +166,10 @@ const candidates = new Map([
   ["UK", extractFlagColors('<path fill="#012169"/><path fill="#fff"/><path fill="#c8102e"/>')],
 ]);
 const colors = assignCountryColors(["DE", "ES", "FR", "UK"], candidates);
+const tenCodes = Array.from({length: 10}, (_, index) => `C${index}`);
+const conflicting = new Map(tenCodes.map(code => [code, ["#ff0000", "#f90008"]]));
+const tenColors = [...assignCountryColors(tenCodes, conflicting).values()];
+const minimumDistance = Math.min(...tenColors.flatMap((color, index) => tenColors.slice(index + 1).map(other => colorDistance(color, other))));
 const monthly = {
   values: [{period: "2026-07", value: 15}],
   baseline_values: [{period: "2015-07", value: 5}],
@@ -177,14 +181,18 @@ const zeroBaseline = {
 process.stdout.write(JSON.stringify({
   colors: Object.fromEntries(colors),
   unique: new Set(colors.values()).size,
+  tenUnique: new Set(tenColors).size,
+  minimumDistance,
   monthlyChange: relativeBaselineChange(monthly, 0, "monthly"),
   zeroChange: relativeBaselineChange(zeroBaseline, 0, "yearly"),
 }));
 '''
         result = self.run_node(script)
         self.assertEqual(result["colors"]["DE"], "#ffcc00")
-        self.assertEqual(result["colors"]["FR"], "#4da3ff")
+        self.assertEqual(result["colors"]["FR"], "#4090ff")
         self.assertEqual(result["unique"], 4)
+        self.assertEqual(result["tenUnique"], 10)
+        self.assertGreaterEqual(result["minimumDistance"], 96)
         self.assertEqual(result["monthlyChange"], 200)
         self.assertIsNone(result["zeroChange"])
 
