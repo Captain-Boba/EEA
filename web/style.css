@@ -1545,6 +1545,43 @@ details {
   fill: rgba(5, 27, 47, .58);
 }
 
+/* Desktop atlas default: scale the complete interface, not only typography. */
+body { zoom: 1.1; }
+
+/* Dark sea raises the contrast of the encoded atlas colors. */
+.map-frame {
+  background:
+    linear-gradient(rgba(184,154,90,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,154,90,.055) 1px, transparent 1px),
+    linear-gradient(145deg, #10253b, #07111f);
+  background-size: 32px 32px, 32px 32px, auto;
+}
+.atlas-map .background-country {
+  fill: #2b4057;
+  opacity: .9;
+}
+
+/* Match inactive time presets to the dark secondary action buttons. */
+.comparison-presets button:not(.active) {
+  border: 1px solid rgba(220,232,242,.46);
+  background: linear-gradient(145deg, rgba(28,44,63,.96), rgba(7,15,28,.98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 6px 16px rgba(0,4,13,.3);
+  color: #fff;
+}
+.comparison-presets button:not(.active):hover:not(:disabled) {
+  border-color: var(--signal);
+  background: linear-gradient(145deg, rgba(255,255,255,.2), rgba(20,31,48,.96));
+}
+
+@media (min-width: 851px) {
+  .map-stage:not(:fullscreen) #map-canvas {
+    display: grid;
+    min-height: 0;
+    place-items: center;
+  }
+  .map-stage:not(:fullscreen) .atlas-map { margin: 0; }
+}
+
 .comparison-presets {
   border-color: rgba(150, 192, 221, .54);
   background:
