@@ -2,7 +2,25 @@
 
 Ein lokaler, interaktiver Atlas für den Vergleich europäischer Stromsysteme. Die Weboberfläche verbindet eine kennzahlengesteuerte Europakarte mit sortierbaren Tabellen, Länder­vergleichen und transparenten Angaben zu Datenstatus und Quellen.
 
-![European Electricity Atlas mit interaktiver Karte](docs/images/atlas-overview.jpg)
+## Die Oberfläche
+
+### Europas Stromsysteme im direkten Ranking
+
+Die zentrale Ländertabelle stellt alle 31 Atlas-Länder mit einheitlich formatierten Kennzahlen gegenüber. Jede Spalte lässt sich sortieren und unmittelbar als Kartenkennzahl öffnen; die Rangnummern folgen immer der aktiven Sortierung. Länder können direkt in der Tabelle für den Zeitreihenvergleich ausgewählt werden, während die mitlaufende Steuerleiste Jahr, Zeitraum und Vergleichsauswahl erreichbar hält.
+
+[![Sortierbares Länder-Ranking des European Electricity Atlas](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)
+
+### Jede Kennzahl auf der Europakarte
+
+Die vollständig lokale SVG-Karte visualisiert absolute und relative Kennzahlen mit passenden Farbskalen und sichtbaren Länderwerten. Kennzahlenfamilie und Darstellung lassen sich unabhängig wählen. Im Vollbild bleibt die Legende direkt neben der Karte; der aktuelle Kartenstand kann einschließlich Titel, Zeitraum, Einheit, Farbskala und Legende als SVG oder PNG exportiert werden.
+
+[![Vollbildkarte mit dem Anteil erneuerbarer Stromerzeugung in Europa](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)
+
+### Zeitreihen für bis zu zehn Länder
+
+Der Zeitreihenvergleich verbindet Monats- oder Jahreswerte mit einem Atlas-Durchschnitt und einem Live-Ranking. Vordefinierte Bereiche von YTD bis zur maximalen Historie ergänzen die freie Zeitraumwahl. Relative Veränderungen verwenden eine feste Basis von 2015; Monatswerte werden dabei stets mit demselben Kalendermonat 2015 verglichen. Fehlende Werte bleiben als echte Linienlücken sichtbar. Der aktuelle Vergleich lässt sich per Direktlink teilen oder lokal als CSV, SVG und PNG exportieren.
+
+[![Zeitreihenvergleich mit Länderlinien, Atlas-Durchschnitt und Live-Ranking](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)
 
 ## Was der Atlas bietet
 
