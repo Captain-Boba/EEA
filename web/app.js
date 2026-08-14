@@ -10,13 +10,14 @@ const TABLE_METRIC_IDS = [
   "price_avg_eur_mwh",
 ];
 const STORAGE_METRIC_IDS = [
-  "battery_power_gw",
   "battery_energy_gwh",
+  "battery_power_gw",
   "battery_duration_hours",
-  "pumped_storage_power_gw",
   "pumped_storage_energy_gwh",
+  "pumped_storage_power_gw",
   "pumped_storage_duration_hours",
 ];
+const COMPARISON_PRESETS = ["ytd", "1y", "3y", "5y", "10y", "max"];
 const NE_TO_ATLAS = {
   "AUT": "AT", "BEL": "BE", "BGR": "BG", "CHE": "CH", "CZE": "CZ", "DEU": "DE", "DNK": "DK",
   "ESP": "ES", "EST": "EE", "FIN": "FI", "FRA": "FR", "GBR": "UK", "GRC": "GR", "HRV": "HR",
@@ -80,7 +81,7 @@ let summaryExpanded = false;
 let storageData = [];
 let storageSnapshot = null;
 let storageSourceLabel = "";
-let storageSortKey = "battery_power_gw";
+let storageSortKey = "battery_energy_gwh";
 let storageSortDirection = -1;
 let storageExpanded = false;
 let mapSvg = null;
@@ -92,6 +93,8 @@ let timeseriesData = null;
 let timeseriesColors = new Map();
 let chartHoverIndex = null;
 let chartPinnedIndex = null;
+let activeComparisonPreset = null;
+let knownMaximumComparisonRange = null;
 const FLAG_COLOR_CACHE = new Map();
 const CHART_FALLBACK_COLORS = [
   "#4da3ff", "#ffb454", "#53d39b", "#d38cff", "#ff718b",
@@ -360,6 +363,7 @@ function toggleCountry(code, shouldSelect = !selected.has(code)) {
     return false;
   }
   shouldSelect ? selected.add(code) : selected.delete(code);
+  knownMaximumComparisonRange = null;
   const row = document.querySelector(`[data-country-row="${code}"]`);
   if (row && motionAllowed()) {
     row.classList.remove("selection-pulse");
@@ -368,6 +372,7 @@ function toggleCountry(code, shouldSelect = !selected.has(code)) {
     row.addEventListener("animationend", () => row.classList.remove("selection-pulse"), {once: true});
   }
   updateSelection();
+  if (shouldSelect) animateSelectionToCompare(code);
   if (timeseriesData) {
     $("comparison-status").textContent = "Länderauswahl geändert. Plot aktualisieren, um den neuen Stand zu laden.";
   }
@@ -400,6 +405,36 @@ function updateSelection() {
   renderCountryControls();
 }
 
+function animateSelectionToCompare(code) {
+  if (!motionAllowed()) return;
+  const row = document.querySelector(`[data-country-row="${code}"]`);
+  const target = $("compare");
+  if (!row || !target || target.disabled) return;
+  const start = row.getBoundingClientRect();
+  const end = target.getBoundingClientRect();
+  const pulse = document.createElement("span");
+  pulse.className = "selection-energy-pulse";
+  pulse.style.left = `${start.left + Math.min(start.width * .55, 280)}px`;
+  pulse.style.top = `${start.top + start.height / 2}px`;
+  document.body.appendChild(pulse);
+  const dx = end.left + end.width / 2 - (start.left + Math.min(start.width * .55, 280));
+  const dy = end.top + end.height / 2 - (start.top + start.height / 2);
+  pulse.animate(
+    [
+      {transform: "translate(-50%, -50%) scale(.6)", opacity: 0},
+      {transform: "translate(-50%, -50%) scale(1)", opacity: 1, offset: .16},
+      {transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.35)`, opacity: 0},
+    ],
+    {duration: 560, easing: "cubic-bezier(.22,.8,.24,1)"},
+  ).addEventListener("finish", () => {
+    pulse.remove();
+    target.classList.remove("comparison-arrival-pulse");
+    void target.offsetWidth;
+    target.classList.add("comparison-arrival-pulse");
+    target.addEventListener("animationend", () => target.classList.remove("comparison-arrival-pulse"), {once: true});
+  }, {once: true});
+}
+
 function mapMetrics() {
   return [...metricCatalog.values()].filter(metric => metric.map);
 }
@@ -429,7 +464,9 @@ function renderMapControls() {
   });
   $("map-family").innerHTML = [...groups.entries()].map(([group, families]) =>
     `<optgroup label="${escapeAttribute(group)}">${[...families.entries()].map(([family, variants]) => {
-      const disabled = variants.some(metricAvailable) ? "" : " disabled";
+      const selectable = variants.some(metric => metricAvailable(metric)
+        || (isMonthView() && metric.temporal_availability.yearly));
+      const disabled = selectable ? "" : " disabled";
       return `<option value="${escapeAttribute(`${group}::${family}`)}"${disabled}>${escapeHtml(family)}</option>`;
     }).join("")}</optgroup>`
   ).join("");
@@ -437,7 +474,8 @@ function renderMapControls() {
 
   const variants = metrics.filter(metric => familyKey(metric) === familyKey(activeMetric));
   $("map-representation").innerHTML = variants.map(metric => {
-    const disabled = metricAvailable(metric) ? "" : " disabled";
+    const selectable = metricAvailable(metric) || (isMonthView() && metric.temporal_availability.yearly);
+    const disabled = selectable ? "" : " disabled";
     const unit = metric.unit ? ` (${metric.unit})` : "";
     return `<option value="${metric.id}"${disabled}>${escapeHtml(metric.representation)}${escapeHtml(unit)}</option>`;
   }).join("");
@@ -455,6 +493,23 @@ function renderMapControls() {
     $("map-availability").textContent = "Für diese Darstellung und diesen Zeitraum nicht verfügbar.";
   }
   highlightMapColumn();
+}
+
+async function selectMapMetricForPeriod(metricId) {
+  const metric = metricCatalog.get(metricId);
+  if (!metric?.map) return;
+  const requiresYearView = isMonthView()
+    && !metric.temporal_availability.monthly
+    && metric.temporal_availability.yearly;
+  if (!requiresYearView) {
+    setMapMetric(metric.id);
+    return;
+  }
+  mapMetricId = metric.id;
+  $("period-type").value = "year";
+  syncPeriodControls();
+  await loadSummary();
+  $("map-availability").textContent = "Jahresansicht für diese Kennzahl automatisch aktiviert.";
 }
 
 function setMapMetric(metricId, scrollToMap = false) {
@@ -591,6 +646,12 @@ function renderLegend(metric, scale) {
   $("map-legend").innerHTML = `<div class="legend-ramp" style="background:${gradient}" aria-hidden="true"></div>
     <div class="legend-values"><span>${escapeHtml(formatMetricValue(scale.min, metric))}</span>${midpoint !== null && midpoint !== undefined ? `<span>${escapeHtml(formatMetricValue(midpoint, metric))}</span>` : ""}<span>${escapeHtml(formatMetricValue(scale.max, metric))}</span></div>
     <p>${escapeHtml(metric.unit || "ohne Einheit")} · Grau = kein Wert</p>`;
+  if (motionAllowed()) {
+    const legend = $("map-legend");
+    legend.classList.remove("legend-morph");
+    void legend.offsetWidth;
+    legend.classList.add("legend-morph");
+  }
   $("map-sign-note").hidden = metric.map_config?.scale !== "diverging";
 }
 
@@ -941,6 +1002,84 @@ function configureComparisonRange(metric) {
     startInput.value = previousStart.slice(0, 4) || String(MIN_YEAR);
     endInput.value = previousEnd.slice(0, 4) || String(currentYear);
   }
+  knownMaximumComparisonRange = null;
+  syncComparisonPresetFromFields(metric);
+}
+
+function comparisonPresetRange(preset, metric, end, availableRange = null) {
+  const monthly = Boolean(metric?.temporal_availability?.monthly);
+  if (monthly) {
+    const maximum = `${currentYear}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+    const normalizedEnd = /^\d{4}-\d{2}$/.test(end) ? end : maximum;
+    const [endYear, endMonth] = normalizedEnd.split("-").map(Number);
+    if (preset === "ytd") return {start: `${endYear}-01`, end: normalizedEnd};
+    if (preset === "max") return {
+      start: availableRange?.start || `${MIN_YEAR}-01`,
+      end: availableRange?.end || normalizedEnd,
+    };
+    const years = Number.parseInt(preset, 10);
+    if (!Number.isFinite(years)) return null;
+    const startYear = Math.max(MIN_YEAR, endYear - years);
+    return {start: `${startYear}-${String(endMonth).padStart(2, "0")}`, end: normalizedEnd};
+  }
+
+  if (preset === "ytd") return null;
+  const normalizedEnd = /^\d{4}$/.test(end) ? end : String(currentYear);
+  const endYear = Number(normalizedEnd);
+  if (preset === "max") return {
+    start: availableRange?.start || String(MIN_YEAR),
+    end: availableRange?.end || normalizedEnd,
+  };
+  const years = Number.parseInt(preset, 10);
+  if (!Number.isFinite(years)) return null;
+  return {start: String(Math.max(MIN_YEAR, endYear - years + 1)), end: normalizedEnd};
+}
+
+function availableComparisonRange(payload) {
+  const countryPoints = (payload?.countries || []).flatMap(country => country.values || []);
+  const source = countryPoints.some(point => Number.isFinite(point.value))
+    ? countryPoints
+    : (payload?.atlas_average?.values || []);
+  const periods = source.filter(point => Number.isFinite(point.value)).map(point => point.period).sort();
+  return periods.length ? {start: periods[0], end: periods[periods.length - 1]} : null;
+}
+
+function setActiveComparisonPreset(preset) {
+  activeComparisonPreset = preset;
+  const container = $("comparison-presets");
+  const buttons = [...container.querySelectorAll("[data-range-preset]")];
+  const index = COMPARISON_PRESETS.indexOf(preset);
+  container.dataset.hasActive = String(index >= 0);
+  container.style.setProperty("--preset-index", String(Math.max(index, 0)));
+  buttons.forEach(button => {
+    const active = button.dataset.rangePreset === preset;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function syncComparisonPresetFromFields(metric = metricDefinition($("compare-metric").value)) {
+  const monthly = Boolean(metric?.temporal_availability?.monthly);
+  const ytdButton = document.querySelector('[data-range-preset="ytd"]');
+  ytdButton.disabled = !monthly;
+  ytdButton.setAttribute("aria-disabled", String(!monthly));
+  const start = $("compare-start").value;
+  const end = $("compare-end").value;
+  const match = COMPARISON_PRESETS.find(preset => {
+    const range = comparisonPresetRange(preset, metric, end, knownMaximumComparisonRange);
+    return range && range.start === start && range.end === end;
+  }) || null;
+  setActiveComparisonPreset(match);
+}
+
+async function applyComparisonPreset(preset) {
+  const metric = metricDefinition($("compare-metric").value);
+  const range = comparisonPresetRange(preset, metric, $("compare-end").value, null);
+  if (!range) return;
+  $("compare-start").value = range.start;
+  $("compare-end").value = range.end;
+  setActiveComparisonPreset(preset);
+  await loadTimeseries({scroll: false, updateUrl: true, availabilityPreset: preset});
 }
 
 function comparisonQuery() {
@@ -1001,6 +1140,7 @@ async function restoreComparisonState() {
   renderComparisonControls(parsed.metric.id);
   $("compare-start").value = parsed.start;
   $("compare-end").value = parsed.end;
+  syncComparisonPresetFromFields(parsed.metric);
   updateSelection();
   $("comparison").hidden = false;
   await loadTimeseries({scroll: false, updateUrl: false});
@@ -1013,7 +1153,7 @@ async function compare() {
   await loadTimeseries({scroll: true, updateUrl: true});
 }
 
-async function loadTimeseries({scroll = false, updateUrl = true} = {}) {
+async function loadTimeseries({scroll = false, updateUrl = true, availabilityPreset = null, availabilityAdjusted = false} = {}) {
   if (!selected.size) {
     $("comparison-status").textContent = "Mindestens ein Land auswählen.";
     return;
@@ -1025,6 +1165,23 @@ async function loadTimeseries({scroll = false, updateUrl = true} = {}) {
     $("comparison-status").textContent = `Fehler: ${payload.error}`;
     return;
   }
+  const payloadAvailableRange = availableComparisonRange(payload);
+  if (availabilityPreset === "max" && payloadAvailableRange) knownMaximumComparisonRange = payloadAvailableRange;
+  if (availabilityPreset && !availabilityAdjusted && payloadAvailableRange) {
+    let adjusted = null;
+    if (availabilityPreset === "max") adjusted = payloadAvailableRange;
+    if (availabilityPreset === "ytd" && payload.granularity === "monthly") {
+      const requestedYear = $("compare-end").value.slice(0, 4);
+      if (payloadAvailableRange.end.startsWith(requestedYear)) {
+        adjusted = {start: `${requestedYear}-01`, end: payloadAvailableRange.end};
+      }
+    }
+    if (adjusted && (adjusted.start !== $("compare-start").value || adjusted.end !== $("compare-end").value)) {
+      $("compare-start").value = adjusted.start;
+      $("compare-end").value = adjusted.end;
+      return loadTimeseries({scroll, updateUrl, availabilityPreset, availabilityAdjusted: true});
+    }
+  }
   timeseriesData = payload;
   await prepareTimeseriesColors(payload);
   chartHoverIndex = null;
@@ -1033,6 +1190,7 @@ async function loadTimeseries({scroll = false, updateUrl = true} = {}) {
   renderTimeseriesChart();
   for (const id of ["export-csv", "export-svg", "export-png", "copy-link"]) $(id).disabled = false;
   $("comparison-status").textContent = `${payload.countries.length} Länder · ${payload.granularity === "monthly" ? "Monatswerte" : "Jahreswerte"} · fehlende Werte bleiben als Linienlücken sichtbar.`;
+  syncComparisonPresetFromFields(payload.metric);
   if (updateUrl) writeComparisonUrl();
   if (scroll) $("comparison").scrollIntoView({behavior: "smooth"});
 }
@@ -1320,6 +1478,12 @@ function rankingChange(country, index) {
 
 function renderRanking(index) {
   const previous = new Map([...$("ranking-list").children].map(item => [item.dataset.country, item.getBoundingClientRect().top]));
+  const previousValues = new Map([...$("ranking-list").children].map(item => {
+    const raw = item.querySelector(".ranking-number")?.dataset.numeric;
+    return [item.dataset.country, raw ? Number(raw) : null];
+  }));
+  const previousAverageRaw = $("atlas-average-value").dataset.numeric;
+  const previousAverage = previousAverageRaw ? Number(previousAverageRaw) : null;
   const entries = timeseriesData.countries.map((country, countryIndex) => ({
     country,
     countryIndex,
@@ -1341,7 +1505,8 @@ function renderRanking(index) {
   const periodStatus = timeseriesData.atlas_average.values[index].period_status;
   $("ranking-period").textContent = `${period}${periodStatus === "ytd" ? " · YTD" : periodStatus === "provisional_current_month" ? " · vorläufig" : ""}`;
   const average = timeseriesData.atlas_average.values[index].value;
-  $("atlas-average-value").textContent = `Atlas-Durchschnitt · ${formatMetricValue(average, timeseriesData.metric)} ${timeseriesData.metric.unit}`;
+  $("atlas-average-value").dataset.numeric = Number.isFinite(average) ? String(average) : "";
+  $("atlas-average-value").innerHTML = `Atlas-Durchschnitt · <span class="ranking-average-number" data-numeric="${Number.isFinite(average) ? average : ""}">${formatMetricValue(average, timeseriesData.metric)}</span> ${escapeHtml(timeseriesData.metric.unit)}`;
   $("ranking-baseline-note").textContent = timeseriesData.granularity === "monthly"
     ? "Veränderung gegenüber demselben Kalendermonat 2015"
     : "Veränderung gegenüber dem Jahreswert 2015";
@@ -1350,11 +1515,17 @@ function renderRanking(index) {
       <span class="ranking-rank">${entry.rank || "—"}</span>
       <img src="/assets/flags/${flagCode(entry.country.country_code)}.svg" alt="" width="24" height="18">
       <span class="ranking-country"><b>${entry.country.country_code}</b><small>${escapeHtml(entry.country.country_name)}</small></span>
-      <span class="ranking-value">${formatMetricValue(entry.value, timeseriesData.metric)}<small>${Number.isFinite(entry.value) ? timeseriesData.metric.unit : ""}</small></span>
+      <span class="ranking-value"><span class="ranking-number" data-numeric="${Number.isFinite(entry.value) ? entry.value : ""}">${formatMetricValue(entry.value, timeseriesData.metric)}</span><small>${Number.isFinite(entry.value) ? timeseriesData.metric.unit : ""}</small></span>
       <span class="ranking-change">${rankingChange(entry.country, index)}</span>
     </li>`;
   }).join("");
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    animateMetricNumber($("atlas-average-value").querySelector(".ranking-average-number"), previousAverage, average, timeseriesData.metric);
+    $("ranking-list").querySelectorAll(".ranking-item").forEach(item => {
+      const raw = item.querySelector(".ranking-number")?.dataset.numeric;
+      const next = raw ? Number(raw) : null;
+      animateMetricNumber(item.querySelector(".ranking-number"), previousValues.get(item.dataset.country), next, timeseriesData.metric);
+    });
     requestAnimationFrame(() => {
       [...$("ranking-list").children].forEach(item => {
         const oldTop = previous.get(item.dataset.country);
@@ -1370,6 +1541,19 @@ function renderRanking(index) {
       });
     });
   }
+}
+
+function animateMetricNumber(element, from, to, metric) {
+  if (!element || !Number.isFinite(from) || !Number.isFinite(to) || from === to) return;
+  const started = performance.now();
+  const duration = 420;
+  const frame = now => {
+    const progress = Math.min(1, (now - started) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    element.textContent = formatMetricValue(from + (to - from) * eased, metric);
+    if (progress < 1 && element.isConnected) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
 }
 
 function buildComparisonCsv(payload) {
@@ -1392,6 +1576,8 @@ if (typeof module !== "undefined" && module.exports) {
     extractFlagColors,
     flagCode,
     formatTableValue,
+    availableComparisonRange,
+    comparisonPresetRange,
     parseComparisonUrl,
     relativeBaselineChange,
   };
@@ -1407,6 +1593,14 @@ function downloadBlob(blob, filename) {
   const href = link.href;
   link.remove();
   setTimeout(() => URL.revokeObjectURL(href), 1000);
+}
+
+function pulseExportFrame(element) {
+  if (!motionAllowed() || !element) return;
+  element.classList.remove("export-success-pulse");
+  void element.offsetWidth;
+  element.classList.add("export-success-pulse");
+  element.addEventListener("animationend", () => element.classList.remove("export-success-pulse"), {once: true});
 }
 
 function comparisonFilename(extension) {
@@ -1443,11 +1637,13 @@ async function serializedChartSvg() {
 
 async function exportSvg() {
   downloadBlob(new Blob([await serializedChartSvg()], {type: "image/svg+xml;charset=utf-8"}), comparisonFilename("svg"));
+  pulseExportFrame($("comparison-stage"));
 }
 
 async function exportPng() {
   const blob = await buildChartPngBlob();
   downloadBlob(blob, comparisonFilename("png"));
+  pulseExportFrame($("comparison-stage"));
 }
 
 async function buildChartPngBlob() {
@@ -1553,6 +1749,7 @@ async function serializedMapSvg() {
 async function exportMapSvg() {
   downloadBlob(new Blob([await serializedMapSvg()], {type: "image/svg+xml;charset=utf-8"}), mapFilename("svg"));
   $("map-availability").textContent = "SVG-Kartenexport mit Legende wurde erstellt.";
+  pulseExportFrame($("map-stage"));
 }
 
 async function buildMapPngBlob() {
@@ -1578,6 +1775,7 @@ async function buildMapPngBlob() {
 async function exportMapPng() {
   downloadBlob(await buildMapPngBlob(), mapFilename("png"));
   $("map-availability").textContent = "PNG-Kartenexport mit Legende wurde erstellt.";
+  pulseExportFrame($("map-stage"));
 }
 
 let activeInfoTrigger = null;
@@ -1679,6 +1877,13 @@ $("storage-toggle").addEventListener("click", () => {
   renderStorage();
 });
 $("compare-load").addEventListener("click", () => loadTimeseries({updateUrl: true}));
+document.querySelectorAll?.("[data-range-preset]")?.forEach(button => button.addEventListener("click", () => applyComparisonPreset(button.dataset.rangePreset)));
+for (const id of ["compare-start", "compare-end"]) {
+  $(id).addEventListener("input", () => {
+    knownMaximumComparisonRange = null;
+    syncComparisonPresetFromFields();
+  });
+}
 $("compare-country-add").addEventListener("change", event => {
   if (event.target.value) toggleCountry(event.target.value, true);
   event.target.value = "";
@@ -1693,6 +1898,7 @@ $("unpin-time").addEventListener("click", () => {
 });
 $("export-csv").addEventListener("click", () => {
   downloadBlob(new Blob([buildComparisonCsv(timeseriesData)], {type: "text/csv;charset=utf-8"}), comparisonFilename("csv"));
+  pulseExportFrame($("comparison-stage"));
 });
 $("export-svg").addEventListener("click", exportSvg);
 $("export-png").addEventListener("click", exportPng);
@@ -1701,12 +1907,14 @@ $("copy-link").addEventListener("click", async () => {
   await navigator.clipboard.writeText(url);
   $("comparison-status").textContent = "Direktlink wurde kopiert.";
 });
-$("map-family").addEventListener("change", event => {
+$("map-family").addEventListener("change", async event => {
   const variants = mapMetrics().filter(metric => familyKey(metric) === event.target.value);
-  const next = variants.find(metricAvailable) || variants[0];
-  if (next) setMapMetric(next.id);
+  const next = variants.find(metricAvailable)
+    || variants.find(metric => isMonthView() && metric.temporal_availability.yearly)
+    || variants[0];
+  if (next) await selectMapMetricForPeriod(next.id);
 });
-$("map-representation").addEventListener("change", event => setMapMetric(event.target.value));
+$("map-representation").addEventListener("change", event => selectMapMetricForPeriod(event.target.value));
 $("map-values").addEventListener("change", () => renderMapLabels(metricDefinition(mapMetricId)));
 $("map-fullscreen").addEventListener("click", toggleMapFullscreen);
 $("map-export-svg").addEventListener("click", exportMapSvg);
@@ -1725,7 +1933,9 @@ document.addEventListener?.("keydown", event => {
 
 window.__atlasMapTest = {colorForValue, mapScale, NE_TO_ATLAS, serializedMapSvg, buildMapPngBlob};
 window.__atlasCompareTest = {
+  availableComparisonRange,
   buildComparisonCsv,
+  comparisonPresetRange,
   assignCountryColors,
   extractFlagColors,
   flagCode,

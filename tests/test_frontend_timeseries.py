@@ -113,6 +113,44 @@ process.stdout.write(JSON.stringify({
         self.assertFalse(result["duplicate"])
         self.assertFalse(result["future"])
 
+    def test_stock_chart_presets_cover_monthly_and_yearly_ranges_without_filling_gaps(self):
+        script = r'''
+global.document = {getElementById: () => ({addEventListener: () => {}})};
+global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
+global.history = {replaceState: () => {}};
+global.fetch = () => new Promise(() => {});
+global.URLSearchParams = URLSearchParams;
+const {availableComparisonRange, comparisonPresetRange} = require("./web/app.js");
+const monthly = {temporal_availability: {monthly: true, yearly: true}};
+const yearly = {temporal_availability: {monthly: false, yearly: true}};
+const available = availableComparisonRange({
+  countries: [{values: [
+    {period: "2015-01", value: null},
+    {period: "2015-02", value: 2},
+    {period: "2026-06", value: 4},
+    {period: "2026-07", value: null},
+  ]}],
+  atlas_average: {values: []},
+});
+process.stdout.write(JSON.stringify({
+  ytd: comparisonPresetRange("ytd", monthly, "2026-08"),
+  oneYear: comparisonPresetRange("1y", monthly, "2026-08"),
+  tenYears: comparisonPresetRange("10y", monthly, "2026-08"),
+  threeCalendarYears: comparisonPresetRange("3y", yearly, "2026"),
+  yearlyYtd: comparisonPresetRange("ytd", yearly, "2026"),
+  maximum: comparisonPresetRange("max", monthly, "2026-08", available),
+  available,
+}));
+'''
+        result = self.run_node(script)
+        self.assertEqual(result["ytd"], {"start": "2026-01", "end": "2026-08"})
+        self.assertEqual(result["oneYear"], {"start": "2025-08", "end": "2026-08"})
+        self.assertEqual(result["tenYears"], {"start": "2016-08", "end": "2026-08"})
+        self.assertEqual(result["threeCalendarYears"], {"start": "2024", "end": "2026"})
+        self.assertIsNone(result["yearlyYtd"])
+        self.assertEqual(result["available"], {"start": "2015-02", "end": "2026-06"})
+        self.assertEqual(result["maximum"], {"start": "2015-02", "end": "2026-06"})
+
     def test_flag_colors_are_preferred_without_conflicts_and_2015_is_the_baseline(self):
         script = r'''
 global.document = {getElementById: () => ({addEventListener: () => {}})};

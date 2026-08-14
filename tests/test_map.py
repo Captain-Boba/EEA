@@ -244,6 +244,9 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('id="timeseries-chart"', html)
         self.assertIn('id="ranking-list"', html)
         self.assertIn('id="comparison-fullscreen"', html)
+        self.assertIn('id="comparison-presets"', html)
+        for preset in ("ytd", "1y", "3y", "5y", "10y", "max"):
+            self.assertIn(f'data-range-preset="{preset}"', html)
         self.assertLess(html.index('id="comparison-stage"'), html.index('id="comparison-controls"'))
         self.assertLess(html.index('id="comparison-controls"'), html.index('id="comparison-layout"'))
         self.assertNotIn('id="compare-table"', html)
@@ -258,6 +261,26 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         actual = {path.name for path in FLAG_PATH.glob("*.svg")}
         self.assertEqual(actual, expected)
         self.assertTrue((FLAG_PATH / "LICENSE.flag-icons.txt").is_file())
+
+    def test_desktop_presets_storage_order_and_annual_map_fallback_are_wired(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        style = STYLE_PATH.read_text(encoding="utf-8")
+        storage = re.search(r"const STORAGE_METRIC_IDS = \[(.*?)\];", app, re.DOTALL)
+        self.assertIsNotNone(storage)
+        ordered = storage.group(1)
+        self.assertLess(ordered.index('"battery_energy_gwh"'), ordered.index('"battery_power_gw"'))
+        self.assertLess(ordered.index('"battery_power_gw"'), ordered.index('"battery_duration_hours"'))
+        self.assertLess(ordered.index('"pumped_storage_energy_gwh"'), ordered.index('"pumped_storage_power_gw"'))
+        self.assertLess(ordered.index('"pumped_storage_power_gw"'), ordered.index('"pumped_storage_duration_hours"'))
+        self.assertIn("async function selectMapMetricForPeriod(metricId)", app)
+        self.assertIn('$("period-type").value = "year"', app)
+        self.assertIn("metric.temporal_availability.yearly", app)
+        self.assertIn("async function applyComparisonPreset(preset)", app)
+        self.assertIn("availabilityPreset", app)
+        self.assertIn(".comparison-presets::before", style)
+        self.assertIn(".selection-energy-pulse", style)
+        self.assertIn(".export-success-pulse", style)
+        self.assertIn("legend-morph", style)
 
 
 if __name__ == "__main__":
