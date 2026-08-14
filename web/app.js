@@ -23,6 +23,13 @@ const EV_METRIC_IDS = [
   "ev_battery_nominal_capacity_est_gwh",
 ];
 const COMPARISON_PRESETS = ["ytd", "1y", "3y", "5y", "10y", "max"];
+const DEFAULT_COMPARISON_METRIC = "low_carbon_share_pct";
+const DEFAULT_COMPARISON_COUNTRIES = ["FR", "DE", "ES", "UK", "IT"];
+const SHOW_RANKING_DATA_QUALITY_NOTICES = false;
+const STORAGE_VARIANT_ORDER = new Map([
+  ["battery_energy_gwh", 0], ["battery_power_gw", 1], ["battery_duration_hours", 2],
+  ["pumped_storage_energy_gwh", 0], ["pumped_storage_power_gw", 1], ["pumped_storage_duration_hours", 2],
+]);
 const NE_TO_ATLAS = {
   "AUT": "AT", "BEL": "BE", "BGR": "BG", "CHE": "CH", "CZE": "CZ", "DEU": "DE", "DNK": "DK",
   "ESP": "ES", "EST": "EE", "FIN": "FI", "FRA": "FR", "GBR": "UK", "GRC": "GR", "HRV": "HR",
@@ -96,7 +103,7 @@ let mapSvg = null;
 let mapMetricId = "generation_twh";
 let focusedMapCountry = null;
 let animateChartNextRender = false;
-const selected = new Set();
+const selected = new Set(DEFAULT_COMPARISON_COUNTRIES);
 let timeseriesData = null;
 let timeseriesColors = new Map();
 let chartHoverIndex = null;
@@ -183,16 +190,22 @@ function metricHeader(id, activeKey, direction, allowMap = false) {
   const activeSort = activeKey === id;
   const arrow = activeSort ? (direction > 0 ? "↑" : "↓") : "";
   const ariaSort = activeSort ? ` aria-sort="${direction > 0 ? "ascending" : "descending"}"` : "";
-  const unit = metric.unit ? `<span class="unit">${escapeHtml(metric.unit)}</span>` : "";
+  const label = tableHeaderText(metric.label_de);
+  const unitLabel = tableHeaderText(metric.unit);
+  const unit = unitLabel ? `<span class="unit">${escapeHtml(unitLabel)}</span>` : "";
   const mapAction = allowMap && metric.map
-    ? `<button type="button" class="map-column-action${mapMetricId === id ? " active" : ""}" data-map-metric="${id}" aria-label="${escapeAttribute(metric.label_de)} auf Karte anzeigen">Karte</button>`
+    ? `<button type="button" class="map-column-action${mapMetricId === id ? " active" : ""}" data-map-metric="${id}" aria-label="${escapeAttribute(label)} auf Karte anzeigen">Karte</button>`
     : "";
   return `<th scope="col" data-key="${id}"${ariaSort} class="${mapMetricId === id ? "map-column-active" : ""}">
-    <button type="button" class="sort-action" data-sort-key="${id}" aria-label="${escapeAttribute(metric.label_de)} sortieren">
-      <span class="sort-label">${escapeHtml(metric.label_de)}</span>${unit}<span class="sort-indicator" aria-hidden="true">${arrow}</span>
+    <button type="button" class="sort-action" data-sort-key="${id}" aria-label="${escapeAttribute(label)} sortieren">
+      <span class="sort-label">${escapeHtml(label)}</span>${unit}<span class="sort-indicator" aria-hidden="true">${arrow}</span>
     </button>
     ${mapAction}
   </th>`;
+}
+
+function tableHeaderText(value) {
+  return String(value ?? "").replace(/\s+im\s+Ranking\b/gi, "").trim();
 }
 
 function countryHeader(activeKey, direction) {
@@ -220,6 +233,8 @@ function updateTableDisclosure(kind, expanded, total) {
   const state = $(`${kind}-table-state`);
   const count = $(`${kind}-count`);
   if (!button || !state || !count) return;
+  const card = button.closest?.(".table-card");
+  card?.classList.toggle("table-card-expanded", expanded);
   button.hidden = total <= TABLE_PREVIEW_LIMIT;
   button.setAttribute("aria-expanded", String(expanded));
   button.querySelector(".table-toggle-label").textContent = expanded
@@ -227,6 +242,37 @@ function updateTableDisclosure(kind, expanded, total) {
     : `Alle ${total} Länder anzeigen`;
   state.textContent = expanded ? "Vollständige Rangliste" : "Top 10 nach aktueller Sortierung";
   count.textContent = `${visible} von ${total} Ländern`;
+}
+
+function syncStickyHeaderOffset() {
+  const controls = document.querySelector?.(".controls");
+  if (!controls || typeof controls.getBoundingClientRect !== "function") return;
+  const height = Math.ceil(controls.getBoundingClientRect().height);
+  document.documentElement?.style?.setProperty("--atlas-controls-height", `${height}px`);
+}
+
+function animateTableDisclosure(kind, renderTable, collapsing) {
+  const region = $(`${kind}-table-region`);
+  if (!region || !motionAllowed()) {
+    renderTable();
+    return;
+  }
+  const startHeight = region.getBoundingClientRect().height;
+  renderTable();
+  const endHeight = region.scrollHeight;
+  if (Math.abs(startHeight - endHeight) < 1) return;
+  region.style.height = `${startHeight}px`;
+  region.classList.add("table-disclosure-animating");
+  requestAnimationFrame(() => {
+    region.style.height = `${endHeight}px`;
+    if (collapsing) window.scrollBy?.({top: endHeight - startHeight, behavior: "smooth"});
+  });
+  const finish = () => {
+    region.style.height = "";
+    region.classList.remove("table-disclosure-animating");
+  };
+  region.addEventListener("transitionend", finish, {once: true});
+  setTimeout(finish, 900);
 }
 
 function statusBadge(row) {
@@ -426,9 +472,8 @@ function toggleCountry(code, shouldSelect = !selected.has(code)) {
   }
   updateSelection();
   if (shouldSelect) animateSelectionToCompare(code);
-  if (timeseriesData) {
-    $("comparison-status").textContent = "Länderauswahl geändert. Plot aktualisieren, um den neuen Stand zu laden.";
-  }
+  if (timeseriesData && selected.size) void loadTimeseries({scroll: false, updateUrl: true});
+  else if (timeseriesData) $("comparison-status").textContent = "Mindestens ein Land auswählen.";
   return true;
 }
 
@@ -437,7 +482,7 @@ function clearSelection() {
   selected.clear();
   updateSelection();
   if (timeseriesData) {
-    $("comparison-status").textContent = "Länderauswahl aufgehoben. Neue Länder wählen und den Plot aktualisieren.";
+    $("comparison-status").textContent = "Länderauswahl aufgehoben. Neue Länder wählen.";
   }
   $("status").textContent = "Gesamte Länderauswahl aufgehoben.";
 }
@@ -492,6 +537,12 @@ function mapMetrics() {
   return [...metricCatalog.values()].filter(metric => metric.map);
 }
 
+function orderedMetricVariants(metrics) {
+  return [...metrics].sort((first, second) => (
+    (STORAGE_VARIANT_ORDER.get(first.id) ?? 99) - (STORAGE_VARIANT_ORDER.get(second.id) ?? 99)
+  ));
+}
+
 function familyKey(metric) {
   return `${metric.group}::${metric.family}`;
 }
@@ -525,7 +576,7 @@ function renderMapControls() {
   ).join("");
   $("map-family").value = familyKey(activeMetric);
 
-  const variants = metrics.filter(metric => familyKey(metric) === familyKey(activeMetric));
+  const variants = orderedMetricVariants(metrics.filter(metric => familyKey(metric) === familyKey(activeMetric)));
   $("map-representation").innerHTML = variants.map(metric => {
     const selectable = metricAvailable(metric) || (isMonthView() && metric.temporal_availability.yearly);
     const disabled = selectable ? "" : " disabled";
@@ -988,7 +1039,7 @@ function renderComparisonControls(metricId = null) {
   const allMetrics = [...metricCatalog.values()].filter(metric => metric.compare);
   if (!allMetrics.length) return;
   const activeMetric = metricCatalog.get(metricId || $("compare-metric").value)
-    || metricCatalog.get("renewable_share_pct")
+    || metricCatalog.get(DEFAULT_COMPARISON_METRIC)
     || timeseriesMetrics()[0];
   const families = new Map();
   allMetrics.forEach(metric => {
@@ -1008,7 +1059,7 @@ function renderComparisonControls(metricId = null) {
 }
 
 function renderComparisonMetricOptions(family, metricId = null) {
-  const variants = [...metricCatalog.values()].filter(metric => metric.compare && familyKey(metric) === family);
+  const variants = orderedMetricVariants([...metricCatalog.values()].filter(metric => metric.compare && familyKey(metric) === family));
   $("compare-metric").innerHTML = variants.map(metric => {
     const availability = metric.temporal_availability;
     const available = availability.monthly || availability.yearly;
@@ -1089,6 +1140,22 @@ function availableComparisonRange(payload) {
     : (payload?.atlas_average?.values || []);
   const periods = source.filter(point => Number.isFinite(point.value)).map(point => point.period).sort();
   return periods.length ? {start: periods[0], end: periods[periods.length - 1]} : null;
+}
+
+function latestCompleteComparisonIndex(payload) {
+  const countries = payload?.countries || [];
+  if (!countries.length) return null;
+  const periodCount = Math.max(...countries.map(country => country.values?.length || 0));
+  for (let index = periodCount - 1; index >= 0; index -= 1) {
+    const points = countries.map(country => country.values?.[index]);
+    if (points.every(point => point?.period && Number.isFinite(point.value))) return index;
+  }
+  return null;
+}
+
+function latestCompleteComparisonPeriod(payload) {
+  const index = latestCompleteComparisonIndex(payload);
+  return index === null ? null : payload.countries[0].values[index].period;
 }
 
 function setActiveComparisonPreset(preset) {
@@ -1194,6 +1261,15 @@ async function restoreComparisonState() {
   return true;
 }
 
+async function initializeDefaultComparison() {
+  selected.clear();
+  DEFAULT_COMPARISON_COUNTRIES.forEach(code => selected.add(code));
+  renderComparisonControls(DEFAULT_COMPARISON_METRIC);
+  updateSelection();
+  $("comparison").hidden = false;
+  await applyComparisonPreset("max");
+}
+
 async function compare() {
   $("comparison").hidden = false;
   renderComparisonControls();
@@ -1213,10 +1289,12 @@ async function loadTimeseries({scroll = false, updateUrl = true, availabilityPre
     return;
   }
   const payloadAvailableRange = availableComparisonRange(payload);
-  if (availabilityPreset === "max" && payloadAvailableRange) knownMaximumComparisonRange = payloadAvailableRange;
+  const completeEnd = latestCompleteComparisonPeriod(payload);
+  const maximumRange = payloadAvailableRange && completeEnd ? {...payloadAvailableRange, end: completeEnd} : payloadAvailableRange;
+  if (availabilityPreset === "max" && maximumRange) knownMaximumComparisonRange = maximumRange;
   if (availabilityPreset && !availabilityAdjusted && payloadAvailableRange) {
     let adjusted = null;
-    if (availabilityPreset === "max") adjusted = payloadAvailableRange;
+    if (availabilityPreset === "max") adjusted = maximumRange;
     if (availabilityPreset === "ytd" && payload.granularity === "monthly") {
       const requestedYear = $("compare-end").value.slice(0, 4);
       if (payloadAvailableRange.end.startsWith(requestedYear)) {
@@ -1466,7 +1544,7 @@ function renderTimeseriesChart() {
     height: geometry.bottom - geometry.top,
   }));
   bindChartInteraction(svg, scale, geometry);
-  renderRanking(activeIndex ?? periods.length - 1);
+  renderRanking(activeIndex ?? latestCompleteComparisonIndex(payload) ?? periods.length - 1);
   $("unpin-time").hidden = chartPinnedIndex === null;
 }
 
@@ -1509,6 +1587,20 @@ function comparisonBaselinePoint(country, period, granularity) {
   return country.baseline_values?.find(point => point.period === baselinePeriod) || null;
 }
 
+function rankingFallbackDetails(country, index) {
+  const period = country.values[index]?.period || "";
+  const granularity = timeseriesData?.granularity || (period.includes("-") ? "monthly" : "yearly");
+  const baselinePoint = comparisonBaselinePoint(country, period, granularity);
+  const incomplete = country.values.some(point => !Number.isFinite(point.value));
+  const reasons = [];
+  if (incomplete) reasons.push("Datenreihe unvollständig");
+  if (!Number.isFinite(baselinePoint?.value)) reasons.push("Vergleichswert 2015 fehlt");
+  return {
+    active: reasons.length > 0,
+    text: reasons.length ? `${country.country_name}: ${reasons.join("; ")}` : "",
+  };
+}
+
 function relativeBaselineChange(country, index, granularity) {
   const current = country.values[index]?.value;
   const period = country.values[index]?.period || "";
@@ -1531,11 +1623,11 @@ function renderRanking(index) {
   }));
   const previousAverageRaw = $("atlas-average-value").dataset.numeric;
   const previousAverage = previousAverageRaw ? Number(previousAverageRaw) : null;
-  const entries = timeseriesData.countries.map((country, countryIndex) => ({
-    country,
-    countryIndex,
-    value: country.values[index]?.value,
-  })).sort((a, b) => {
+  const period = timeseriesData.atlas_average.values[index].period;
+  const entries = timeseriesData.countries.map((country, countryIndex) => {
+    const fallback = rankingFallbackDetails(country, index);
+    return {country, countryIndex, value: country.values[index]?.value, fallback};
+  }).sort((a, b) => {
     if (!Number.isFinite(a.value) && !Number.isFinite(b.value)) return a.country.country_name.localeCompare(b.country.country_name, "de");
     if (!Number.isFinite(a.value)) return 1;
     if (!Number.isFinite(b.value)) return -1;
@@ -1548,7 +1640,6 @@ function renderRanking(index) {
     entry.rank = Number.isFinite(entry.value) ? rank : null;
     previousValue = entry.value;
   });
-  const period = timeseriesData.atlas_average.values[index].period;
   const periodStatus = timeseriesData.atlas_average.values[index].period_status;
   $("ranking-period").textContent = `${period}${periodStatus === "ytd" ? " · YTD" : periodStatus === "provisional_current_month" ? " · vorläufig" : ""}`;
   const average = timeseriesData.atlas_average.values[index].value;
@@ -1561,11 +1652,16 @@ function renderRanking(index) {
     return `<li data-country="${entry.country.country_code}" class="ranking-item${Number.isFinite(entry.value) ? "" : " missing-value"}">
       <span class="ranking-rank">${entry.rank || "—"}</span>
       <img src="/assets/flags/${flagCode(entry.country.country_code)}.svg" alt="" width="24" height="18">
-      <span class="ranking-country"><b>${entry.country.country_code}</b><small>${escapeHtml(entry.country.country_name)}</small></span>
+      <span class="ranking-country"><b>${entry.country.country_code}${SHOW_RANKING_DATA_QUALITY_NOTICES && entry.fallback.active ? '<sup class="ranking-fallback-marker" aria-label="Hinweis">*</sup>' : ""}</b><small>${escapeHtml(entry.country.country_name)}</small></span>
       <span class="ranking-value"><span class="ranking-number" data-numeric="${Number.isFinite(entry.value) ? entry.value : ""}">${formatMetricValue(entry.value, timeseriesData.metric)}</span><small>${Number.isFinite(entry.value) ? timeseriesData.metric.unit : ""}</small></span>
       <span class="ranking-change">${rankingChange(entry.country, index)}</span>
     </li>`;
   }).join("");
+  const fallbackNotes = SHOW_RANKING_DATA_QUALITY_NOTICES
+    ? entries.filter(entry => entry.fallback.active).map(entry => `<span class="ranking-footnote-star" aria-hidden="true">*</span> ${escapeHtml(entry.fallback.text)}`)
+    : [];
+  $("ranking-footnotes").hidden = fallbackNotes.length === 0;
+  $("ranking-footnotes").innerHTML = fallbackNotes.join("<br>");
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     animateMetricNumber($("atlas-average-value").querySelector(".ranking-average-number"), previousAverage, average, timeseriesData.metric);
     $("ranking-list").querySelectorAll(".ranking-item").forEach(item => {
@@ -1627,7 +1723,11 @@ if (typeof module !== "undefined" && module.exports) {
     formatTableValue,
     availableComparisonRange,
     comparisonPresetRange,
+    latestCompleteComparisonIndex,
+    latestCompleteComparisonPeriod,
     parseComparisonUrl,
+    comparisonBaselinePoint,
+    rankingFallbackDetails,
     relativeBaselineChange,
   };
 }
@@ -1676,12 +1776,71 @@ async function serializedChartSvg() {
     .x-axis-label{text-anchor:middle}.y-axis-label{text-anchor:end}
   `;
   clone.prepend(style);
-  for (const image of clone.querySelectorAll("image")) {
-    const response = await fetch(image.getAttribute("href"));
+  await inlineSvgImages(clone);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+}
+
+async function inlineSvgImages(root) {
+  for (const image of root.querySelectorAll("image")) {
+    const href = image.getAttribute("href");
+    if (!href || href.startsWith("data:")) continue;
+    const response = await fetch(href);
     const source = await response.text();
     image.setAttribute("href", `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(source)))}`);
   }
-  return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+}
+
+function liveRankingExportEntries() {
+  return [...$("ranking-list").querySelectorAll(".ranking-item")].map(item => ({
+    rank: item.querySelector(".ranking-rank")?.textContent.trim() || "—",
+    code: item.dataset.country,
+    name: item.querySelector(".ranking-country small")?.textContent.trim() || "",
+    value: item.querySelector(".ranking-number")?.textContent.trim() || "—",
+    unit: item.querySelector(".ranking-value small")?.textContent.trim() || "",
+    change: item.querySelector(".ranking-change")?.textContent.trim() || "—",
+  }));
+}
+
+async function serializedChartPngSvg() {
+  const chartSource = await serializedChartSvg();
+  const chart = new DOMParser().parseFromString(chartSource, "image/svg+xml").documentElement;
+  const [, , chartWidth, chartHeight] = chart.getAttribute("viewBox").split(/\s+/).map(Number);
+  const panelWidth = 390;
+  const gap = 18;
+  const panelX = chartWidth + gap;
+  const root = svgElement("svg", {
+    xmlns: "http://www.w3.org/2000/svg",
+    viewBox: `0 0 ${chartWidth + gap + panelWidth} ${chartHeight}`,
+    width: chartWidth + gap + panelWidth,
+    height: chartHeight,
+  });
+  root.appendChild(svgElement("rect", {width: chartWidth + gap + panelWidth, height: chartHeight, fill: "#070d18"}));
+  const chartCopy = document.importNode(chart, true);
+  chartCopy.setAttribute("x", "0");
+  chartCopy.setAttribute("y", "0");
+  chartCopy.setAttribute("width", chartWidth);
+  chartCopy.setAttribute("height", chartHeight);
+  root.appendChild(chartCopy);
+  root.appendChild(svgElement("rect", {x: panelX, y: 0, width: panelWidth, height: chartHeight, rx: 12, fill: "#0d1626", stroke: "#2b3b52"}));
+  const text = (x, y, value, attributes = {}) => root.appendChild(svgElement("text", {x, y, "font-family": 'Calibri,"Segoe UI",sans-serif', ...attributes}, value));
+  text(panelX + 22, 35, "Live-Ranking", {fill: "#f7f5f0", "font-size": 22, "font-weight": 750});
+  text(panelX + panelWidth - 22, 35, $("ranking-period").textContent.trim(), {fill: "#b6c1cc", "font-size": 14, "font-weight": 700, "text-anchor": "end"});
+  root.appendChild(svgElement("rect", {x: panelX + 18, y: 52, width: panelWidth - 36, height: 42, rx: 8, fill: "#111d2e", stroke: "#52657c", "stroke-dasharray": "3 3"}));
+  text(panelX + 30, 78, $("atlas-average-value").textContent.trim(), {fill: "#edf3fb", "font-size": 14, "font-weight": 750});
+  text(panelX + 22, 117, $("ranking-baseline-note").textContent.trim(), {fill: "#b6c1cc", "font-size": 12});
+  liveRankingExportEntries().forEach((entry, index) => {
+    const y = 130 + index * 36;
+    root.appendChild(svgElement("rect", {x: panelX + 18, y, width: panelWidth - 36, height: 31, rx: 7, fill: "#152238"}));
+    text(panelX + 35, y + 20, entry.rank, {fill: "#b6c1cc", "font-size": 14, "font-weight": 750, "text-anchor": "middle"});
+    root.appendChild(svgElement("image", {href: `/assets/flags/${flagCode(entry.code)}.svg`, x: panelX + 52, y: y + 6, width: 22, height: 16}));
+    text(panelX + 84, y + 15, entry.code, {fill: "#f7f5f0", "font-size": 14, "font-weight": 800});
+    text(panelX + 84, y + 27, entry.name, {fill: "#b6c1cc", "font-size": 9});
+    text(panelX + panelWidth - 94, y + 15, entry.value, {fill: "#f7f5f0", "font-size": 14, "font-weight": 800, "text-anchor": "end"});
+    text(panelX + panelWidth - 94, y + 27, entry.unit, {fill: "#b6c1cc", "font-size": 9, "text-anchor": "end"});
+    text(panelX + panelWidth - 28, y + 20, entry.change, {fill: "#8ba2bd", "font-size": 11, "font-weight": 700, "text-anchor": "end"});
+  });
+  await inlineSvgImages(root);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(root)}`;
 }
 
 async function exportSvg() {
@@ -1696,7 +1855,7 @@ async function exportPng() {
 }
 
 async function buildChartPngBlob() {
-  const source = await serializedChartSvg();
+  const source = await serializedChartPngSvg();
   const url = URL.createObjectURL(new Blob([source], {type: "image/svg+xml;charset=utf-8"}));
   const image = new Image();
   await new Promise((resolve, reject) => {
@@ -1723,7 +1882,7 @@ function mapIsFullscreen() {
 function updateMapFullscreenButton() {
   const active = mapIsFullscreen();
   const button = $("map-fullscreen");
-  button.textContent = active ? "Vollbild verlassen" : "Karte im Vollbild";
+  button.textContent = active ? "Vollbild verlassen" : "Vollbild";
   button.setAttribute("aria-pressed", String(active));
 }
 
@@ -1919,31 +2078,46 @@ $("load").addEventListener("click", loadSummary);
 $("compare").addEventListener("click", compare);
 $("clear-selection").addEventListener("click", clearSelection);
 $("summary-toggle").addEventListener("click", () => {
+  const collapsing = summaryExpanded;
   summaryExpanded = !summaryExpanded;
-  render();
+  animateTableDisclosure("summary", render, collapsing);
 });
 $("ev-toggle").addEventListener("click", () => {
+  const collapsing = evExpanded;
   evExpanded = !evExpanded;
-  renderElectromobility();
+  animateTableDisclosure("ev", renderElectromobility, collapsing);
 });
 $("storage-toggle").addEventListener("click", () => {
+  const collapsing = storageExpanded;
   storageExpanded = !storageExpanded;
-  renderStorage();
+  animateTableDisclosure("storage", renderStorage, collapsing);
 });
-$("compare-load").addEventListener("click", () => loadTimeseries({updateUrl: true}));
 document.querySelectorAll?.("[data-range-preset]")?.forEach(button => button.addEventListener("click", () => applyComparisonPreset(button.dataset.rangePreset)));
+syncStickyHeaderOffset();
+window.addEventListener?.("resize", syncStickyHeaderOffset);
+if (typeof ResizeObserver === "function") {
+  const controls = document.querySelector?.(".controls");
+  if (controls) new ResizeObserver(syncStickyHeaderOffset).observe(controls);
+}
 for (const id of ["compare-start", "compare-end"]) {
   $(id).addEventListener("input", () => {
     knownMaximumComparisonRange = null;
     syncComparisonPresetFromFields();
   });
+  $(id).addEventListener("change", () => loadTimeseries({scroll: false, updateUrl: true}));
 }
 $("compare-country-add").addEventListener("change", event => {
   if (event.target.value) toggleCountry(event.target.value, true);
   event.target.value = "";
 });
-$("compare-family").addEventListener("change", event => renderComparisonMetricOptions(event.target.value));
-$("compare-metric").addEventListener("change", event => configureComparisonRange(metricDefinition(event.target.value)));
+$("compare-family").addEventListener("change", async event => {
+  renderComparisonMetricOptions(event.target.value);
+  await loadTimeseries({scroll: false, updateUrl: true});
+});
+$("compare-metric").addEventListener("change", async event => {
+  configureComparisonRange(metricDefinition(event.target.value));
+  await loadTimeseries({scroll: false, updateUrl: true});
+});
 $("comparison-fullscreen").addEventListener("click", toggleComparisonFullscreen);
 $("unpin-time").addEventListener("click", () => {
   chartPinnedIndex = null;
@@ -1962,7 +2136,7 @@ $("copy-link").addEventListener("click", async () => {
   $("comparison-status").textContent = "Direktlink wurde kopiert.";
 });
 $("map-family").addEventListener("change", async event => {
-  const variants = mapMetrics().filter(metric => familyKey(metric) === event.target.value);
+  const variants = orderedMetricVariants(mapMetrics().filter(metric => familyKey(metric) === event.target.value));
   const next = variants.find(metricAvailable)
     || variants.find(metric => isMonthView() && metric.temporal_availability.yearly)
     || variants[0];
@@ -1994,7 +2168,11 @@ window.__atlasCompareTest = {
   assignCountryColors,
   extractFlagColors,
   flagCode,
+  latestCompleteComparisonIndex,
+  latestCompleteComparisonPeriod,
   parseComparisonUrl,
+  comparisonBaselinePoint,
+  rankingFallbackDetails,
   relativeBaselineChange,
   serializedChartSvg,
   buildChartPngBlob,
@@ -2005,7 +2183,10 @@ loadCoverage();
 configureInfoPanels();
 loadMetricCatalog()
   .then(() => Promise.all([loadMapAsset(), loadSummary(), loadStorage()]))
-  .then(() => restoreComparisonState())
+  .then(async () => {
+    const restored = await restoreComparisonState();
+    if (!restored) await initializeDefaultComparison();
+  })
   .catch(error => {
     $("status").textContent = `Fehler: ${error.message}`;
     $("status").className = "error";

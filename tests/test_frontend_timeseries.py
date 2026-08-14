@@ -7,6 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+APP_PATH = ROOT / "web" / "app.js"
 NODE = Path(os.environ.get("EEA_NODE") or shutil.which("node") or "")
 
 
@@ -22,6 +23,7 @@ class FrontendTimeseriesTests(unittest.TestCase):
             check=True,
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
         return json.loads(result.stdout)
 
@@ -48,6 +50,16 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
             result["csv"],
             "period,DE,FR,atlas_average\r\n2025-01,1,0,0.5\r\n2025-02,,2,2",
         )
+
+    def test_png_export_includes_the_current_live_ranking_panel(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn("function liveRankingExportEntries()", app)
+        self.assertIn('$("ranking-list").querySelectorAll(".ranking-item")', app)
+        self.assertIn("async function serializedChartPngSvg()", app)
+        self.assertIn('text(panelX + 22, 35, "Live-Ranking"', app)
+        self.assertIn('$("atlas-average-value").textContent.trim()', app)
+        self.assertIn('href: `/assets/flags/${flagCode(entry.code)}.svg`', app)
+        self.assertIn("const source = await serializedChartPngSvg();", app)
 
     def test_table_formatter_keeps_two_decimal_places_by_default(self):
         script = r'''
@@ -120,7 +132,7 @@ global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matc
 global.history = {replaceState: () => {}};
 global.fetch = () => new Promise(() => {});
 global.URLSearchParams = URLSearchParams;
-const {availableComparisonRange, comparisonPresetRange} = require("./web/app.js");
+const {availableComparisonRange, comparisonPresetRange, latestCompleteComparisonIndex, latestCompleteComparisonPeriod} = require("./web/app.js");
 const monthly = {temporal_availability: {monthly: true, yearly: true}};
 const yearly = {temporal_availability: {monthly: false, yearly: true}};
 const available = availableComparisonRange({
@@ -139,6 +151,14 @@ process.stdout.write(JSON.stringify({
   threeCalendarYears: comparisonPresetRange("3y", yearly, "2026"),
   yearlyYtd: comparisonPresetRange("ytd", yearly, "2026"),
   maximum: comparisonPresetRange("max", monthly, "2026-08", available),
+  completeEnd: latestCompleteComparisonPeriod({countries: [
+    {values: [{period: "2026-06", value: 4}, {period: "2026-07", value: 5}]},
+    {values: [{period: "2026-06", value: 3}, {period: "2026-07", value: null}]},
+  ]}),
+  completeIndex: latestCompleteComparisonIndex({countries: [
+    {values: [{period: "2026-06", value: 4}, {period: "2026-07", value: 5}]},
+    {values: [{period: "2026-06", value: 3}, {period: "2026-07", value: null}]},
+  ]}),
   available,
 }));
 '''
@@ -150,15 +170,17 @@ process.stdout.write(JSON.stringify({
         self.assertIsNone(result["yearlyYtd"])
         self.assertEqual(result["available"], {"start": "2015-02", "end": "2026-06"})
         self.assertEqual(result["maximum"], {"start": "2015-02", "end": "2026-06"})
+        self.assertEqual(result["completeEnd"], "2026-06")
+        self.assertEqual(result["completeIndex"], 0)
 
-    def test_flag_colors_are_preferred_without_conflicts_and_2015_is_the_baseline(self):
+    def test_flag_colors_are_preferred_without_conflicts_and_monthly_change_uses_2015_month(self):
         script = r'''
 global.document = {getElementById: () => ({addEventListener: () => {}})};
 global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
 global.history = {replaceState: () => {}};
 global.fetch = () => new Promise(() => {});
 global.URLSearchParams = URLSearchParams;
-const {assignCountryColors, colorDistance, extractFlagColors, relativeBaselineChange} = require("./web/app.js");
+const {assignCountryColors, colorDistance, extractFlagColors, comparisonBaselinePoint, rankingFallbackDetails, relativeBaselineChange} = require("./web/app.js");
 const candidates = new Map([
   ["DE", extractFlagColors('<path fill="#fc0"/><path fill="#000001"/><path fill="red"/>')],
   ["ES", extractFlagColors('<path fill="#aa151b"/><path fill="#f1bf00"/>')],
@@ -171,20 +193,30 @@ const conflicting = new Map(tenCodes.map(code => [code, ["#ff0000", "#f90008"]])
 const tenColors = [...assignCountryColors(tenCodes, conflicting).values()];
 const minimumDistance = Math.min(...tenColors.flatMap((color, index) => tenColors.slice(index + 1).map(other => colorDistance(color, other))));
 const monthly = {
+  country_code: "DE",
   values: [{period: "2026-07", value: 15}],
   baseline_values: [{period: "2015-07", value: 5}],
 };
 const zeroBaseline = {
+  country_code: "DE",
   values: [{period: "2026", value: 15}],
   baseline_values: [{period: "2015", value: 0}],
+};
+const missingBaseline = {
+  country_code: "DE",
+  values: [{period: "2026-07", value: 15}],
+  baseline_values: [{period: "2015-07", value: null}],
 };
 process.stdout.write(JSON.stringify({
   colors: Object.fromEntries(colors),
   unique: new Set(colors.values()).size,
   tenUnique: new Set(tenColors).size,
   minimumDistance,
+  monthlyBaseline: comparisonBaselinePoint(monthly, "2026-07", "monthly"),
   monthlyChange: relativeBaselineChange(monthly, 0, "monthly"),
   zeroChange: relativeBaselineChange(zeroBaseline, 0, "yearly"),
+  missingChange: relativeBaselineChange(missingBaseline, 0, "monthly"),
+  missingFallback: rankingFallbackDetails({...missingBaseline, country_name: "Deutschland"}, 0),
 }));
 '''
         result = self.run_node(script)
@@ -193,8 +225,12 @@ process.stdout.write(JSON.stringify({
         self.assertEqual(result["unique"], 4)
         self.assertEqual(result["tenUnique"], 10)
         self.assertGreaterEqual(result["minimumDistance"], 96)
+        self.assertEqual(result["monthlyBaseline"], {"period": "2015-07", "value": 5})
         self.assertEqual(result["monthlyChange"], 200)
         self.assertIsNone(result["zeroChange"])
+        self.assertIsNone(result["missingChange"])
+        self.assertTrue(result["missingFallback"]["active"])
+        self.assertIn("Vergleichswert 2015 fehlt", result["missingFallback"]["text"])
 
 
 if __name__ == "__main__":

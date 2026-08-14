@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" role="img" aria-labelledby="title desc">
   <title id="title">Europa-Stern</title>
-  <desc id="desc">Ein einzelner weißer fünfzackiger Stern nach dem Vorbild der Europaflagge.</desc>
-  <path fill="#ffffff" d="M22 2.8l4.49 13.82h14.53l-11.76 8.54 4.49 13.82L22 30.44l-11.75 8.54 4.49-13.82-11.76-8.54h14.53z"/>
+  <desc id="desc">Ein einzelner goldener fünfzackiger Stern nach dem Vorbild der Europaflagge.</desc>
+  <path fill="#b89a5a" d="M22 2.8l4.49 13.82h14.53l-11.76 8.54 4.49 13.82L22 30.44l-11.75 8.54 4.49-13.82-11.76-8.54h14.53z"/>
 </svg>

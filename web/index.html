@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <div id="wallpaper-stream" class="wallpaper-stream" aria-hidden="true"></div>
   <main>
     <header class="site-header">
       <div class="brand-lockup">
@@ -68,11 +69,11 @@
           </label>
         </div>
         <p id="map-availability" class="hint" role="status"></p>
-        <div class="map-actions" aria-label="Karte anzeigen und exportieren">
+        <div class="map-actions tool-actions" aria-label="Karte anzeigen und exportieren">
           <label class="value-toggle"><input id="map-values" type="checkbox" checked> Werte anzeigen</label>
-          <button id="map-export-svg" class="secondary-action" type="button" disabled>SVG exportieren</button>
-          <button id="map-export-png" class="secondary-action" type="button" disabled>PNG exportieren</button>
-          <button id="map-fullscreen" class="secondary-action" type="button" aria-pressed="false">Karte im Vollbild</button>
+          <button id="map-export-svg" type="button" disabled>SVG</button>
+          <button id="map-export-png" type="button" disabled>PNG</button>
+          <button id="map-fullscreen" type="button" aria-pressed="false">Vollbild</button>
         </div>
         <div class="map-layout">
           <div id="map-frame" class="map-frame" aria-busy="true">
@@ -87,6 +88,73 @@
             <div id="map-detail" class="map-detail" role="status" aria-live="polite">
               Ein Land fokussieren, um Details anzuzeigen.
             </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparison">
+      <div class="section-heading">
+        <div>
+          <h2>Zeitreihenvergleich</h2>
+          <button class="info-trigger" type="button" data-info-target="comparison-info" aria-expanded="false">Hinweise zum Vergleich</button>
+          <div id="comparison-info" class="info-popover" role="dialog" aria-label="Hinweise zum Zeitreihenvergleich" hidden>
+            <button class="info-close" type="button" aria-label="Hinweise schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
+            <p>Eine Kennzahl, bis zu zehn Länder und der Durchschnitt des vollständigen Atlas-Katalogs.</p>
+          </div>
+        </div>
+      </div>
+      <div id="comparison-stage" class="comparison-stage">
+        <div id="comparison-controls" class="comparison-controls" aria-label="Zeitreihenvergleich steuern">
+          <div class="country-control">
+            <label>Land hinzufügen
+              <select id="compare-country-add"></select>
+            </label>
+            <div id="compare-chips" class="country-chips" aria-label="Ausgewählte Länder"></div>
+          </div>
+          <label>Kennzahlenfamilie
+            <select id="compare-family"></select>
+          </label>
+          <label>Darstellung
+            <select id="compare-metric"></select>
+          </label>
+          <label id="compare-start-label">Von
+            <input id="compare-start" type="month" min="2015-01">
+          </label>
+          <label id="compare-end-label">Bis
+            <input id="compare-end" type="month" min="2015-01">
+          </label>
+          <div class="comparison-actions tool-actions" aria-label="Zeitreihe exportieren">
+            <button id="export-csv" type="button" disabled>CSV</button>
+            <button id="export-svg" type="button" disabled>SVG</button>
+            <button id="export-png" type="button" disabled>PNG</button>
+            <button id="copy-link" type="button" disabled>Link kopieren</button>
+            <button id="comparison-fullscreen" class="secondary-action" type="button" aria-pressed="false">Vollbild</button>
+          </div>
+        </div>
+        <div id="comparison-presets" class="comparison-presets" role="group" aria-label="Schnellauswahl für den Vergleichszeitraum" data-has-active="false">
+          <button type="button" data-range-preset="ytd" aria-pressed="false">YTD</button>
+          <button type="button" data-range-preset="1y" aria-pressed="false">1 Jahr</button>
+          <button type="button" data-range-preset="3y" aria-pressed="false">3 Jahre</button>
+          <button type="button" data-range-preset="5y" aria-pressed="false">5 Jahre</button>
+          <button type="button" data-range-preset="10y" aria-pressed="false">10 Jahre</button>
+          <button type="button" data-range-preset="max" aria-pressed="false">Max</button>
+        </div>
+        <p id="comparison-status" class="hint" role="status"></p>
+        <div id="comparison-layout" class="comparison-layout">
+          <div class="chart-panel">
+            <svg id="timeseries-chart" viewBox="0 0 1600 500" role="img" aria-label="Zeitreihenplot"></svg>
+            <button id="unpin-time" class="secondary-action" type="button" hidden>Zeitpunktfixierung aufheben</button>
+          </div>
+          <aside class="ranking-panel" aria-labelledby="ranking-title">
+            <div class="ranking-heading">
+              <h3 id="ranking-title">Live-Ranking</h3>
+              <span id="ranking-period" class="period-flag"></span>
+            </div>
+            <div id="atlas-average-value" class="atlas-average-value"></div>
+            <p id="ranking-baseline-note" class="ranking-baseline-note"></p>
+            <ol id="ranking-list" class="ranking-list"></ol>
+            <p id="ranking-footnotes" class="ranking-footnotes" hidden></p>
           </aside>
         </div>
       </div>
@@ -149,73 +217,6 @@
           <span class="table-toggle-chevron" aria-hidden="true"></span>
         </button>
       </article>
-    </section>
-
-    <section id="comparison" hidden>
-      <div class="section-heading">
-        <div>
-          <h2>Zeitreihenvergleich</h2>
-          <button class="info-trigger" type="button" data-info-target="comparison-info" aria-expanded="false">Hinweise zum Vergleich</button>
-          <div id="comparison-info" class="info-popover" role="dialog" aria-label="Hinweise zum Zeitreihenvergleich" hidden>
-            <button class="info-close" type="button" aria-label="Hinweise schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
-            <p>Eine Kennzahl, bis zu zehn Länder und der Durchschnitt des vollständigen Atlas-Katalogs.</p>
-          </div>
-        </div>
-      </div>
-      <div id="comparison-stage" class="comparison-stage">
-        <div id="comparison-controls" class="comparison-controls" aria-label="Zeitreihenvergleich steuern">
-          <div class="country-control">
-            <label>Land hinzufügen
-              <select id="compare-country-add"></select>
-            </label>
-            <div id="compare-chips" class="country-chips" aria-label="Ausgewählte Länder"></div>
-          </div>
-          <label>Kennzahlenfamilie
-            <select id="compare-family"></select>
-          </label>
-          <label>Darstellung
-            <select id="compare-metric"></select>
-          </label>
-          <label id="compare-start-label">Von
-            <input id="compare-start" type="month" min="2015-01">
-          </label>
-          <label id="compare-end-label">Bis
-            <input id="compare-end" type="month" min="2015-01">
-          </label>
-          <button id="compare-load" type="button">Plot aktualisieren</button>
-          <div class="comparison-actions" aria-label="Zeitreihe exportieren">
-            <button id="export-csv" type="button" disabled>CSV</button>
-            <button id="export-svg" type="button" disabled>SVG</button>
-            <button id="export-png" type="button" disabled>PNG</button>
-            <button id="copy-link" type="button" disabled>Link kopieren</button>
-            <button id="comparison-fullscreen" class="secondary-action" type="button" aria-pressed="false">Vollbild</button>
-          </div>
-        </div>
-        <div id="comparison-presets" class="comparison-presets" role="group" aria-label="Schnellauswahl für den Vergleichszeitraum" data-has-active="false">
-          <button type="button" data-range-preset="ytd" aria-pressed="false">YTD</button>
-          <button type="button" data-range-preset="1y" aria-pressed="false">1 Jahr</button>
-          <button type="button" data-range-preset="3y" aria-pressed="false">3 Jahre</button>
-          <button type="button" data-range-preset="5y" aria-pressed="false">5 Jahre</button>
-          <button type="button" data-range-preset="10y" aria-pressed="false">10 Jahre</button>
-          <button type="button" data-range-preset="max" aria-pressed="false">Max</button>
-        </div>
-        <p id="comparison-status" class="hint" role="status"></p>
-        <div id="comparison-layout" class="comparison-layout">
-          <div class="chart-panel">
-            <svg id="timeseries-chart" viewBox="0 0 1600 500" role="img" aria-label="Zeitreihenplot"></svg>
-            <button id="unpin-time" class="secondary-action" type="button" hidden>Zeitpunktfixierung aufheben</button>
-          </div>
-          <aside class="ranking-panel" aria-labelledby="ranking-title">
-            <div class="ranking-heading">
-              <h3 id="ranking-title">Live-Ranking</h3>
-              <span id="ranking-period" class="period-flag"></span>
-            </div>
-            <div id="atlas-average-value" class="atlas-average-value"></div>
-            <p id="ranking-baseline-note" class="ranking-baseline-note"></p>
-            <ol id="ranking-list" class="ranking-list"></ol>
-          </aside>
-        </div>
-      </div>
     </section>
 
     <section id="storage" class="data-table-section" aria-labelledby="storage-title" hidden>
@@ -340,6 +341,7 @@
       <div id="coverage"></div>
     </details>
   </main>
+  <script src="/wallpapers.js?v=europe-test-v4"></script>
   <script src="/app.js?v=data-expansion-ui-v1"></script>
 </body>
 </html>

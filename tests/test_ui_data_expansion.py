@@ -40,8 +40,8 @@ class DataExpansionUiTests(unittest.TestCase):
             re.findall(r'"([a-z0-9_]+)"', metric_block.group(1)),
             ["bev_stock", "bev_new_registrations", "ev_battery_nominal_capacity_est_gwh"],
         )
+        self.assertLess(html.index('id="comparison"'), html.index('id="summary-table"'))
         self.assertLess(html.index('id="summary-table"'), html.index('id="electromobility"'))
-        self.assertLess(html.index('id="electromobility"'), html.index('id="comparison"'))
         self.assertIn('id="ev-note" class="hint" role="status"', html)
         self.assertIn('id="ev-toggle"', html)
         self.assertIn('aria-controls="ev-table-region"', html)
