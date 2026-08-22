@@ -1,28 +1,35 @@
-# Coverage Report (automatisch erzeugt)
+# Ember coverage 2025
 
-| Land | Erzeugung | Mix | Verbrauch | Preis | Import/Export | CO₂ | installierte Leistung | Kapazitäts-Snapshot | frühestes importiertes Jahr | Auflösung |
-|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---|
-| DE | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT15M,mixed:PT60M,mixed:PT15M |
-| FR | ✅ | ✅ | ⚠️ | ✅ | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT15M,mixed:PT60M,mixed:PT15M |
-| ES | ✅ | ✅ | ⚠️ | ✅ | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT15M,mixed:PT60M,mixed:PT15M |
-| IT | ✅ | ✅ | ✅ | — | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT1H,PT15M |
-| PL | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT15M,mixed:PT60M,mixed:PT15M |
-| UK | ⚠️ | ⚠️ | ⚠️ | — | ✅ | — | ⚠️ | 2020-01-01T00:00:00+00:00 | 2025 | PT30M,PT15M |
-| NO | ✅ | ✅ | ✅ | — | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT1H,PT15M |
-| SE | ✅ | ✅ | ✅ | — | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT1H,PT15M |
-| DK | ✅ | ✅ | ⚠️ | — | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT1H,PT15M |
-| NL | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | 2025-01-01T00:00:00+01:00 | 2025 | PT15M,mixed:PT60M,mixed:PT15M |
-
-## Hinweise
-- **DE**: DE-LU umfasst auch Luxemburg.; Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: unmapped_generation_categories: ["geothermal", "others", "waste"].
-- **FR**: Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: missing_metric_values: load: 15/2976, load: 4/2972; unmapped_generation_categories: ["battery", "waste"].
-- **ES**: Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: missing_metric_values: load: 142/2880; unmapped_generation_categories: ["battery", "other_renewables", "others", "waste"].
-- **IT**: Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte.; Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: unmapped_generation_categories: ["battery", "geothermal", "other_renewables", "others", "waste"].
-- **PL**: Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: unmapped_generation_categories: ["other_renewables", "others"].
-- **UK**: Keine UK-Gebotszone im Energy-Charts-v2-Preisendpoint.; Kapazitätssnapshot 2020-01-01T00:00:00+00:00 (stale, Alter 5 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: missing_expected_series: ["nuclear", "solar", "wind_offshore"]; missing_metric_values: load: 10/1488, load: 1092/1488, load: 1104/1344, load: 1440/1440, load: 1488/1488, load: 32/1488, load: 422/1490, load: 476/1486, load: 48/1440; unmapped_generation_categories: ["others"].
-- **NO**: Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte.; Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: unmapped_generation_categories: ["other_renewables", "waste"].
-- **SE**: Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte.; Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: unmapped_generation_categories: ["others"].
-- **DK**: Kein belastbarer nationaler Preis ohne Zonen-/Lastgewichte.; Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: missing_metric_values: load: 1/672, load: 1/744, load: 4/745, load: 5/744; unmapped_generation_categories: ["waste"].
-- **NL**: Kapazitätssnapshot 2025-01-01T00:00:00+01:00 (current, Alter 0 Kalenderjahre).; CO2-Intensität nicht über Energy-Charts v2 verfügbar. Datenqualitätsmeldungen: unmapped_generation_categories: ["others", "waste"].
-
-Der Wert ‚frühestes importiertes Jahr‘ beschreibt den lokalen Datenbestand und ist nicht als vollständige historische API-Reichweite zu lesen.
+| Country | Generation | Demand | CO2 intensity | Wholesale price | Status | Earliest year |
+|---|---|---|---|---|---|---:|
+| AT | available | available | available | complete | complete | 2015 |
+| BE | available | available | available | complete | complete | 2015 |
+| BG | available | available | available | complete | complete | 2015 |
+| CH | available | available | available | incomplete | partial | 2015 |
+| CZ | available | available | available | complete | complete | 2015 |
+| DE | available | available | available | complete | complete | 2015 |
+| DK | available | available | available | complete | complete | 2015 |
+| ES | available | available | available | complete | complete | 2015 |
+| EE | available | available | available | complete | complete | 2015 |
+| FI | available | available | available | complete | complete | 2015 |
+| FR | available | available | available | complete | complete | 2015 |
+| UK | available | available | available | complete | complete | 2015 |
+| GR | available | available | available | complete | complete | 2015 |
+| HR | available | available | available | complete | complete | 2015 |
+| HU | available | available | available | complete | complete | 2015 |
+| IE | available | available | available | complete | complete | 2015 |
+| IT | available | available | available | complete | complete | 2015 |
+| LT | available | available | available | complete | complete | 2015 |
+| LU | available | available | available | complete | complete | 2015 |
+| LV | available | available | available | complete | complete | 2015 |
+| ME | available | available | available | incomplete | partial | 2015 |
+| MK | available | available | available | incomplete | partial | 2015 |
+| NL | available | available | available | complete | complete | 2015 |
+| NO | available | available | available | complete | complete | 2015 |
+| PL | available | available | available | complete | complete | 2015 |
+| PT | available | available | available | complete | complete | 2015 |
+| RO | available | available | available | complete | complete | 2015 |
+| RS | available | available | available | complete | complete | 2015 |
+| SK | available | available | available | complete | complete | 2015 |
+| SI | available | available | available | complete | complete | 2015 |
+| SE | available | available | available | complete | complete | 2015 |

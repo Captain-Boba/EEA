@@ -8,29 +8,30 @@ A local, interactive atlas for comparing European electricity systems. The web i
 
 The main country table compares all 31 Atlas countries using consistently formatted metrics. Every column can be sorted and opened directly as a map layer, while rank numbers always follow the active sorting. Countries can be selected in the table for time-series comparison, and the sticky control bar keeps the year, period, and comparison selection within reach while scrolling.
 
-[![Sortable country ranking in the European Electricity Atlas](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)](docs/images/635948733-e09e9264-de92-4c8d-ab92-8527c1364e4c.png)
+[![Sortable country ranking in the European Electricity Atlas](docs/images/Energy%20Systems%20-%20Main%20Ranking%20V2.png)](docs/images/Energy%20Systems%20-%20Main%20Ranking%20V2.png)
 
 ### Every metric on the map of Europe
 
 The fully local SVG map visualizes absolute and relative metrics with dedicated color scales and visible country values. Metric family and representation can be selected independently. In fullscreen mode, the legend remains available beside the map. The current map state can be exported as SVG or PNG, including its title, period, unit, color scale, and legend.
 
-[![Fullscreen map showing the share of renewable electricity generation across Europe](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)](docs/images/635950624-7224dc4b-6424-47dd-96f3-5e07735b9178.png)
+[![Fullscreen map showing low-carbon electricity generation across Europe](docs/images/Map%20Tool%20V2.png)](docs/images/Map%20Tool%20V2.png)
 
 ### Time series for up to ten countries
 
-The time-series comparison combines monthly or annual values with an Atlas average and a live ranking. Preset ranges from YTD to the full available history complement the custom date range. Relative changes use a fixed 2015 baseline; monthly values are always compared with the same calendar month in 2015. Missing values remain visible as genuine gaps in the lines. The current comparison can be shared through a direct link or exported locally as CSV, SVG, and PNG.
+The time-series comparison combines monthly or annual values with an Atlas average and a live ranking. Preset ranges from YTD to the full available history complement the custom date range. Relative changes use the first year of the selected range as their baseline; monthly values are compared with the same calendar month in that baseline year. Missing values remain visible as genuine gaps in the lines. The live ranking follows the pointer at a deliberately moderated rate and can be pinned with a click. The current comparison can be shared through a direct link or exported locally as CSV, SVG, and PNG.
 
-[![Time-series comparison with country lines, Atlas average, and live ranking](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)](docs/images/635949655-624b34af-c665-4e2e-870c-1f1ca4da9d98.png)
+[![Time-series comparison with country lines, Atlas average, and live ranking](docs/images/Comparison%20Tool%20V2.png)](docs/images/Comparison%20Tool%20V2.png)
 
 ## What the Atlas offers
 
 - 31 European countries with monthly and annual values from 2015 onwards
 - electricity generation, demand, generation mix, net imports, and CO₂ intensity
 - national monthly and annual wholesale electricity prices
-- annual population and GDP metrics, including per-capita evaluations
+- annual population and GDP metrics, installed generation capacity, retail-price components, gross electricity trade, electric mobility, and inventory emissions
 - separate battery and pumped-storage power, energy capacity, and equivalent discharge duration snapshots
 - a fully local map of Europe without map tiles, CDNs, or tracking
-- a compact, fullscreen-capable time-series comparison for one to ten countries with an Atlas average, 2015 baseline, shareable links, and local exports
+- a compact, fullscreen-capable time-series comparison for one to ten countries with an Atlas average, range-aware baseline, shareable links, and local exports
+- an optional **Europa Overload** mode with rotating, attributed European postcard imagery from Wikimedia Commons
 - visible coverage gaps, provisional periods, and YTD values instead of fabricated zeroes
 
 ## Quick start with a ready-made data snapshot
@@ -150,10 +151,11 @@ Germany uses only the national Battery-Charts total for batteries. Other countri
 - annual prices are weighted by the actual duration of each month
 - positive net imports indicate an import surplus; negative values indicate an export surplus
 - Eurostat denominators are combined only with electricity values from the same calendar year
+- Eurostat installed-capacity values are net maximum electrical capacity in GW; they are not module-nameplate solar capacity in GWp
 - absent monthly nuclear generation is treated as zero for the approved low-carbon calculation; other missing technologies remain missing
 - negative Ember residual categories (`other renewables` and `other fossil`) are exposed as missing rather than as negative generation
 - estimated total generation emissions are explicitly derived from Ember intensity multiplied by Ember generation
-- theoretical EV battery capacity uses `BEV stock × 60 kWh`; it is nominal traction-battery energy, not grid-accessible V2G storage
+- theoretical EV battery capacity uses the flat fleet assumption `BEV stock × 60 kWh`; it is nominal traction-battery energy, not grid-accessible V2G storage
 - failed updates must not modify existing data
 
 A new SQLite file is initialized automatically when the server starts. The API operates read-only afterwards.
@@ -164,12 +166,13 @@ A new SQLite file is initialized automatically when the server starts. The API o
 - `/api/metrics`
 - `/api/summary?year=2025`
 - `/api/summary?year=2025&month=7`
+- `/api/map-data?metric=capacity_total_gw&year=2025`
 - `/api/compare?year=2025&countries=DE,FR`
 - `/api/timeseries?metric=renewable_share_pct&countries=DE,FR,UK&start=2015-01&end=2026-08`
 - `/api/coverage?year=2025`
 - `/api/storage`
 
-The web interface never performs imports and loads no external map resources at runtime.
+The web interface never performs imports. The analytical interface, map, flags, logo, and exports use local assets and no external map service. Only the optional Europa Overload mode requests attributed postcard images from Wikimedia Commons, and only after the user enables it.
 
 ## Development and tests
 
@@ -189,12 +192,13 @@ Tests use local fixtures exclusively and never perform live imports.
 - [Ember coverage](docs/EMBER_COVERAGE.md)
 - [JRC storage import](docs/JRC_STORAGE_IMPORT.md)
 - [Local map of Europe and Natural Earth provenance](docs/MAP_ASSET.md)
+- [Time-series comparison behavior](docs/TIMESERIES_COMPARISON.md)
 
 ## Known limitations
 
 - Individual historical country-month combinations may contain legitimate coverage gaps.
 - Gross imports and exports are annual Eurostat balance values; negative-price hours and operational interval statistics remain outside the scope of the monthly Atlas.
-- Eurostat installed capacity currently ends in 2024, while several price, trade, and BEV series already reach 2025. Missing later values are not carried forward.
+- Eurostat installed capacity currently ends in 2024, while several price, trade, and BEV series already reach 2025. The map may display the latest earlier capacity year and labels that effective data year explicitly; the stored observations and other views are never backfilled.
 - EEA CRT 1.A.1.a combines public electricity and heat production and is not a pure electricity-only inventory value.
 - The JRC Hydro-power database is an incomplete reported-plant inventory with an unknown update frequency; missing reservoir energy is not estimated.
 - JRC storage values represent its recorded operational project inventory, not necessarily a complete national inventory and not the energy capacity of conventional hydropower reservoirs.

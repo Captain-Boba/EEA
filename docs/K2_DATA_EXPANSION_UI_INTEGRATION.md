@@ -1,5 +1,11 @@
 # K2-Auftrag: Daten-Erweiterung in die Atlas-Oberfläche einbinden
 
+> **Archivierter Arbeitsauftrag vom 14. August 2026.** Dieser Text dokumentiert
+> die damalige Übergabe an K2 und ist keine aktuelle Implementierungsanleitung.
+> HEAD, Testzahl und Arbeitsstand in Abschnitt 2 sind historische Angaben. Für
+> den gegenwärtigen Stand gelten `README.md`, `ROADMAP.md`,
+> `TIMESERIES_COMPARISON.md`, `MAP_ASSET.md` und die ausführbaren Tests.
+
 ## 1. Ziel
 
 Die bereits implementierten fünf Ableitungen sowie die neuen Eurostat-, EEA- und JRC-Daten so in die bestehende Atlas-Oberfläche einbinden, dass Nutzer sie nach Land und Zeitraum auffinden, vergleichen und fachlich korrekt einordnen können. K2 bearbeitet ausschließlich die UI-/API-Einbindung und die zugehörigen Tests; Importlogik, Formeln und reale Quelldaten bleiben geschützt.

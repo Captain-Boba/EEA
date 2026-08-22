@@ -1,6 +1,6 @@
 # Ember coverage notes
 
-Status: local imports on 10 August 2026 before the catalog migration to 31 countries.
+Status: current 31-country Atlas architecture as documented on 22 August 2026.
 
 - Monthly and yearly generation, demand and carbon-intensity observations are stored separately in `period_observation`.
 - The local history is intentionally limited to 2015 and later in the UI.
@@ -11,4 +11,6 @@ Status: local imports on 10 August 2026 before the catalog migration to 31 count
 - Current months are provisional and the current year is reported as YTD.
 - API keys are redacted before request metadata is cached.
 
-Ember remains the sole source for electricity-system and price metrics. Eurostat is used only for annual socioeconomic denominators. Battery-Charts and JRC storage data are exposed as separately dated stock values; none of these auxiliary sources silently fills Ember gaps.
+Ember remains the sole source for electricity-system metrics and national wholesale prices. Eurostat supplies annual socioeconomic denominators as well as installed capacity, retail-price components, gross electricity trade, and battery-electric passenger-car values. Battery-Charts and JRC storage data are exposed as separately dated stock values; the JRC hydro inventory and EEA emissions inventory remain distinct datasets. None of these auxiliary sources silently fills Ember gaps.
+
+The map may select an earlier available Eurostat year for installed-capacity metrics and displays that effective year explicitly. This is a presentation fallback only: it neither creates observations nor fills gaps in Ember or any other dataset.

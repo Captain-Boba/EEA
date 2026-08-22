@@ -125,7 +125,7 @@ EEA_GHG_ENDPOINT = "national-emissions-reported/2026-v1"
 EEA_GHG_URL = "https://sdi.eea.europa.eu/data/83ee8f8c-1422-4e3f-af63-ba88146811e5"
 EEA_GHG_SOURCE_LABEL = "European Environment Agency – GHG inventory, CC BY 4.0"
 
-# This is deliberately a transparent scenario rather than an asserted fleet fact.
+# This is deliberately a transparent, flat fleet assumption rather than an asserted fleet fact.
 # It estimates nominal traction-battery energy and must never be described as
 # grid-available or bidirectionally accessible V2G storage.
 EV_NOMINAL_BATTERY_KWH_PER_BEV = 60.0

@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from electricity_atlas.aggregation import aggregate_country
+from electricity_atlas.aggregation import aggregate_country, map_metric_dataset
 from electricity_atlas.db import initialize
 from electricity_atlas.eea_ghg_importer import EeaGhgImporter
 from electricity_atlas.eurostat_importer import EurostatDownload
@@ -87,6 +87,40 @@ class DataExpansionTests(unittest.TestCase):
         self.assertAlmostEqual(summary["decarbonization_rate_pct"], (350 - 300) / 350 * 100)
         self.assertEqual(summary["ev_battery_nominal_capacity_est_gwh"], 6)
         self.assertAlmostEqual(summary["capacity_factor_wind_pct"], 20 * 1000 / (10 * 8784) * 100)
+
+    def test_capacity_map_uses_latest_available_reporting_year_without_backfill(self):
+        self.insert("DE", 2024, "capacity_total_gw", 266.344, "GW", source="eurostat")
+        self.insert("DE", 2024, "capacity_solar_gw", 91.204, "GW", source="eurostat")
+        self.insert("FR", 2024, "capacity_total_gw", 180, "GW", source="eurostat")
+
+        result = map_metric_dataset(self.connection, "capacity_total_gw", 2025)
+
+        self.assertEqual(result["requested_year"], 2025)
+        self.assertEqual(result["data_year"], 2024)
+        rows = {row["country_code"]: row for row in result["rows"]}
+        self.assertEqual(rows["DE"]["capacity_total_gw"], 266.344)
+        self.assertEqual(rows["DE"]["capacity_solar_gw"], 91.204)
+        self.assertIsNone(rows["CH"].get("capacity_total_gw"))
+        self.assertIsNone(rows["UK"].get("capacity_total_gw"))
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT COUNT(*) FROM period_observation WHERE metric LIKE 'capacity_%' AND period_start='2025-01-01'"
+            ).fetchone()[0],
+            0,
+        )
+
+    def test_capacity_map_keeps_the_requested_year_when_it_has_values(self):
+        self.insert("DE", 2023, "capacity_total_gw", 200, "GW", source="eurostat")
+        self.insert("DE", 2024, "capacity_total_gw", 220, "GW", source="eurostat")
+        result = map_metric_dataset(self.connection, "capacity_total_gw", 2023)
+        self.assertEqual(result["data_year"], 2023)
+        rows = {row["country_code"]: row for row in result["rows"]}
+        self.assertEqual(rows["DE"]["capacity_total_gw"], 200)
+
+    def test_map_data_without_values_has_no_artificial_scale_rows(self):
+        result = map_metric_dataset(self.connection, "capacity_total_gw", 2025)
+        self.assertIsNone(result["data_year"])
+        self.assertEqual(result["rows"], [])
 
     def test_monthly_missing_nuclear_is_zero_only_for_approved_low_carbon_rule(self):
         self.insert("DE", 2025, "generation_total", 10, "TWh", granularity="monthly")

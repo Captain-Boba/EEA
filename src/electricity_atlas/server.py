@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from .aggregation import aggregate_all, aggregate_country
+from .aggregation import aggregate_all, aggregate_country, map_metric_dataset
 from .config import COUNTRIES
 from .coverage import coverage_rows
 from .db import database, read_database
@@ -59,6 +59,10 @@ class AtlasHandler(BaseHTTPRequestHandler):
                     payload = metric_catalog()
                 elif path == "/api/summary":
                     payload = aggregate_all(connection, year, month, source)
+                elif path == "/api/map-data":
+                    payload = map_metric_dataset(
+                        connection, query.get("metric", [""])[0], year, source
+                    )
                 elif path == "/api/compare":
                     codes = [code.upper() for code in query.get("countries", [""])[0].split(",") if code]
                     if not 2 <= len(codes) <= 4 or any(code not in COUNTRIES for code in codes):

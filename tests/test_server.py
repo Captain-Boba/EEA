@@ -30,6 +30,8 @@ class ServerSmokeTests(unittest.TestCase):
                     summary = json.load(response)
                 with urlopen(base + "/api/summary?year=2025&month=7&source=ember", timeout=5) as response:
                     ember_summary = json.load(response)
+                with urlopen(base + "/api/map-data?metric=capacity_total_gw&year=2025", timeout=5) as response:
+                    capacity_map = json.load(response)
                 with urlopen(base + "/api/metrics", timeout=5) as response:
                     metrics = json.load(response)
                 with urlopen(base + "/api/storage", timeout=5) as response:
@@ -58,6 +60,9 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertEqual(len(ember_summary), 31)
                 self.assertTrue(all(row["source"] == "ember" for row in ember_summary))
                 self.assertTrue(all(row["data_status"] == "missing" for row in ember_summary))
+                self.assertEqual(capacity_map["requested_year"], 2025)
+                self.assertIsNone(capacity_map["data_year"])
+                self.assertEqual(capacity_map["rows"], [])
                 self.assertIn("net_import_share_pct", {metric["id"] for metric in metrics})
                 self.assertIn("battery_power_gw", {metric["id"] for metric in metrics})
                 self.assertIn("pumped_storage_energy_gwh", {metric["id"] for metric in metrics})

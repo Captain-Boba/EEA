@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070d18">
-  <title>European Electricity Atlas – Midnight Grid</title>
+  <title>EEA</title>
   <link rel="icon" href="/assets/eea-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -18,6 +18,9 @@
           <h1>European Electricity Atlas</h1>
         </div>
       </div>
+      <button id="europe-overload" class="secondary-action overload-toggle" type="button" aria-pressed="false">
+        <img class="europe-star" src="/assets/europe-star.svg" alt=""> Europa Overload
+      </button>
     </header>
 
     <section class="controls" aria-label="Zeitraum">
@@ -165,7 +168,7 @@
         <header class="table-card-header">
           <div class="table-card-title">
             <span class="table-kicker">Ländervergleich</span>
-            <h2 id="summary-title">Europas Stromsysteme im Ranking</h2>
+            <h2 id="summary-title">Europas Stromsysteme</h2>
             <p id="summary-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
           </div>
           <div class="table-card-tools">
@@ -204,7 +207,7 @@
         </header>
         <div class="table-card-context">
           <p id="ev-note" class="hint" role="status"></p>
-          <p class="ev-capacity-note"><strong>Schätzung:</strong> Theoretische nominale Batteriekapazität = BEV-Bestand × 60 kWh. Das ist weder nutzbare Energie noch eine V2G- oder netzverfügbare Speicherkapazität.</p>
+          <p class="ev-capacity-note"><strong>Pauschale Flottenannahme:</strong> Theoretische nominale Batteriekapazität = BEV-Bestand × 60 kWh. Das ist weder nutzbare Energie noch eine V2G- oder netzverfügbare Speicherkapazität.</p>
         </div>
         <div id="ev-table-region" class="table-wrap">
           <table id="ev-table">
@@ -224,7 +227,7 @@
         <header class="table-card-header">
           <div class="table-card-title">
             <span class="table-kicker">Flexibilität &amp; Reserven</span>
-            <h2 id="storage-title">Elektrische Speicher im Ranking</h2>
+            <h2 id="storage-title">Elektrische Speicher</h2>
             <p id="storage-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
           </div>
           <div class="table-card-tools">
@@ -330,7 +333,7 @@
         <li>Bruttostromimporte und -exporte stammen als Jahreswerte aus Eurostat. Negative Preisstunden und operative Intervallwerte sind nicht Teil dieses Monatsatlas.</li>
         <li>Nettoimporte sind positiv bei Nettoimport und negativ bei Nettoexport. Die Nettoimportquote bezieht sich auf den Verbrauch desselben Zeitraums.</li>
         <li>Eurostat-Kennzahlen und daraus berechnete Pro-Kopf-, Kapazitätsfaktor- und EV-Werte sind ausschließlich in der Jahresansicht verfügbar.</li>
-        <li>Die theoretische nominale EV-Batteriekapazität verwendet fest 60 kWh je BEV. Sie beschreibt weder nutzbare Energie noch V2G- oder netzverfügbare Speicherkapazität.</li>
+        <li>Die theoretische nominale EV-Batteriekapazität verwendet als pauschale Flottenannahme fest 60 kWh je BEV. Sie beschreibt weder nutzbare Energie noch V2G- oder netzverfügbare Speicherkapazität.</li>
         <li>EEA CRT 1.A.1.a umfasst öffentliche Strom- und Wärmeerzeugung und ist kein reiner Stromwert.</li>
         <li>Geschätzte Erzeugungsemissionen sind eine rechnerische Ableitung aus CO₂-Intensität und Erzeugung. Eine positive Dekarbonisierungsrate bedeutet sinkende CO₂-Intensität gegenüber dem Vorjahr.</li>
         <li>Speicherwerte sind separat datierte Bestandswerte und werden nicht wie Monats- oder Jahresflüsse behandelt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.</li>
@@ -341,7 +344,7 @@
       <div id="coverage"></div>
     </details>
   </main>
-  <script src="/wallpapers.js?v=europe-test-v4"></script>
-  <script src="/app.js?v=data-expansion-ui-v1"></script>
+  <script src="/wallpapers.js?v=europa-overload-v1"></script>
+  <script src="/app.js?v=ui-interactions-v7"></script>
 </body>
 </html>

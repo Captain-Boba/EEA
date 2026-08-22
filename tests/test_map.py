@@ -108,6 +108,21 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertNotIn("Vergleichbare Stromdaten", markup)
         self.assertNotIn("Data core online", markup)
 
+    def test_header_adds_the_opt_in_overload_toggle_and_short_dynamic_title(self):
+        html = INDEX_PATH.read_text(encoding="utf-8")
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn("<title>EEA</title>", html)
+        self.assertIn('id="europe-overload"', html)
+        self.assertIn('aria-pressed="false"', html)
+        self.assertIn("const TITLE_BY_SECTION", app)
+        for title in ("EEA · Karte", "EEA · Vergleich", "EEA · Ranking", "EEA · E-Mobilität", "EEA · Speicher", "EEA · Quellen"):
+            self.assertIn(title, app)
+        self.assertIn("new IntersectionObserver", app)
+        self.assertIn('setDocumentTitle("map")', app)
+        self.assertIn('setDocumentTitle("comparison")', app)
+        self.assertIn("await loadTimeseries({scroll: false, updateUrl: false});\n  setDocumentTitle(\"comparison\");", app)
+        self.assertIn("updateDynamicDocumentTitle();", app)
+
     def test_sticky_controls_and_accessible_hidden_selection_heading(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
@@ -241,6 +256,24 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertNotIn("Math.max(Math.abs(min - midpoint)", app)
         self.assertNotIn("Array.isArray(config.domain)", app)
 
+    def test_renewables_are_a_single_family_with_three_catalog_variants(self):
+        metrics = metric_catalog()
+        renewable_total = [metric for metric in metrics if metric["family"] == "Erneuerbare gesamt"]
+        self.assertEqual(
+            {(metric["id"], metric["group"], metric["representation"]) for metric in renewable_total},
+            {
+                ("renewable_twh", "Erneuerbare", "Erzeugung in TWh"),
+                ("renewable_share_pct", "Erneuerbare", "Anteil an der Gesamterzeugung"),
+                ("renewable_per_capita_mwh", "Erneuerbare", "Erzeugung in MWh je Einwohner"),
+            },
+        )
+        per_capita = next(metric for metric in renewable_total if metric["id"] == "renewable_per_capita_mwh")
+        self.assertFalse(per_capita["temporal_availability"]["monthly"])
+        self.assertTrue(per_capita["temporal_availability"]["yearly"])
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn('return `${metric.group}::${metric.family}`;', app)
+        self.assertIn("renderComparisonMetricOptions", app)
+
     def test_page_order_and_runtime_catalog_driven_selection(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
         self.assertLess(html.index('id="atlas-map-section"'), html.index('id="comparison"'))
@@ -326,7 +359,14 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("function orderedMetricVariants(metrics)", app)
         self.assertIn("STORAGE_VARIANT_ORDER", app)
         self.assertIn("function animateTableDisclosure(kind, renderTable, collapsing)", app)
-        self.assertIn('window.scrollBy?.({top: endHeight - startHeight, behavior: "smooth"})', app)
+        self.assertIn("function scrollTableCardHeading(kind)", app)
+        self.assertIn("function lockTableDisclosureScrollAnchoring()", app)
+        self.assertIn("const unlockScrollAnchoring = lockTableDisclosureScrollAnchoring();", app)
+        self.assertIn('heading?.scrollIntoView?.({behavior: motionAllowed() ? "smooth" : "auto", block: "start"})', app)
+        self.assertNotIn("window.scrollBy?.({top: endHeight - startHeight", app)
+        self.assertIn("overflow-anchor: none", style)
+        self.assertIn("html.table-disclosure-updating", style)
+        self.assertIn("scroll-margin-top: calc(var(--atlas-controls-height) + 1rem)", style)
         self.assertIn("transition: height 760ms", style)
         self.assertIn(".tool-actions", style)
 

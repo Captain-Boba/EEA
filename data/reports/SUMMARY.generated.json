@@ -1,1216 +1,652 @@
 [
   {
+    "country_code": "AT",
+    "country_name": "Österreich",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 73.26,
+    "consumption_twh": 77.37,
+    "generation_per_capita_mwh": 7.96545649209168,
+    "consumption_per_capita_mwh": 8.412330996357266,
+    "renewable_per_capita_mwh": 6.65310241265479,
+    "low_carbon_share_pct": 83.52443352443352,
+    "self_sufficiency_pct": 94.68786351298954,
+    "renewable_twh": 61.19,
+    "renewable_share_pct": 83.52443352443352,
+    "wind_twh": 8.31,
+    "wind_share_pct": 11.343161343161343,
+    "solar_twh": 10.29,
+    "solar_share_pct": 14.045864045864043,
+    "hydro_twh": 37.93,
+    "hydro_share_pct": 51.77450177450177,
+    "bioenergy_twh": 4.66,
+    "bioenergy_share_pct": 6.360906360906362,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 12.07,
+    "fossil_share_pct": 16.475566475566474,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 8.8,
+    "gas_share_pct": 12.012012012012011,
+    "other_fossil_twh": 3.27,
+    "other_fossil_share_pct": 4.463554463554463,
+    "net_imports_twh": 4.11,
+    "net_import_share_pct": 5.312136487010469,
+    "price_avg_eur_mwh": 99.09098630136987,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 117.23,
+    "estimated_generation_emissions_mtco2eq": 8.5882698,
+    "decarbonization_rate_pct": -13.298540639798981,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 9197213.0,
+    "gdp_current_billion_eur": 514.3281,
+    "gdp_per_capita_pps": 49022.1,
+    "gross_exports_twh": 21.622508999999997,
+    "gross_imports_twh": 25.73386,
+    "household_price_energy_eur_mwh": 160.0,
+    "household_price_network_eur_mwh": 95.9,
+    "household_price_taxes_eur_mwh": 53.0,
+    "nonhousehold_price_energy_eur_mwh": 124.0,
+    "nonhousehold_price_network_eur_mwh": 52.900000000000006,
+    "nonhousehold_price_taxes_eur_mwh": 64.10000000000001,
+    "bev_new_registrations": 60651.0,
+    "bev_stock": 257717.0,
+    "household_electricity_price_eur_mwh": 308.9,
+    "nonhousehold_electricity_price_eur_mwh": 241.0,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 15.46302,
+    "mix": {
+      "generation_biomass": {
+        "twh": 4.66,
+        "pct": 6.360906360906362
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 8.8,
+        "pct": 12.012012012012011
+      },
+      "generation_hydro": {
+        "twh": 37.93,
+        "pct": 51.77450177450177
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 3.27,
+        "pct": 4.463554463554463
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 10.29,
+        "pct": 14.045864045864043
+      },
+      "generation_wind": {
+        "twh": 8.31,
+        "pct": 11.343161343161343
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "BE",
+    "country_name": "Belgien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 73.2,
+    "consumption_twh": 86.6,
+    "generation_per_capita_mwh": 6.159803997056422,
+    "consumption_per_capita_mwh": 7.287418389960193,
+    "renewable_per_capita_mwh": 2.4975817299540246,
+    "low_carbon_share_pct": 73.48360655737704,
+    "self_sufficiency_pct": 84.52655889145497,
+    "renewable_twh": 29.68,
+    "renewable_share_pct": 40.54644808743169,
+    "wind_twh": 13.39,
+    "wind_share_pct": 18.292349726775956,
+    "solar_twh": 10.46,
+    "solar_share_pct": 14.289617486338798,
+    "hydro_twh": 0.59,
+    "hydro_share_pct": 0.8060109289617485,
+    "bioenergy_twh": 5.24,
+    "bioenergy_share_pct": 7.158469945355191,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 24.11,
+    "nuclear_share_pct": 32.93715846994535,
+    "fossil_twh": 19.41,
+    "fossil_share_pct": 26.51639344262295,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 19.05,
+    "gas_share_pct": 26.024590163934423,
+    "other_fossil_twh": 0.36,
+    "other_fossil_share_pct": 0.4918032786885245,
+    "net_imports_twh": 13.4,
+    "net_import_share_pct": 15.473441108545035,
+    "price_avg_eur_mwh": 83.5069589041096,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 132.6,
+    "estimated_generation_emissions_mtco2eq": 9.70632,
+    "decarbonization_rate_pct": -4.269874970511908,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 11883495.0,
+    "gdp_current_billion_eur": 642.0153,
+    "gdp_per_capita_pps": 47676.3,
+    "gross_exports_twh": 14.100200000000001,
+    "gross_imports_twh": 27.4981,
+    "household_price_energy_eur_mwh": 154.1,
+    "household_price_network_eur_mwh": 119.6,
+    "household_price_taxes_eur_mwh": 79.9,
+    "nonhousehold_price_energy_eur_mwh": 108.60000000000001,
+    "nonhousehold_price_network_eur_mwh": 47.0,
+    "nonhousehold_price_taxes_eur_mwh": 74.7,
+    "bev_new_registrations": 144003.0,
+    "bev_stock": 395188.0,
+    "household_electricity_price_eur_mwh": 353.6,
+    "nonhousehold_electricity_price_eur_mwh": 230.3,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 23.71128,
+    "mix": {
+      "generation_biomass": {
+        "twh": 5.24,
+        "pct": 7.158469945355191
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 19.05,
+        "pct": 26.024590163934423
+      },
+      "generation_hydro": {
+        "twh": 0.59,
+        "pct": 0.8060109289617485
+      },
+      "generation_nuclear": {
+        "twh": 24.11,
+        "pct": 32.93715846994535
+      },
+      "generation_other_fossil": {
+        "twh": 0.36,
+        "pct": 0.4918032786885245
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 10.46,
+        "pct": 14.289617486338798
+      },
+      "generation_wind": {
+        "twh": 13.39,
+        "pct": 18.292349726775956
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "BG",
+    "country_name": "Bulgarien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 37.98,
+    "consumption_twh": 36.66,
+    "generation_per_capita_mwh": 5.899934134489915,
+    "consumption_per_capita_mwh": 5.694881131395479,
+    "renewable_per_capita_mwh": 1.9371295065057725,
+    "low_carbon_share_pct": 71.93259610321222,
+    "self_sufficiency_pct": 103.60065466448445,
+    "renewable_twh": 12.47,
+    "renewable_share_pct": 32.833070036861514,
+    "wind_twh": 1.32,
+    "wind_share_pct": 3.475513428120064,
+    "solar_twh": 6.91,
+    "solar_share_pct": 18.193786203264878,
+    "hydro_twh": 2.53,
+    "hydro_share_pct": 6.661400737230121,
+    "bioenergy_twh": 1.71,
+    "bioenergy_share_pct": 4.502369668246446,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 14.85,
+    "nuclear_share_pct": 39.09952606635071,
+    "fossil_twh": 10.66,
+    "fossil_share_pct": 28.067403896787784,
+    "coal_twh": 8.55,
+    "coal_share_pct": 22.51184834123223,
+    "gas_twh": 1.85,
+    "gas_share_pct": 4.870984728804634,
+    "other_fossil_twh": 0.26,
+    "other_fossil_share_pct": 0.6845708267509216,
+    "net_imports_twh": -1.32,
+    "net_import_share_pct": -3.6006546644844524,
+    "price_avg_eur_mwh": 107.03734246575341,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 275.07,
+    "estimated_generation_emissions_mtco2eq": 10.447158599999998,
+    "decarbonization_rate_pct": 1.3661790017211712,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 6437360.0,
+    "gdp_current_billion_eur": 116.01830000000001,
+    "gdp_per_capita_pps": 28332.0,
+    "gross_exports_twh": 6.9277050000000004,
+    "gross_imports_twh": 5.606832000000001,
+    "household_price_energy_eur_mwh": 76.6,
+    "household_price_network_eur_mwh": 34.1,
+    "household_price_taxes_eur_mwh": 22.1,
+    "nonhousehold_price_energy_eur_mwh": 116.6,
+    "nonhousehold_price_network_eur_mwh": 26.200000000000003,
+    "nonhousehold_price_taxes_eur_mwh": 18.3,
+    "bev_new_registrations": 2420.0,
+    "bev_stock": 21545.0,
+    "household_electricity_price_eur_mwh": 132.8,
+    "nonhousehold_electricity_price_eur_mwh": 161.1,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 1.2927,
+    "mix": {
+      "generation_biomass": {
+        "twh": 1.71,
+        "pct": 4.502369668246446
+      },
+      "generation_coal": {
+        "twh": 8.55,
+        "pct": 22.51184834123223
+      },
+      "generation_gas": {
+        "twh": 1.85,
+        "pct": 4.870984728804634
+      },
+      "generation_hydro": {
+        "twh": 2.53,
+        "pct": 6.661400737230121
+      },
+      "generation_nuclear": {
+        "twh": 14.85,
+        "pct": 39.09952606635071
+      },
+      "generation_other_fossil": {
+        "twh": 0.26,
+        "pct": 0.6845708267509216
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 6.91,
+        "pct": 18.193786203264878
+      },
+      "generation_wind": {
+        "twh": 1.32,
+        "pct": 3.475513428120064
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "CH",
+    "country_name": "Schweiz",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 65.02,
+    "consumption_twh": 65.08,
+    "generation_per_capita_mwh": 7.183713586598826,
+    "consumption_per_capita_mwh": 7.190342667115529,
+    "renewable_per_capita_mwh": 4.872374179775582,
+    "low_carbon_share_pct": 97.69301753306677,
+    "self_sufficiency_pct": 99.9078057775046,
+    "renewable_twh": 44.1,
+    "renewable_share_pct": 67.8252845278376,
+    "wind_twh": 0.14,
+    "wind_share_pct": 0.21531836358043682,
+    "solar_twh": 7.89,
+    "solar_share_pct": 12.134727776068901,
+    "hydro_twh": 33.99,
+    "hydro_share_pct": 52.27622270070748,
+    "bioenergy_twh": 1.04,
+    "bioenergy_share_pct": 1.5995078437403876,
+    "other_renewables_twh": 1.04,
+    "other_renewables_share_pct": 1.5995078437403876,
+    "nuclear_twh": 19.42,
+    "nuclear_share_pct": 29.867733005229162,
+    "fossil_twh": 1.5,
+    "fossil_share_pct": 2.3069824669332517,
+    "coal_twh": null,
+    "coal_share_pct": null,
+    "gas_twh": 0.27,
+    "gas_share_pct": 0.4152568440479853,
+    "other_fossil_twh": 1.23,
+    "other_fossil_share_pct": 1.8917256228852664,
+    "net_imports_twh": 0.06,
+    "net_import_share_pct": 0.09219422249539029,
+    "price_avg_eur_mwh": null,
+    "price_coverage": "incomplete",
+    "price_months_available": 9,
+    "price_months_complete": 9,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 39.05,
+    "estimated_generation_emissions_mtco2eq": 2.5390309999999996,
+    "decarbonization_rate_pct": -12.893899971089892,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 9051029.0,
+    "gdp_current_billion_eur": 925.8748,
+    "gdp_per_capita_pps": null,
+    "bev_new_registrations": 52868.0,
+    "bev_stock": 249966.0,
+    "household_electricity_price_eur_mwh": null,
+    "nonhousehold_electricity_price_eur_mwh": null,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 14.99796,
+    "mix": {
+      "generation_biomass": {
+        "twh": 1.04,
+        "pct": 1.5995078437403876
+      },
+      "generation_gas": {
+        "twh": 0.27,
+        "pct": 0.4152568440479853
+      },
+      "generation_hydro": {
+        "twh": 33.99,
+        "pct": 52.27622270070748
+      },
+      "generation_nuclear": {
+        "twh": 19.42,
+        "pct": 29.867733005229162
+      },
+      "generation_other_fossil": {
+        "twh": 1.23,
+        "pct": 1.8917256228852664
+      },
+      "generation_other_renewables": {
+        "twh": 1.04,
+        "pct": 1.5995078437403876
+      },
+      "generation_solar": {
+        "twh": 7.89,
+        "pct": 12.134727776068901
+      },
+      "generation_wind": {
+        "twh": 0.14,
+        "pct": 0.21531836358043682
+      }
+    },
+    "quality_issues": [
+      {
+        "issue_type": "incomplete_wholesale_price_year",
+        "severity": "warning",
+        "details": "Historical Ember price year has fewer than 12 completed monthly values."
+      }
+    ],
+    "data_status": "partial"
+  },
+  {
+    "country_code": "CZ",
+    "country_name": "Tschechien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 75.4,
+    "consumption_twh": 67.97,
+    "generation_per_capita_mwh": 6.911407488885834,
+    "consumption_per_capita_mwh": 6.230349695219763,
+    "renewable_per_capita_mwh": 1.1567899537100692,
+    "low_carbon_share_pct": 59.09814323607427,
+    "self_sufficiency_pct": 110.93129321759601,
+    "renewable_twh": 12.62,
+    "renewable_share_pct": 16.737400530503976,
+    "wind_twh": 0.57,
+    "wind_share_pct": 0.7559681697612731,
+    "solar_twh": 4.39,
+    "solar_share_pct": 5.822281167108753,
+    "hydro_twh": 1.71,
+    "hydro_share_pct": 2.2679045092838193,
+    "bioenergy_twh": 6.05,
+    "bioenergy_share_pct": 8.023872679045093,
+    "other_renewables_twh": null,
+    "other_renewables_share_pct": null,
+    "nuclear_twh": 31.94,
+    "nuclear_share_pct": 42.360742705570296,
+    "fossil_twh": 30.84,
+    "fossil_share_pct": 40.90185676392573,
+    "coal_twh": 26.6,
+    "coal_share_pct": 35.278514588859416,
+    "gas_twh": 4.08,
+    "gas_share_pct": 5.411140583554376,
+    "other_fossil_twh": 0.16,
+    "other_fossil_share_pct": 0.21220159151193632,
+    "net_imports_twh": -7.43,
+    "net_import_share_pct": -10.931293217595998,
+    "price_avg_eur_mwh": 96.69660273972603,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 401.91,
+    "estimated_generation_emissions_mtco2eq": 30.304014000000002,
+    "decarbonization_rate_pct": 2.9859032538379715,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 10909500.0,
+    "gdp_current_billion_eur": 347.25870000000003,
+    "gdp_per_capita_pps": 38557.0,
+    "gross_exports_twh": 24.605387,
+    "gross_imports_twh": 17.172899,
+    "household_price_energy_eur_mwh": 149.4,
+    "household_price_network_eur_mwh": 94.7,
+    "household_price_taxes_eur_mwh": 79.60000000000001,
+    "nonhousehold_price_energy_eur_mwh": 111.0,
+    "nonhousehold_price_network_eur_mwh": 54.6,
+    "nonhousehold_price_taxes_eur_mwh": 59.3,
+    "bev_new_registrations": 13506.0,
+    "bev_stock": 57611.0,
+    "household_electricity_price_eur_mwh": 323.70000000000005,
+    "nonhousehold_electricity_price_eur_mwh": 224.9,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 3.45666,
+    "mix": {
+      "generation_biomass": {
+        "twh": 6.05,
+        "pct": 8.023872679045093
+      },
+      "generation_coal": {
+        "twh": 26.6,
+        "pct": 35.278514588859416
+      },
+      "generation_gas": {
+        "twh": 4.08,
+        "pct": 5.411140583554376
+      },
+      "generation_hydro": {
+        "twh": 1.71,
+        "pct": 2.2679045092838193
+      },
+      "generation_nuclear": {
+        "twh": 31.94,
+        "pct": 42.360742705570296
+      },
+      "generation_other_fossil": {
+        "twh": 0.16,
+        "pct": 0.21220159151193632
+      },
+      "generation_solar": {
+        "twh": 4.39,
+        "pct": 5.822281167108753
+      },
+      "generation_wind": {
+        "twh": 0.57,
+        "pct": 0.7559681697612731
+      }
+    },
+    "quality_issues": [
+      {
+        "issue_type": "negative_source_residual_treated_as_missing",
+        "severity": "warning",
+        "details": "Negative Ember residual categories are exposed as missing by product decision."
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
     "country_code": "DE",
     "country_name": "Deutschland",
     "period": "2025",
-    "generation_twh": 425.1281358249967,
-    "consumption_twh": 465.81767275000027,
-    "renewable_twh": 263.96556715000145,
-    "renewable_share_pct": 62.090825072717,
-    "wind_twh": 131.1670003500007,
-    "solar_twh": 70.12348582500053,
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 499.89,
+    "consumption_twh": 519.38,
+    "generation_per_capita_mwh": 5.981180978435012,
+    "consumption_per_capita_mwh": 6.214378716476778,
+    "renewable_per_capita_mwh": 3.531587704484743,
+    "low_carbon_share_pct": 59.04498989777752,
+    "self_sufficiency_pct": 96.24744888135854,
+    "renewable_twh": 295.16,
+    "renewable_share_pct": 59.04498989777752,
+    "wind_twh": 136.03,
+    "wind_share_pct": 27.211986637060154,
+    "solar_twh": 89.62,
+    "solar_share_pct": 17.9279441477125,
+    "hydro_twh": 19.56,
+    "hydro_share_pct": 3.9128608293824643,
+    "bioenergy_twh": 50.53,
+    "bioenergy_share_pct": 10.108223809238034,
+    "other_renewables_twh": null,
+    "other_renewables_share_pct": null,
     "nuclear_twh": 0.0,
-    "fossil_twh": 150.2880070499997,
-    "import_twh": 63.99504425,
-    "export_twh": 45.7632685,
-    "net_import_twh": 18.23177575,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 308502.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 204.73,
+    "fossil_share_pct": 40.95501010222249,
+    "coal_twh": 103.15,
+    "coal_share_pct": 20.63453959871172,
+    "gas_twh": 82.67,
+    "gas_share_pct": 16.537638280421692,
+    "other_fossil_twh": 18.91,
+    "other_fossil_share_pct": 3.7828322230890796,
+    "net_imports_twh": 19.49,
+    "net_import_share_pct": 3.752551118641457,
+    "price_avg_eur_mwh": 89.47835616438356,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 330.02,
+    "estimated_generation_emissions_mtco2eq": 164.9736978,
+    "decarbonization_rate_pct": 2.1060749881347958,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 83577140.0,
+    "gdp_current_billion_eur": 4469.81,
+    "gdp_per_capita_pps": 47979.4,
+    "gross_exports_twh": 60.185,
+    "gross_imports_twh": 79.676,
+    "household_price_energy_eur_mwh": 148.10000000000002,
+    "household_price_network_eur_mwh": 113.0,
+    "household_price_taxes_eur_mwh": 124.10000000000001,
+    "nonhousehold_price_energy_eur_mwh": 111.60000000000001,
+    "nonhousehold_price_network_eur_mwh": 71.3,
+    "nonhousehold_price_taxes_eur_mwh": 90.5,
+    "bev_new_registrations": 545142.0,
+    "bev_stock": 2034260.0,
+    "household_electricity_price_eur_mwh": 385.20000000000005,
+    "nonhousehold_electricity_price_eur_mwh": 273.4,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 122.0556,
     "mix": {
-      "generation_solar": {
-        "twh": 70.12348582500053,
-        "pct": 16.494670645338502
+      "generation_biomass": {
+        "twh": 50.53,
+        "pct": 10.108223809238034
       },
-      "generation_wind_onshore": {
-        "twh": 105.09999990000082,
-        "pct": 24.721958168222738
+      "generation_coal": {
+        "twh": 103.15,
+        "pct": 20.63453959871172
       },
-      "generation_wind_offshore": {
-        "twh": 26.067000449999874,
-        "pct": 6.13156322844045
+      "generation_gas": {
+        "twh": 82.67,
+        "pct": 16.537638280421692
       },
       "generation_hydro": {
-        "twh": 26.61756317499989,
-        "pct": 6.2610683537438145
-      },
-      "generation_biomass": {
-        "twh": 36.05751780000037,
-        "pct": 8.481564676971507
+        "twh": 19.56,
+        "pct": 3.9128608293824643
       },
       "generation_nuclear": {
         "twh": 0.0,
         "pct": 0.0
       },
-      "generation_gas": {
-        "twh": 53.68990082500001,
-        "pct": 12.629110214220535
+      "generation_other_fossil": {
+        "twh": 18.91,
+        "pct": 3.7828322230890796
       },
-      "generation_coal": {
-        "twh": 26.595773724999923,
-        "pct": 6.255942969615172
-      },
-      "generation_lignite": {
-        "twh": 67.18480392499974,
-        "pct": 15.803424488624357
-      },
-      "generation_oil": {
-        "twh": 2.817528575000004,
-        "pct": 0.6627480840646677
-      },
-      "generation_other": {
-        "twh": 10.874561625000002,
-        "pct": 2.5579491707593065
-      }
-    },
-    "price_avg_eur_mwh": 89.32172260273973,
-    "price_median_eur_mwh": 92.32499999999999,
-    "price_min_eur_mwh": -250.32,
-    "price_max_eur_mwh": 583.4,
-    "negative_price_intervals": 724,
-    "negative_price_hours": 574.75,
-    "quality_issues": [
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"geothermal\", \"others\", \"waste\"]"
-      }
-    ],
-    "data_status": "complete"
-  },
-  {
-    "country_code": "FR",
-    "country_name": "Frankreich",
-    "period": "2025",
-    "generation_twh": 533.906918800001,
-    "consumption_twh": null,
-    "renewable_twh": 141.49216882500014,
-    "renewable_share_pct": 26.501280249938556,
-    "wind_twh": 48.58227814999998,
-    "solar_twh": 30.261694675000147,
-    "nuclear_twh": 371.45540172500097,
-    "fossil_twh": 17.82648559999992,
-    "import_twh": 10.012107,
-    "export_twh": 101.0513875,
-    "net_import_twh": -91.0392805,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 151850.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
-    "mix": {
       "generation_solar": {
-        "twh": 30.261694675000147,
-        "pct": 5.667972002126468
+        "twh": 89.62,
+        "pct": 17.9279441477125
       },
-      "generation_wind_onshore": {
-        "twh": 42.92974489999998,
-        "pct": 8.040679636909006
-      },
-      "generation_wind_offshore": {
-        "twh": 5.652533249999991,
-        "pct": 1.0587113691473633
-      },
-      "generation_hydro": {
-        "twh": 59.974053050000066,
-        "pct": 11.23305410328763
-      },
-      "generation_biomass": {
-        "twh": 2.674142949999956,
-        "pct": 0.5008631384680889
-      },
-      "generation_nuclear": {
-        "twh": 371.45540172500097,
-        "pct": 69.57306388909083
-      },
-      "generation_gas": {
-        "twh": 16.34360512499997,
-        "pct": 3.061133794956909
-      },
-      "generation_coal": {
-        "twh": 0.509489900000001,
-        "pct": 0.0954267274050542
-      },
-      "generation_lignite": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_oil": {
-        "twh": 0.9733905749999459,
-        "pct": 0.18231465836549185
-      },
-      "generation_other": {
-        "twh": 3.1328626500000043,
-        "pct": 0.5867806802431718
+      "generation_wind": {
+        "twh": 136.03,
+        "pct": 27.211986637060154
       }
     },
-    "price_avg_eur_mwh": 61.075740899725275,
-    "price_median_eur_mwh": 60.0,
-    "price_min_eur_mwh": -118.01,
-    "price_max_eur_mwh": 473.28,
-    "negative_price_intervals": 558,
-    "negative_price_hours": 509.25,
     "quality_issues": [
       {
-        "issue_type": "missing_metric_values",
+        "issue_type": "negative_source_residual_treated_as_missing",
         "severity": "warning",
-        "details": "load: 4/2972"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 15/2976"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"waste\"]"
-      }
-    ],
-    "data_status": "partial"
-  },
-  {
-    "country_code": "ES",
-    "country_name": "Spanien",
-    "period": "2025",
-    "generation_twh": 259.030501,
-    "consumption_twh": null,
-    "renewable_twh": 151.119542,
-    "renewable_share_pct": 58.34044308164311,
-    "wind_twh": 55.573776,
-    "solar_twh": 52.524194,
-    "nuclear_twh": 51.910852,
-    "fossil_twh": 53.685214,
-    "import_twh": 7.81604425,
-    "export_twh": 17.659244,
-    "net_import_twh": -9.84319975,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 132820.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
-    "mix": {
-      "generation_solar": {
-        "twh": 52.524194,
-        "pct": 20.27722364633808
-      },
-      "generation_wind_onshore": {
-        "twh": 55.573776,
-        "pct": 21.454529789138615
-      },
-      "generation_wind_offshore": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_hydro": {
-        "twh": 39.345857,
-        "pct": 15.189661776548855
-      },
-      "generation_biomass": {
-        "twh": 3.675715,
-        "pct": 1.4190278696175629
-      },
-      "generation_nuclear": {
-        "twh": 51.910852,
-        "pct": 20.04043994803531
-      },
-      "generation_gas": {
-        "twh": 52.13141,
-        "pct": 20.125587449641692
-      },
-      "generation_coal": {
-        "twh": 1.311129,
-        "pct": 0.5061678045397441
-      },
-      "generation_lignite": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_oil": {
-        "twh": 0.242675,
-        "pct": 0.09368587832828228
-      },
-      "generation_other": {
-        "twh": 2.314893,
-        "pct": 0.8936758378118568
-      }
-    },
-    "price_avg_eur_mwh": 65.28777311643834,
-    "price_median_eur_mwh": 70.0,
-    "price_min_eur_mwh": -15.0,
-    "price_max_eur_mwh": 240.0,
-    "negative_price_intervals": 601,
-    "negative_price_hours": 551.5,
-    "quality_issues": [
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 142/2880"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
-      }
-    ],
-    "data_status": "partial"
-  },
-  {
-    "country_code": "IT",
-    "country_name": "Italien",
-    "period": "2025",
-    "generation_twh": 221.710393,
-    "consumption_twh": 277.246845,
-    "renewable_twh": 93.737531,
-    "renewable_share_pct": 42.27926789160488,
-    "wind_twh": 21.241063,
-    "solar_twh": 33.945208,
-    "nuclear_twh": 0.0,
-    "fossil_twh": 109.795466,
-    "import_twh": 49.8451995,
-    "export_twh": 2.73417975,
-    "net_import_twh": 47.11101975,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 96630.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
-    "mix": {
-      "generation_solar": {
-        "twh": 33.945208,
-        "pct": 15.31060747341691
-      },
-      "generation_wind_onshore": {
-        "twh": 21.193508,
-        "pct": 9.559095409659033
-      },
-      "generation_wind_offshore": {
-        "twh": 0.047555,
-        "pct": 0.021449152363371617
-      },
-      "generation_hydro": {
-        "twh": 32.525258,
-        "pct": 14.670154862789856
-      },
-      "generation_biomass": {
-        "twh": 6.026002,
-        "pct": 2.7179609933757143
-      },
-      "generation_nuclear": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_gas": {
-        "twh": 106.037033,
-        "pct": 47.82682109088138
-      },
-      "generation_coal": {
-        "twh": 3.176784,
-        "pct": 1.4328529921463808
-      },
-      "generation_lignite": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_oil": {
-        "twh": 0.581649,
-        "pct": 0.26234629424882216
-      },
-      "generation_other": {
-        "twh": 18.177396,
-        "pct": 8.19871173111853
-      }
-    },
-    "price_avg_eur_mwh": null,
-    "price_median_eur_mwh": null,
-    "price_min_eur_mwh": null,
-    "price_max_eur_mwh": null,
-    "negative_price_intervals": null,
-    "negative_price_hours": null,
-    "quality_issues": [
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"other_renewables\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"battery\", \"geothermal\", \"others\", \"waste\"]"
-      }
-    ],
-    "data_status": "complete"
-  },
-  {
-    "country_code": "PL",
-    "country_name": "Polen",
-    "period": "2025",
-    "generation_twh": 159.00580012500015,
-    "consumption_twh": 158.41400110000077,
-    "renewable_twh": 46.51026840000025,
-    "renewable_share_pct": 29.25067410335778,
-    "wind_twh": 21.893915625000187,
-    "solar_twh": 19.228633400000042,
-    "nuclear_twh": 0.0,
-    "fossil_twh": 106.78409852499975,
-    "import_twh": 15.20103075,
-    "export_twh": 14.0871095,
-    "net_import_twh": 1.11392125,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 67930.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
-    "mix": {
-      "generation_solar": {
-        "twh": 19.228633400000042,
-        "pct": 12.093038986555035
-      },
-      "generation_wind_onshore": {
-        "twh": 21.893915625000187,
-        "pct": 13.769255969146155
-      },
-      "generation_wind_offshore": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_hydro": {
-        "twh": 2.520269350000023,
-        "pct": 1.5850172434079441
-      },
-      "generation_biomass": {
-        "twh": 2.867450025000001,
-        "pct": 1.8033619042486473
-      },
-      "generation_nuclear": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_gas": {
-        "twh": 22.485212225000105,
-        "pct": 14.141127057832906
-      },
-      "generation_coal": {
-        "twh": 52.192134824999826,
-        "pct": 32.82404464740891
-      },
-      "generation_lignite": {
-        "twh": 30.618811249999823,
-        "pct": 19.25641154343381
-      },
-      "generation_oil": {
-        "twh": 1.4879402249999971,
-        "pct": 0.9357773262549379
-      },
-      "generation_other": {
-        "twh": 5.711433200000011,
-        "pct": 3.5919653217115655
-      }
-    },
-    "price_avg_eur_mwh": 104.29175570776255,
-    "price_median_eur_mwh": 104.17,
-    "price_min_eur_mwh": -132.95,
-    "price_max_eur_mwh": 509.88,
-    "negative_price_intervals": 328,
-    "negative_price_hours": 310.75,
-    "quality_issues": [
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"others\"]"
-      }
-    ],
-    "data_status": "complete"
-  },
-  {
-    "country_code": "UK",
-    "country_name": "Vereinigtes Königreich",
-    "period": "2025",
-    "generation_twh": null,
-    "consumption_twh": null,
-    "renewable_twh": null,
-    "renewable_share_pct": null,
-    "wind_twh": null,
-    "solar_twh": null,
-    "nuclear_twh": null,
-    "fossil_twh": null,
-    "import_twh": 44.21500325,
-    "export_twh": 13.12359775,
-    "net_import_twh": 31.0914055,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 108820.0,
-    "installed_capacity_snapshot": "2020-01-01T00:00:00+00:00",
-    "installed_capacity_snapshot_year": 2020,
-    "installed_capacity_age_years": 5,
-    "installed_capacity_status": "stale",
-    "mix": {
-      "generation_solar": {
-        "twh": null,
-        "pct": 0.0
-      },
-      "generation_wind_onshore": {
-        "twh": null,
-        "pct": 61.13153532627923
-      },
-      "generation_wind_offshore": {
-        "twh": null,
-        "pct": 0.0
-      },
-      "generation_hydro": {
-        "twh": null,
-        "pct": 0.0
-      },
-      "generation_biomass": {
-        "twh": null,
-        "pct": 0.0
-      },
-      "generation_nuclear": {
-        "twh": null,
-        "pct": 0.0
-      },
-      "generation_gas": {
-        "twh": null,
-        "pct": 38.6945848497227
-      },
-      "generation_coal": {
-        "twh": null,
-        "pct": 0.0
-      },
-      "generation_lignite": {
-        "twh": null,
-        "pct": 0.0
-      },
-      "generation_oil": {
-        "twh": null,
-        "pct": 0.17001541146991644
-      },
-      "generation_other": {
-        "twh": null,
-        "pct": 0.003864412528647616
-      }
-    },
-    "price_avg_eur_mwh": null,
-    "price_median_eur_mwh": null,
-    "price_min_eur_mwh": null,
-    "price_max_eur_mwh": null,
-    "negative_price_intervals": null,
-    "negative_price_hours": null,
-    "quality_issues": [
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_expected_series",
-        "severity": "error",
-        "details": "[\"nuclear\", \"solar\", \"wind_offshore\"]"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 1092/1488"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 1104/1344"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 476/1486"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 10/1488"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 32/1488"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 48/1440"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 422/1490"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 1440/1440"
-      },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 1488/1488"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      }
-    ],
-    "data_status": "partial"
-  },
-  {
-    "country_code": "NO",
-    "country_name": "Norwegen",
-    "period": "2025",
-    "generation_twh": 159.46441729999913,
-    "consumption_twh": 136.7708442000001,
-    "renewable_twh": 157.57704419999965,
-    "renewable_share_pct": 98.81642993969699,
-    "wind_twh": 13.495230800000005,
-    "solar_twh": 0.009065200000000044,
-    "nuclear_twh": 0.0,
-    "fossil_twh": 1.0883306999999904,
-    "import_twh": 9.44325525,
-    "export_twh": 31.8935355,
-    "net_import_twh": -22.45028025,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 33700.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
-    "mix": {
-      "generation_solar": {
-        "twh": 0.009065200000000044,
-        "pct": 0.00568477918365058
-      },
-      "generation_wind_onshore": {
-        "twh": 13.487455000000004,
-        "pct": 8.457971520145566
-      },
-      "generation_wind_offshore": {
-        "twh": 0.007775799999999982,
-        "pct": 0.004876197544039829
-      },
-      "generation_hydro": {
-        "twh": 144.07266109999966,
-        "pct": 90.34784282248806
-      },
-      "generation_biomass": {
-        "twh": 8.709999999999987e-05,
-        "pct": 5.4620335667824464e-05
-      },
-      "generation_nuclear": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_gas": {
-        "twh": 1.0883306999999904,
-        "pct": 0.6824912531756364
-      },
-      "generation_coal": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_lignite": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_oil": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_other": {
-        "twh": 0.7990424000000007,
-        "pct": 0.5010788071277172
-      }
-    },
-    "price_avg_eur_mwh": null,
-    "price_median_eur_mwh": null,
-    "price_min_eur_mwh": null,
-    "price_max_eur_mwh": null,
-    "negative_price_intervals": null,
-    "negative_price_hours": null,
-    "quality_issues": [
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"other_renewables\", \"waste\"]"
-      }
-    ],
-    "data_status": "complete"
-  },
-  {
-    "country_code": "SE",
-    "country_name": "Schweden",
-    "period": "2025",
-    "generation_twh": 159.8548329999996,
-    "consumption_twh": 129.544342,
-    "renewable_twh": 109.49620830000032,
-    "renewable_share_pct": 68.49727733912219,
-    "wind_twh": 38.79639090000007,
-    "solar_twh": 2.2812391000000476,
-    "nuclear_twh": 44.582254299999995,
-    "fossil_twh": 0.015680199999999967,
-    "import_twh": 5.16946375,
-    "export_twh": 38.8167885,
-    "net_import_twh": -33.64732475,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 53000.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
-    "mix": {
-      "generation_solar": {
-        "twh": 2.2812391000000476,
-        "pct": 1.4270692084736991
-      },
-      "generation_wind_onshore": {
-        "twh": 38.79639090000007,
-        "pct": 24.26976411779816
-      },
-      "generation_wind_offshore": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_hydro": {
-        "twh": 68.4185783000002,
-        "pct": 42.80044401285033
-      },
-      "generation_biomass": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_nuclear": {
-        "twh": 44.582254299999995,
-        "pct": 27.88921264582605
-      },
-      "generation_gas": {
-        "twh": 0.015680199999999967,
-        "pct": 0.009809024666773766
-      },
-      "generation_coal": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_lignite": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_oil": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_other": {
-        "twh": 5.760690200000015,
-        "pct": 3.6037009903854647
-      }
-    },
-    "price_avg_eur_mwh": null,
-    "price_median_eur_mwh": null,
-    "price_min_eur_mwh": null,
-    "price_max_eur_mwh": null,
-    "negative_price_intervals": null,
-    "negative_price_hours": null,
-    "quality_issues": [
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\"]"
+        "details": "Negative Ember residual categories are exposed as missing by product decision."
       }
     ],
     "data_status": "complete"
@@ -1219,155 +655,1749 @@
     "country_code": "DK",
     "country_name": "Dänemark",
     "period": "2025",
-    "generation_twh": 33.7341853999999,
-    "consumption_twh": null,
-    "renewable_twh": 29.195275599999935,
-    "renewable_share_pct": 86.54507365101522,
-    "wind_twh": 20.1594996,
-    "solar_twh": 4.4786842999999505,
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 34.53,
+    "consumption_twh": 41.94,
+    "generation_per_capita_mwh": 5.7619777550613795,
+    "consumption_per_capita_mwh": 6.99847515341078,
+    "renewable_per_capita_mwh": 5.429908953075508,
+    "low_carbon_share_pct": 94.23689545322908,
+    "self_sufficiency_pct": 82.33190271816882,
+    "renewable_twh": 32.54,
+    "renewable_share_pct": 94.23689545322908,
+    "wind_twh": 20.28,
+    "wind_share_pct": 58.73153779322329,
+    "solar_twh": 4.61,
+    "solar_share_pct": 13.350709527946714,
+    "hydro_twh": 0.02,
+    "hydro_share_pct": 0.057920648711265565,
+    "bioenergy_twh": 7.63,
+    "bioenergy_share_pct": 22.096727483347813,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
     "nuclear_twh": 0.0,
-    "fossil_twh": 2.893141499999975,
-    "import_twh": 26.3406995,
-    "export_twh": 18.88590825,
-    "net_import_twh": 7.45479125,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 15390.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 1.99,
+    "fossil_share_pct": 5.763104546770924,
+    "coal_twh": 0.15,
+    "coal_share_pct": 0.4344048653344917,
+    "gas_twh": 0.13,
+    "gas_share_pct": 0.3764842166232262,
+    "other_fossil_twh": 1.71,
+    "other_fossil_share_pct": 4.9522154648132055,
+    "net_imports_twh": 7.41,
+    "net_import_share_pct": 17.668097281831187,
+    "price_avg_eur_mwh": 82.27632876712329,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 99.48,
+    "estimated_generation_emissions_mtco2eq": 3.4350444,
+    "decarbonization_rate_pct": 24.619231643555352,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 5992734.0,
+    "gdp_current_billion_eur": 417.84409999999997,
+    "gdp_per_capita_pps": 53940.8,
+    "gross_exports_twh": 19.645132,
+    "gross_imports_twh": 27.059372,
+    "household_price_energy_eur_mwh": 96.4,
+    "household_price_network_eur_mwh": 79.0,
+    "household_price_taxes_eur_mwh": 165.9,
+    "nonhousehold_price_energy_eur_mwh": 89.6,
+    "nonhousehold_price_network_eur_mwh": 31.9,
+    "nonhousehold_price_taxes_eur_mwh": 55.599999999999994,
+    "bev_new_registrations": 126444.0,
+    "bev_stock": 540979.0,
+    "household_electricity_price_eur_mwh": 341.3,
+    "nonhousehold_electricity_price_eur_mwh": 177.1,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 32.45874,
     "mix": {
-      "generation_solar": {
-        "twh": 4.4786842999999505,
-        "pct": 13.276396767535296
+      "generation_biomass": {
+        "twh": 7.63,
+        "pct": 22.096727483347813
       },
-      "generation_wind_onshore": {
-        "twh": 10.196484200000008,
-        "pct": 30.22596834367323
+      "generation_coal": {
+        "twh": 0.15,
+        "pct": 0.4344048653344917
       },
-      "generation_wind_offshore": {
-        "twh": 9.963015399999993,
-        "pct": 29.53388463917087
+      "generation_gas": {
+        "twh": 0.13,
+        "pct": 0.3764842166232262
       },
       "generation_hydro": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
-      "generation_biomass": {
-        "twh": 4.557091699999985,
-        "pct": 13.50882390063582
+        "twh": 0.02,
+        "pct": 0.057920648711265565
       },
       "generation_nuclear": {
         "twh": 0.0,
         "pct": 0.0
       },
-      "generation_gas": {
-        "twh": 1.0565639999999974,
-        "pct": 3.1320276078164926
+      "generation_other_fossil": {
+        "twh": 1.71,
+        "pct": 4.9522154648132055
       },
-      "generation_coal": {
-        "twh": 1.673274499999978,
-        "pct": 4.960174612664526
-      },
-      "generation_lignite": {
+      "generation_other_renewables": {
         "twh": 0.0,
         "pct": 0.0
       },
-      "generation_oil": {
-        "twh": 0.16330299999999975,
-        "pct": 0.4840875748551505
+      "generation_solar": {
+        "twh": 4.61,
+        "pct": 13.350709527946714
       },
-      "generation_other": {
-        "twh": 1.6457682999999954,
-        "pct": 4.878636553648633
+      "generation_wind": {
+        "twh": 20.28,
+        "pct": 58.73153779322329
       }
     },
-    "price_avg_eur_mwh": null,
-    "price_median_eur_mwh": null,
-    "price_min_eur_mwh": null,
-    "price_max_eur_mwh": null,
-    "negative_price_intervals": null,
-    "negative_price_hours": null,
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "ES",
+    "country_name": "Spanien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 287.92,
+    "consumption_twh": 275.13,
+    "generation_per_capita_mwh": 5.860573591630909,
+    "consumption_per_capita_mwh": 5.600234830041025,
+    "renewable_per_capita_mwh": 3.2732663214440345,
+    "low_carbon_share_pct": 74.64226173937205,
+    "self_sufficiency_pct": 104.64871151819142,
+    "renewable_twh": 160.81,
+    "renewable_share_pct": 55.85232008891359,
+    "wind_twh": 58.76,
+    "wind_share_pct": 20.408446790775216,
+    "solar_twh": 62.92,
+    "solar_share_pct": 21.853292581272576,
+    "hydro_twh": 32.77,
+    "hydro_share_pct": 11.3816337871631,
+    "bioenergy_twh": 6.41,
+    "bioenergy_share_pct": 2.226312864684634,
+    "other_renewables_twh": null,
+    "other_renewables_share_pct": null,
+    "nuclear_twh": 54.1,
+    "nuclear_share_pct": 18.78994165045846,
+    "fossil_twh": 73.01,
+    "fossil_share_pct": 25.357738260627954,
+    "coal_twh": 0.92,
+    "coal_share_pct": 0.31953320366768545,
+    "gas_twh": 62.06,
+    "gas_share_pct": 21.554598499583218,
+    "other_fossil_twh": 10.03,
+    "other_fossil_share_pct": 3.483606557377049,
+    "net_imports_twh": -12.79,
+    "net_import_share_pct": -4.6487115181914,
+    "price_avg_eur_mwh": 66.79865753424657,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 153.58,
+    "estimated_generation_emissions_mtco2eq": 44.21875360000001,
+    "decarbonization_rate_pct": -5.011965811965821,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 49128297.0,
+    "gdp_current_billion_eur": 1687.152,
+    "gdp_per_capita_pps": 38135.7,
+    "gross_exports_twh": 24.82541,
+    "gross_imports_twh": 12.03095,
+    "household_price_energy_eur_mwh": 110.8,
+    "household_price_network_eur_mwh": 71.2,
+    "household_price_taxes_eur_mwh": 81.8,
+    "nonhousehold_price_energy_eur_mwh": 90.0,
+    "nonhousehold_price_network_eur_mwh": 28.8,
+    "nonhousehold_price_taxes_eur_mwh": 44.5,
+    "bev_new_registrations": 105074.0,
+    "bev_stock": 312914.0,
+    "household_electricity_price_eur_mwh": 263.8,
+    "nonhousehold_electricity_price_eur_mwh": 163.3,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 18.77484,
+    "mix": {
+      "generation_biomass": {
+        "twh": 6.41,
+        "pct": 2.226312864684634
+      },
+      "generation_coal": {
+        "twh": 0.92,
+        "pct": 0.31953320366768545
+      },
+      "generation_gas": {
+        "twh": 62.06,
+        "pct": 21.554598499583218
+      },
+      "generation_hydro": {
+        "twh": 32.77,
+        "pct": 11.3816337871631
+      },
+      "generation_nuclear": {
+        "twh": 54.1,
+        "pct": 18.78994165045846
+      },
+      "generation_other_fossil": {
+        "twh": 10.03,
+        "pct": 3.483606557377049
+      },
+      "generation_solar": {
+        "twh": 62.92,
+        "pct": 21.853292581272576
+      },
+      "generation_wind": {
+        "twh": 58.76,
+        "pct": 20.408446790775216
+      }
+    },
     "quality_issues": [
       {
-        "issue_type": "missing_metric_values",
+        "issue_type": "negative_source_residual_treated_as_missing",
         "severity": "warning",
-        "details": "load: 1/744"
+        "details": "Negative Ember residual categories are exposed as missing by product decision."
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "EE",
+    "country_name": "Estland",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 6.19,
+    "consumption_twh": 8.9,
+    "generation_per_capita_mwh": 4.518264665199508,
+    "consumption_per_capita_mwh": 6.496374074357935,
+    "renewable_per_capita_mwh": 2.7226376738601235,
+    "low_carbon_share_pct": 60.258481421647815,
+    "self_sufficiency_pct": 69.5505617977528,
+    "renewable_twh": 3.73,
+    "renewable_share_pct": 60.258481421647815,
+    "wind_twh": 1.15,
+    "wind_share_pct": 18.578352180936992,
+    "solar_twh": 1.22,
+    "solar_share_pct": 19.7092084006462,
+    "hydro_twh": 0.03,
+    "hydro_share_pct": 0.48465266558966075,
+    "bioenergy_twh": 1.33,
+    "bioenergy_share_pct": 21.486268174474958,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 2.46,
+    "fossil_share_pct": 39.74151857835218,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 0.08,
+    "gas_share_pct": 1.2924071082390953,
+    "other_fossil_twh": 2.38,
+    "other_fossil_share_pct": 38.44911147011308,
+    "net_imports_twh": 2.71,
+    "net_import_share_pct": 30.449438202247194,
+    "price_avg_eur_mwh": 80.66638356164384,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 315.51,
+    "estimated_generation_emissions_mtco2eq": 1.9530069,
+    "decarbonization_rate_pct": 8.17787608044004,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 1369995.0,
+    "gdp_current_billion_eur": 41.6208,
+    "gdp_per_capita_pps": 33077.2,
+    "gross_exports_twh": 2.927,
+    "gross_imports_twh": 5.635,
+    "household_price_energy_eur_mwh": 102.9,
+    "household_price_network_eur_mwh": 72.4,
+    "household_price_taxes_eur_mwh": 55.1,
+    "nonhousehold_price_energy_eur_mwh": 88.4,
+    "nonhousehold_price_network_eur_mwh": 42.1,
+    "nonhousehold_price_taxes_eur_mwh": 44.3,
+    "bev_new_registrations": 872.0,
+    "bev_stock": 10171.0,
+    "household_electricity_price_eur_mwh": 230.4,
+    "nonhousehold_electricity_price_eur_mwh": 174.8,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 0.61026,
+    "mix": {
+      "generation_biomass": {
+        "twh": 1.33,
+        "pct": 21.486268174474958
       },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 1/672"
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
       },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 5/744"
+      "generation_gas": {
+        "twh": 0.08,
+        "pct": 1.2924071082390953
       },
-      {
-        "issue_type": "missing_metric_values",
-        "severity": "warning",
-        "details": "load: 4/745"
+      "generation_hydro": {
+        "twh": 0.03,
+        "pct": 0.48465266558966075
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_other_fossil": {
+        "twh": 2.38,
+        "pct": 38.44911147011308
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_solar": {
+        "twh": 1.22,
+        "pct": 19.7092084006462
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_wind": {
+        "twh": 1.15,
+        "pct": 18.578352180936992
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "FI",
+    "country_name": "Finnland",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 82.3,
+    "consumption_twh": 87.86,
+    "generation_per_capita_mwh": 14.602630141283552,
+    "consumption_per_capita_mwh": 15.589150476466255,
+    "renewable_per_capita_mwh": 8.245251794233859,
+    "low_carbon_share_pct": 96.34264884568651,
+    "self_sufficiency_pct": 93.67175051217846,
+    "renewable_twh": 46.47,
+    "renewable_share_pct": 56.46415552855407,
+    "wind_twh": 22.58,
+    "wind_share_pct": 27.43620899149453,
+    "solar_twh": 0.98,
+    "solar_share_pct": 1.1907654921020656,
+    "hydro_twh": 12.44,
+    "hydro_share_pct": 15.11543134872418,
+    "bioenergy_twh": 10.34,
+    "bioenergy_share_pct": 12.563791008505468,
+    "other_renewables_twh": 0.13,
+    "other_renewables_share_pct": 0.15795868772782504,
+    "nuclear_twh": 32.82,
+    "nuclear_share_pct": 39.878493317132445,
+    "fossil_twh": 3.01,
+    "fossil_share_pct": 3.6573511543134876,
+    "coal_twh": 0.16,
+    "coal_share_pct": 0.19441069258809235,
+    "gas_twh": 0.95,
+    "gas_share_pct": 1.1543134872417984,
+    "other_fossil_twh": 1.9,
+    "other_fossil_share_pct": 2.3086269744835968,
+    "net_imports_twh": 5.56,
+    "net_import_share_pct": 6.328249487821534,
+    "price_avg_eur_mwh": 40.18789041095891,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 57.35,
+    "estimated_generation_emissions_mtco2eq": 4.719905,
+    "decarbonization_rate_pct": 14.14670658682634,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 5635971.0,
+    "gdp_current_billion_eur": 281.674,
+    "gdp_per_capita_pps": 42070.4,
+    "gross_exports_twh": 5.547,
+    "gross_imports_twh": 11.109,
+    "household_price_energy_eur_mwh": 73.80000000000001,
+    "household_price_network_eur_mwh": 84.2,
+    "household_price_taxes_eur_mwh": 68.6,
+    "nonhousehold_price_energy_eur_mwh": 56.099999999999994,
+    "nonhousehold_price_network_eur_mwh": 19.8,
+    "nonhousehold_price_taxes_eur_mwh": 20.1,
+    "bev_new_registrations": 26748.0,
+    "bev_stock": 169458.0,
+    "household_electricity_price_eur_mwh": 226.60000000000002,
+    "nonhousehold_electricity_price_eur_mwh": 96.0,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 10.16748,
+    "mix": {
+      "generation_biomass": {
+        "twh": 10.34,
+        "pct": 12.563791008505468
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_coal": {
+        "twh": 0.16,
+        "pct": 0.19441069258809235
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_gas": {
+        "twh": 0.95,
+        "pct": 1.1543134872417984
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_hydro": {
+        "twh": 12.44,
+        "pct": 15.11543134872418
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_nuclear": {
+        "twh": 32.82,
+        "pct": 39.878493317132445
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_other_fossil": {
+        "twh": 1.9,
+        "pct": 2.3086269744835968
       },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"waste\"]"
+      "generation_other_renewables": {
+        "twh": 0.13,
+        "pct": 0.15795868772782504
       },
+      "generation_solar": {
+        "twh": 0.98,
+        "pct": 1.1907654921020656
+      },
+      "generation_wind": {
+        "twh": 22.58,
+        "pct": 27.43620899149453
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "FR",
+    "country_name": "Frankreich",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 570.14,
+    "consumption_twh": 476.34,
+    "generation_per_capita_mwh": 8.27698141475496,
+    "consumption_per_capita_mwh": 6.915244198099375,
+    "renewable_per_capita_mwh": 2.1590358087528636,
+    "low_carbon_share_pct": 94.85214157926123,
+    "self_sufficiency_pct": 119.69181676953437,
+    "renewable_twh": 148.72,
+    "renewable_share_pct": 26.084821271968288,
+    "wind_twh": 46.46,
+    "wind_share_pct": 8.148875714736732,
+    "solar_twh": 32.01,
+    "solar_share_pct": 5.61441049566773,
+    "hydro_twh": 59.41,
+    "hydro_share_pct": 10.42024765846985,
+    "bioenergy_twh": 10.27,
+    "bioenergy_share_pct": 1.8013119584663415,
+    "other_renewables_twh": 0.57,
+    "other_renewables_share_pct": 0.09997544462763532,
+    "nuclear_twh": 392.07,
+    "nuclear_share_pct": 68.76732030729295,
+    "fossil_twh": 29.35,
+    "fossil_share_pct": 5.147858420738767,
+    "coal_twh": 1.74,
+    "coal_share_pct": 0.3051881993896236,
+    "gas_twh": 17.25,
+    "gas_share_pct": 3.0255726663626477,
+    "other_fossil_twh": 10.36,
+    "other_fossil_share_pct": 1.8170975549864945,
+    "net_imports_twh": -93.8,
+    "net_import_share_pct": -19.691816769534366,
+    "price_avg_eur_mwh": 62.90794520547946,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 41.45,
+    "estimated_generation_emissions_mtco2eq": 23.632303,
+    "decarbonization_rate_pct": -2.4468610973801335,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 68882600.0,
+    "gdp_current_billion_eur": 2991.0559,
+    "gdp_per_capita_pps": 40716.0,
+    "gross_exports_twh": 108.06808900000001,
+    "gross_imports_twh": 14.263755,
+    "household_price_energy_eur_mwh": 108.8,
+    "household_price_network_eur_mwh": 75.89999999999999,
+    "household_price_taxes_eur_mwh": 77.3,
+    "nonhousehold_price_energy_eur_mwh": 105.0,
+    "nonhousehold_price_network_eur_mwh": 32.300000000000004,
+    "nonhousehold_price_taxes_eur_mwh": 51.3,
+    "bev_new_registrations": 330890.0,
+    "bev_stock": 1543440.0,
+    "household_electricity_price_eur_mwh": 262.0,
+    "nonhousehold_electricity_price_eur_mwh": 188.6,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 92.6064,
+    "mix": {
+      "generation_biomass": {
+        "twh": 10.27,
+        "pct": 1.8013119584663415
+      },
+      "generation_coal": {
+        "twh": 1.74,
+        "pct": 0.3051881993896236
+      },
+      "generation_gas": {
+        "twh": 17.25,
+        "pct": 3.0255726663626477
+      },
+      "generation_hydro": {
+        "twh": 59.41,
+        "pct": 10.42024765846985
+      },
+      "generation_nuclear": {
+        "twh": 392.07,
+        "pct": 68.76732030729295
+      },
+      "generation_other_fossil": {
+        "twh": 10.36,
+        "pct": 1.8170975549864945
+      },
+      "generation_other_renewables": {
+        "twh": 0.57,
+        "pct": 0.09997544462763532
+      },
+      "generation_solar": {
+        "twh": 32.01,
+        "pct": 5.61441049566773
+      },
+      "generation_wind": {
+        "twh": 46.46,
+        "pct": 8.148875714736732
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "UK",
+    "country_name": "Vereinigtes Königreich",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 292.41,
+    "consumption_twh": 321.48,
+    "generation_per_capita_mwh": 4.214358887573556,
+    "consumption_per_capita_mwh": 4.633330238969758,
+    "renewable_per_capita_mwh": 2.1909881265652063,
+    "low_carbon_share_pct": 64.43008105057966,
+    "self_sufficiency_pct": 90.95744680851064,
+    "renewable_twh": 152.02,
+    "renewable_share_pct": 51.98864607913546,
+    "wind_twh": 85.94,
+    "wind_share_pct": 29.390239731883312,
+    "solar_twh": 19.32,
+    "solar_share_pct": 6.607161177798296,
+    "hydro_twh": 5.55,
+    "hydro_share_pct": 1.8980199035600696,
+    "bioenergy_twh": 41.21,
+    "bioenergy_share_pct": 14.093225265893777,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 36.38,
+    "nuclear_share_pct": 12.441434971444206,
+    "fossil_twh": 104.01,
+    "fossil_share_pct": 35.569918949420334,
+    "coal_twh": 0.33,
+    "coal_share_pct": 0.11285523750897712,
+    "gas_twh": 90.91,
+    "gas_share_pct": 31.08990800588215,
+    "other_fossil_twh": 12.77,
+    "other_fossil_share_pct": 4.367155706029205,
+    "net_imports_twh": 29.07,
+    "net_import_share_pct": 9.042553191489361,
+    "price_avg_eur_mwh": 94.14569863013699,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 217.33,
+    "estimated_generation_emissions_mtco2eq": 63.54946530000001,
+    "decarbonization_rate_pct": -0.3972836882708984,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 69384219.0,
+    "gdp_current_billion_eur": null,
+    "gdp_per_capita_pps": null,
+    "household_electricity_price_eur_mwh": null,
+    "nonhousehold_electricity_price_eur_mwh": null,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": null,
+    "mix": {
+      "generation_biomass": {
+        "twh": 41.21,
+        "pct": 14.093225265893777
+      },
+      "generation_coal": {
+        "twh": 0.33,
+        "pct": 0.11285523750897712
+      },
+      "generation_gas": {
+        "twh": 90.91,
+        "pct": 31.08990800588215
+      },
+      "generation_hydro": {
+        "twh": 5.55,
+        "pct": 1.8980199035600696
+      },
+      "generation_nuclear": {
+        "twh": 36.38,
+        "pct": 12.441434971444206
+      },
+      "generation_other_fossil": {
+        "twh": 12.77,
+        "pct": 4.367155706029205
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 19.32,
+        "pct": 6.607161177798296
+      },
+      "generation_wind": {
+        "twh": 85.94,
+        "pct": 29.390239731883312
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "GR",
+    "country_name": "Griechenland",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 57.92,
+    "consumption_twh": 54.91,
+    "generation_per_capita_mwh": 5.584084972188037,
+    "consumption_per_capita_mwh": 5.293889948598845,
+    "renewable_per_capita_mwh": 2.667673190270079,
+    "low_carbon_share_pct": 47.77279005524862,
+    "self_sufficiency_pct": 105.481697322892,
+    "renewable_twh": 27.67,
+    "renewable_share_pct": 47.77279005524862,
+    "wind_twh": 12.08,
+    "wind_share_pct": 20.85635359116022,
+    "solar_twh": 11.46,
+    "solar_share_pct": 19.785911602209946,
+    "hydro_twh": 3.42,
+    "hydro_share_pct": 5.904696132596684,
+    "bioenergy_twh": 0.71,
+    "bioenergy_share_pct": 1.2258287292817678,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 30.25,
+    "fossil_share_pct": 52.22720994475139,
+    "coal_twh": 2.74,
+    "coal_share_pct": 4.730662983425415,
+    "gas_twh": 23.33,
+    "gas_share_pct": 40.27969613259668,
+    "other_fossil_twh": 4.18,
+    "other_fossil_share_pct": 7.216850828729281,
+    "net_imports_twh": -3.01,
+    "net_import_share_pct": -5.481697322892005,
+    "price_avg_eur_mwh": 103.78131506849316,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 324.48,
+    "estimated_generation_emissions_mtco2eq": 18.7938816,
+    "decarbonization_rate_pct": -0.8296821105621379,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 10372335.0,
+    "gdp_current_billion_eur": 248.3537,
+    "gdp_per_capita_pps": 28469.9,
+    "gross_exports_twh": 6.4199139999999995,
+    "gross_imports_twh": 3.409591,
+    "household_price_energy_eur_mwh": 161.1,
+    "household_price_network_eur_mwh": 33.4,
+    "household_price_taxes_eur_mwh": 39.300000000000004,
+    "nonhousehold_price_energy_eur_mwh": 135.1,
+    "nonhousehold_price_network_eur_mwh": 20.1,
+    "nonhousehold_price_taxes_eur_mwh": 39.9,
+    "bev_new_registrations": 8892.0,
+    "bev_stock": 30108.0,
+    "household_electricity_price_eur_mwh": 233.8,
+    "nonhousehold_electricity_price_eur_mwh": 195.1,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 1.80648,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.71,
+        "pct": 1.2258287292817678
+      },
+      "generation_coal": {
+        "twh": 2.74,
+        "pct": 4.730662983425415
+      },
+      "generation_gas": {
+        "twh": 23.33,
+        "pct": 40.27969613259668
+      },
+      "generation_hydro": {
+        "twh": 3.42,
+        "pct": 5.904696132596684
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 4.18,
+        "pct": 7.216850828729281
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 11.46,
+        "pct": 19.785911602209946
+      },
+      "generation_wind": {
+        "twh": 12.08,
+        "pct": 20.85635359116022
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "HR",
+    "country_name": "Kroatien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 14.68,
+    "consumption_twh": 20.0,
+    "generation_per_capita_mwh": 3.789022674771252,
+    "consumption_per_capita_mwh": 5.162156232658381,
+    "renewable_per_capita_mwh": 2.893388568405023,
+    "low_carbon_share_pct": 76.3623978201635,
+    "self_sufficiency_pct": 73.4,
+    "renewable_twh": 11.21,
+    "renewable_share_pct": 76.3623978201635,
+    "wind_twh": 3.14,
+    "wind_share_pct": 21.38964577656676,
+    "solar_twh": 1.29,
+    "solar_share_pct": 8.787465940054497,
+    "hydro_twh": 5.78,
+    "hydro_share_pct": 39.3732970027248,
+    "bioenergy_twh": 1.0,
+    "bioenergy_share_pct": 6.811989100817439,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 3.47,
+    "fossil_share_pct": 23.637602179836513,
+    "coal_twh": 0.73,
+    "coal_share_pct": 4.9727520435967305,
+    "gas_twh": 2.76,
+    "gas_share_pct": 18.80108991825613,
+    "other_fossil_twh": null,
+    "other_fossil_share_pct": null,
+    "net_imports_twh": 5.32,
+    "net_import_share_pct": 26.6,
+    "price_avg_eur_mwh": 105.4776712328767,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 157.77,
+    "estimated_generation_emissions_mtco2eq": 2.3160636,
+    "decarbonization_rate_pct": 7.433701009152774,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 3874350.0,
+    "gdp_current_billion_eur": 92.97510000000001,
+    "gdp_per_capita_pps": 32370.2,
+    "gross_exports_twh": 7.812673,
+    "gross_imports_twh": 13.136105,
+    "household_price_energy_eur_mwh": 79.39999999999999,
+    "household_price_network_eur_mwh": 52.3,
+    "household_price_taxes_eur_mwh": 32.099999999999994,
+    "nonhousehold_price_energy_eur_mwh": 113.10000000000001,
+    "nonhousehold_price_network_eur_mwh": 37.3,
+    "nonhousehold_price_taxes_eur_mwh": 35.1,
+    "bev_new_registrations": 992.0,
+    "bev_stock": 12616.0,
+    "household_electricity_price_eur_mwh": 163.79999999999998,
+    "nonhousehold_electricity_price_eur_mwh": 185.5,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 0.75696,
+    "mix": {
+      "generation_biomass": {
+        "twh": 1.0,
+        "pct": 6.811989100817439
+      },
+      "generation_coal": {
+        "twh": 0.73,
+        "pct": 4.9727520435967305
+      },
+      "generation_gas": {
+        "twh": 2.76,
+        "pct": 18.80108991825613
+      },
+      "generation_hydro": {
+        "twh": 5.78,
+        "pct": 39.3732970027248
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 1.29,
+        "pct": 8.787465940054497
+      },
+      "generation_wind": {
+        "twh": 3.14,
+        "pct": 21.38964577656676
+      }
+    },
+    "quality_issues": [
       {
-        "issue_type": "unmapped_generation_categories",
+        "issue_type": "negative_source_residual_treated_as_missing",
         "severity": "warning",
-        "details": "[\"waste\"]"
+        "details": "Negative Ember residual categories are exposed as missing by product decision."
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "HU",
+    "country_name": "Ungarn",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 40.24,
+    "consumption_twh": 49.24,
+    "generation_per_capita_mwh": 4.218249548037203,
+    "consumption_per_capita_mwh": 5.1616950234928405,
+    "renewable_per_capita_mwh": 1.4895955784694002,
+    "low_carbon_share_pct": 75.32306163021869,
+    "self_sufficiency_pct": 81.72217709179529,
+    "renewable_twh": 14.21,
+    "renewable_share_pct": 35.313121272365805,
+    "wind_twh": 0.6,
+    "wind_share_pct": 1.4910536779324055,
+    "solar_twh": 10.98,
+    "solar_share_pct": 27.286282306163024,
+    "hydro_twh": 0.23,
+    "hydro_share_pct": 0.5715705765407555,
+    "bioenergy_twh": 2.39,
+    "bioenergy_share_pct": 5.939363817097416,
+    "other_renewables_twh": 0.01,
+    "other_renewables_share_pct": 0.024850894632206758,
+    "nuclear_twh": 16.1,
+    "nuclear_share_pct": 40.009940357852884,
+    "fossil_twh": 9.93,
+    "fossil_share_pct": 24.67693836978131,
+    "coal_twh": 1.38,
+    "coal_share_pct": 3.429423459244532,
+    "gas_twh": 8.15,
+    "gas_share_pct": 20.253479125248507,
+    "other_fossil_twh": 0.4,
+    "other_fossil_share_pct": 0.9940357852882704,
+    "net_imports_twh": 9.0,
+    "net_import_share_pct": 18.277822908204712,
+    "price_avg_eur_mwh": 108.30350684931507,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 162.72,
+    "estimated_generation_emissions_mtco2eq": 6.5478528,
+    "decarbonization_rate_pct": 11.44971702220287,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 9539502.0,
+    "gdp_current_billion_eur": 218.8339,
+    "gdp_per_capita_pps": 31719.3,
+    "gross_exports_twh": 14.341000000000001,
+    "gross_imports_twh": 23.339000000000002,
+    "household_price_energy_eur_mwh": 25.3,
+    "household_price_network_eur_mwh": 59.6,
+    "household_price_taxes_eur_mwh": 22.9,
+    "nonhousehold_price_energy_eur_mwh": 134.3,
+    "nonhousehold_price_network_eur_mwh": 64.5,
+    "nonhousehold_price_taxes_eur_mwh": 72.4,
+    "bev_new_registrations": 11002.0,
+    "bev_stock": 86372.0,
+    "household_electricity_price_eur_mwh": 107.8,
+    "nonhousehold_electricity_price_eur_mwh": 271.20000000000005,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 5.18232,
+    "mix": {
+      "generation_biomass": {
+        "twh": 2.39,
+        "pct": 5.939363817097416
+      },
+      "generation_coal": {
+        "twh": 1.38,
+        "pct": 3.429423459244532
+      },
+      "generation_gas": {
+        "twh": 8.15,
+        "pct": 20.253479125248507
+      },
+      "generation_hydro": {
+        "twh": 0.23,
+        "pct": 0.5715705765407555
+      },
+      "generation_nuclear": {
+        "twh": 16.1,
+        "pct": 40.009940357852884
+      },
+      "generation_other_fossil": {
+        "twh": 0.4,
+        "pct": 0.9940357852882704
+      },
+      "generation_other_renewables": {
+        "twh": 0.01,
+        "pct": 0.024850894632206758
+      },
+      "generation_solar": {
+        "twh": 10.98,
+        "pct": 27.286282306163024
+      },
+      "generation_wind": {
+        "twh": 0.6,
+        "pct": 1.4910536779324055
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "IE",
+    "country_name": "Irland",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 30.99,
+    "consumption_twh": 37.12,
+    "generation_per_capita_mwh": 5.696400073672706,
+    "consumption_per_capita_mwh": 6.823180727161369,
+    "renewable_per_capita_mwh": 2.7425069086543004,
+    "low_carbon_share_pct": 48.14456276218135,
+    "self_sufficiency_pct": 83.48599137931035,
+    "renewable_twh": 14.92,
+    "renewable_share_pct": 48.14456276218135,
+    "wind_twh": 11.76,
+    "wind_share_pct": 37.947725072604065,
+    "solar_twh": 1.49,
+    "solar_share_pct": 4.808002581477896,
+    "hydro_twh": 0.65,
+    "hydro_share_pct": 2.097450790577606,
+    "bioenergy_twh": 1.02,
+    "bioenergy_share_pct": 3.2913843175217816,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 16.07,
+    "fossil_share_pct": 51.855437237818656,
+    "coal_twh": 0.16,
+    "coal_share_pct": 0.516295579219103,
+    "gas_twh": 14.99,
+    "gas_share_pct": 48.37044207808971,
+    "other_fossil_twh": 0.92,
+    "other_fossil_share_pct": 2.9686995805098424,
+    "net_imports_twh": 6.13,
+    "net_import_share_pct": 16.514008620689655,
+    "price_avg_eur_mwh": 114.13641095890411,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 256.64,
+    "estimated_generation_emissions_mtco2eq": 7.953273599999999,
+    "decarbonization_rate_pct": 5.190439247848096,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 5440278.0,
+    "gdp_current_billion_eur": 602.4409,
+    "gdp_per_capita_pps": 93359.9,
+    "gross_exports_twh": 0.481163,
+    "gross_imports_twh": 6.6108080000000005,
+    "household_price_energy_eur_mwh": 229.0,
+    "household_price_network_eur_mwh": 124.5,
+    "household_price_taxes_eur_mwh": -15.9,
+    "nonhousehold_price_energy_eur_mwh": 179.29999999999998,
+    "nonhousehold_price_network_eur_mwh": 77.0,
+    "nonhousehold_price_taxes_eur_mwh": 31.0,
+    "bev_new_registrations": 23741.0,
+    "bev_stock": 103299.0,
+    "household_electricity_price_eur_mwh": 337.6,
+    "nonhousehold_electricity_price_eur_mwh": 287.29999999999995,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 6.19794,
+    "mix": {
+      "generation_biomass": {
+        "twh": 1.02,
+        "pct": 3.2913843175217816
+      },
+      "generation_coal": {
+        "twh": 0.16,
+        "pct": 0.516295579219103
+      },
+      "generation_gas": {
+        "twh": 14.99,
+        "pct": 48.37044207808971
+      },
+      "generation_hydro": {
+        "twh": 0.65,
+        "pct": 2.097450790577606
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 0.92,
+        "pct": 2.9686995805098424
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 1.49,
+        "pct": 4.808002581477896
+      },
+      "generation_wind": {
+        "twh": 11.76,
+        "pct": 37.947725072604065
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "IT",
+    "country_name": "Italien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 264.94,
+    "consumption_twh": 311.83,
+    "generation_per_capita_mwh": 4.494815574463014,
+    "consumption_per_capita_mwh": 5.290323622649663,
+    "renewable_per_capita_mwh": 2.190404011545708,
+    "low_carbon_share_pct": 48.73178832943309,
+    "self_sufficiency_pct": 84.96296058749961,
+    "renewable_twh": 129.11,
+    "renewable_share_pct": 48.73178832943309,
+    "wind_twh": 21.48,
+    "wind_share_pct": 8.10749603683853,
+    "solar_twh": 44.63,
+    "solar_share_pct": 16.845323469464784,
+    "hydro_twh": 41.7,
+    "hydro_share_pct": 15.739412697214464,
+    "bioenergy_twh": 15.61,
+    "bioenergy_share_pct": 5.891900052842153,
+    "other_renewables_twh": 5.69,
+    "other_renewables_share_pct": 2.147656073073149,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 135.83,
+    "fossil_share_pct": 51.26821167056692,
+    "coal_twh": 3.58,
+    "coal_share_pct": 1.3512493394730882,
+    "gas_twh": 125.53,
+    "gas_share_pct": 47.380538989959994,
+    "other_fossil_twh": 6.72,
+    "other_fossil_share_pct": 2.5364233411338413,
+    "net_imports_twh": 46.89,
+    "net_import_share_pct": 15.037039412500402,
+    "price_avg_eur_mwh": 121.65041095890412,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 284.7,
+    "estimated_generation_emissions_mtco2eq": 75.428418,
+    "decarbonization_rate_pct": -1.1583285957930611,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 58943464.0,
+    "gdp_current_billion_eur": 2258.0487000000003,
+    "gdp_per_capita_pps": 39949.2,
+    "gross_exports_twh": 4.909,
+    "gross_imports_twh": 51.798,
+    "household_price_energy_eur_mwh": 180.0,
+    "household_price_network_eur_mwh": 44.4,
+    "household_price_taxes_eur_mwh": 88.8,
+    "nonhousehold_price_energy_eur_mwh": 136.3,
+    "nonhousehold_price_network_eur_mwh": 27.900000000000002,
+    "nonhousehold_price_taxes_eur_mwh": 97.9,
+    "bev_new_registrations": 94862.0,
+    "bev_stock": 362224.0,
+    "household_electricity_price_eur_mwh": 313.2,
+    "nonhousehold_electricity_price_eur_mwh": 262.1,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 21.73344,
+    "mix": {
+      "generation_biomass": {
+        "twh": 15.61,
+        "pct": 5.891900052842153
+      },
+      "generation_coal": {
+        "twh": 3.58,
+        "pct": 1.3512493394730882
+      },
+      "generation_gas": {
+        "twh": 125.53,
+        "pct": 47.380538989959994
+      },
+      "generation_hydro": {
+        "twh": 41.7,
+        "pct": 15.739412697214464
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 6.72,
+        "pct": 2.5364233411338413
+      },
+      "generation_other_renewables": {
+        "twh": 5.69,
+        "pct": 2.147656073073149
+      },
+      "generation_solar": {
+        "twh": 44.63,
+        "pct": 16.845323469464784
+      },
+      "generation_wind": {
+        "twh": 21.48,
+        "pct": 8.10749603683853
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "LT",
+    "country_name": "Litauen",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 8.88,
+    "consumption_twh": 12.48,
+    "generation_per_capita_mwh": 3.0719585534673004,
+    "consumption_per_capita_mwh": 4.317347156224314,
+    "renewable_per_capita_mwh": 2.3835354091655065,
+    "low_carbon_share_pct": 77.59009009009009,
+    "self_sufficiency_pct": 71.15384615384616,
+    "renewable_twh": 6.89,
+    "renewable_share_pct": 77.59009009009009,
+    "wind_twh": 3.98,
+    "wind_share_pct": 44.81981981981982,
+    "solar_twh": 1.67,
+    "solar_share_pct": 18.806306306306304,
+    "hydro_twh": 0.35,
+    "hydro_share_pct": 3.941441441441441,
+    "bioenergy_twh": 0.89,
+    "bioenergy_share_pct": 10.022522522522522,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 1.99,
+    "fossil_share_pct": 22.40990990990991,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 1.48,
+    "gas_share_pct": 16.666666666666664,
+    "other_fossil_twh": 0.51,
+    "other_fossil_share_pct": 5.743243243243243,
+    "net_imports_twh": 3.6,
+    "net_import_share_pct": 28.846153846153843,
+    "price_avg_eur_mwh": 85.60271232876713,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 137.95,
+    "estimated_generation_emissions_mtco2eq": 1.2249960000000002,
+    "decarbonization_rate_pct": -18.676875430144523,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 2890664.0,
+    "gdp_current_billion_eur": 84.258,
+    "gdp_per_capita_pps": 36174.4,
+    "gross_exports_twh": 2.7914000000000003,
+    "gross_imports_twh": 6.3893,
+    "household_price_energy_eur_mwh": 98.9,
+    "household_price_network_eur_mwh": 69.2,
+    "household_price_taxes_eur_mwh": 34.9,
+    "nonhousehold_price_energy_eur_mwh": 103.5,
+    "nonhousehold_price_network_eur_mwh": 55.599999999999994,
+    "nonhousehold_price_taxes_eur_mwh": 33.7,
+    "bev_new_registrations": 3227.0,
+    "bev_stock": 23148.0,
+    "household_electricity_price_eur_mwh": 203.0,
+    "nonhousehold_electricity_price_eur_mwh": 192.8,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 1.38888,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.89,
+        "pct": 10.022522522522522
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 1.48,
+        "pct": 16.666666666666664
+      },
+      "generation_hydro": {
+        "twh": 0.35,
+        "pct": 3.941441441441441
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 0.51,
+        "pct": 5.743243243243243
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 1.67,
+        "pct": 18.806306306306304
+      },
+      "generation_wind": {
+        "twh": 3.98,
+        "pct": 44.81981981981982
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "LU",
+    "country_name": "Luxemburg",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 1.54,
+    "consumption_twh": 6.47,
+    "generation_per_capita_mwh": 2.2581539151843253,
+    "consumption_per_capita_mwh": 9.487179111196484,
+    "renewable_per_capita_mwh": 2.067530532733701,
+    "low_carbon_share_pct": 91.55844155844154,
+    "self_sufficiency_pct": 23.802163833075735,
+    "renewable_twh": 1.41,
+    "renewable_share_pct": 91.55844155844154,
+    "wind_twh": 0.47,
+    "wind_share_pct": 30.519480519480517,
+    "solar_twh": 0.47,
+    "solar_share_pct": 30.519480519480517,
+    "hydro_twh": 0.05,
+    "hydro_share_pct": 3.246753246753247,
+    "bioenergy_twh": 0.42,
+    "bioenergy_share_pct": 27.27272727272727,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 0.13,
+    "fossil_share_pct": 8.441558441558442,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 0.06,
+    "gas_share_pct": 3.896103896103896,
+    "other_fossil_twh": 0.07,
+    "other_fossil_share_pct": 4.545454545454546,
+    "net_imports_twh": 4.93,
+    "net_import_share_pct": 76.19783616692426,
+    "price_avg_eur_mwh": 89.47835616438356,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 120.78,
+    "estimated_generation_emissions_mtco2eq": 0.1860012,
+    "decarbonization_rate_pct": 4.013351347055549,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 681973.0,
+    "gdp_current_billion_eur": 89.5215,
+    "gdp_per_capita_pps": 99621.3,
+    "gross_exports_twh": 0.783201,
+    "gross_imports_twh": 5.716352,
+    "household_price_energy_eur_mwh": 160.89999999999998,
+    "household_price_network_eur_mwh": 122.5,
+    "household_price_taxes_eur_mwh": -16.9,
+    "nonhousehold_price_energy_eur_mwh": 122.7,
+    "nonhousehold_price_network_eur_mwh": 50.7,
+    "nonhousehold_price_taxes_eur_mwh": 15.4,
+    "bev_new_registrations": 12664.0,
+    "bev_stock": 39986.0,
+    "household_electricity_price_eur_mwh": 266.5,
+    "nonhousehold_electricity_price_eur_mwh": 188.8,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 2.39916,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.42,
+        "pct": 27.27272727272727
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 0.06,
+        "pct": 3.896103896103896
+      },
+      "generation_hydro": {
+        "twh": 0.05,
+        "pct": 3.246753246753247
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 0.07,
+        "pct": 4.545454545454546
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 0.47,
+        "pct": 30.519480519480517
+      },
+      "generation_wind": {
+        "twh": 0.47,
+        "pct": 30.519480519480517
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "LV",
+    "country_name": "Lettland",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 6.3,
+    "consumption_twh": 7.7,
+    "generation_per_capita_mwh": 3.386068210462951,
+    "consumption_per_capita_mwh": 4.138527812788051,
+    "renewable_per_capita_mwh": 2.515364956343906,
+    "low_carbon_share_pct": 74.28571428571429,
+    "self_sufficiency_pct": 81.81818181818181,
+    "renewable_twh": 4.68,
+    "renewable_share_pct": 74.28571428571429,
+    "wind_twh": 0.23,
+    "wind_share_pct": 3.650793650793651,
+    "solar_twh": 0.82,
+    "solar_share_pct": 13.015873015873018,
+    "hydro_twh": 2.97,
+    "hydro_share_pct": 47.142857142857146,
+    "bioenergy_twh": 0.66,
+    "bioenergy_share_pct": 10.476190476190476,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 1.62,
+    "fossil_share_pct": 25.71428571428572,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 1.65,
+    "gas_share_pct": 26.190476190476193,
+    "other_fossil_twh": null,
+    "other_fossil_share_pct": null,
+    "net_imports_twh": 1.4,
+    "net_import_share_pct": 18.18181818181818,
+    "price_avg_eur_mwh": 85.88704109589041,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 133.02,
+    "estimated_generation_emissions_mtco2eq": 0.838026,
+    "decarbonization_rate_pct": 1.2911843276936634,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 1860565.0,
+    "gdp_current_billion_eur": 43.026199999999996,
+    "gdp_per_capita_pps": 29518.5,
+    "gross_exports_twh": 2.489718,
+    "gross_imports_twh": 3.8872730000000004,
+    "household_price_energy_eur_mwh": 116.6,
+    "household_price_network_eur_mwh": 85.0,
+    "household_price_taxes_eur_mwh": 43.0,
+    "nonhousehold_price_energy_eur_mwh": 101.1,
+    "nonhousehold_price_network_eur_mwh": 33.4,
+    "nonhousehold_price_taxes_eur_mwh": 31.099999999999998,
+    "bev_new_registrations": 1612.0,
+    "bev_stock": 13916.0,
+    "household_electricity_price_eur_mwh": 244.6,
+    "nonhousehold_electricity_price_eur_mwh": 165.6,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 0.83496,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.66,
+        "pct": 10.476190476190476
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 1.65,
+        "pct": 26.190476190476193
+      },
+      "generation_hydro": {
+        "twh": 2.97,
+        "pct": 47.142857142857146
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 0.82,
+        "pct": 13.015873015873018
+      },
+      "generation_wind": {
+        "twh": 0.23,
+        "pct": 3.650793650793651
+      }
+    },
+    "quality_issues": [
+      {
+        "issue_type": "negative_source_residual_treated_as_missing",
+        "severity": "warning",
+        "details": "Negative Ember residual categories are exposed as missing by product decision."
+      }
+    ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "ME",
+    "country_name": "Montenegro",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 2.46,
+    "consumption_twh": 3.49,
+    "generation_per_capita_mwh": 3.9465641629513883,
+    "consumption_per_capita_mwh": 5.598987369390384,
+    "renewable_per_capita_mwh": 2.9839875378412937,
+    "low_carbon_share_pct": 75.60975609756098,
+    "self_sufficiency_pct": 70.48710601719196,
+    "renewable_twh": 1.86,
+    "renewable_share_pct": 75.60975609756098,
+    "wind_twh": 0.28,
+    "wind_share_pct": 11.382113821138212,
+    "solar_twh": 0.14,
+    "solar_share_pct": 5.691056910569106,
+    "hydro_twh": 1.44,
+    "hydro_share_pct": 58.536585365853654,
+    "bioenergy_twh": 0.0,
+    "bioenergy_share_pct": 0.0,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 0.6,
+    "fossil_share_pct": 24.390243902439025,
+    "coal_twh": 0.6,
+    "coal_share_pct": 24.390243902439025,
+    "gas_twh": 0.0,
+    "gas_share_pct": 0.0,
+    "other_fossil_twh": 0.0,
+    "other_fossil_share_pct": 0.0,
+    "net_imports_twh": 1.03,
+    "net_import_share_pct": 29.51289398280802,
+    "price_avg_eur_mwh": null,
+    "price_coverage": "incomplete",
+    "price_months_available": 9,
+    "price_months_complete": 9,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 265.45,
+    "estimated_generation_emissions_mtco2eq": 0.6530069999999999,
+    "decarbonization_rate_pct": 37.48969739785706,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 623327.0,
+    "gdp_current_billion_eur": 8.1707,
+    "gdp_per_capita_pps": 22545.1,
+    "gross_exports_twh": 4.8338,
+    "gross_imports_twh": 5.8657,
+    "household_price_energy_eur_mwh": 42.8,
+    "household_price_network_eur_mwh": 49.7,
+    "household_price_taxes_eur_mwh": 6.0,
+    "nonhousehold_price_energy_eur_mwh": 46.5,
+    "nonhousehold_price_network_eur_mwh": 35.4,
+    "nonhousehold_price_taxes_eur_mwh": 23.0,
+    "bev_new_registrations": 129.0,
+    "bev_stock": 782.0,
+    "household_electricity_price_eur_mwh": 98.5,
+    "nonhousehold_electricity_price_eur_mwh": 104.9,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 0.04692,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_coal": {
+        "twh": 0.6,
+        "pct": 24.390243902439025
+      },
+      "generation_gas": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_hydro": {
+        "twh": 1.44,
+        "pct": 58.536585365853654
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 0.14,
+        "pct": 5.691056910569106
+      },
+      "generation_wind": {
+        "twh": 0.28,
+        "pct": 11.382113821138212
+      }
+    },
+    "quality_issues": [
+      {
+        "issue_type": "incomplete_wholesale_price_year",
+        "severity": "warning",
+        "details": "Historical Ember price year has fewer than 12 completed monthly values."
+      }
+    ],
+    "data_status": "partial"
+  },
+  {
+    "country_code": "MK",
+    "country_name": "Nordmazedonien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 7.1,
+    "consumption_twh": 8.48,
+    "generation_per_capita_mwh": 3.8955082047084075,
+    "consumption_per_capita_mwh": 4.65266332055314,
+    "renewable_per_capita_mwh": 2.068459990387422,
+    "low_carbon_share_pct": 53.09859154929578,
+    "self_sufficiency_pct": 83.72641509433961,
+    "renewable_twh": 3.77,
+    "renewable_share_pct": 53.09859154929578,
+    "wind_twh": 0.3,
+    "wind_share_pct": 4.225352112676056,
+    "solar_twh": 2.21,
+    "solar_share_pct": 31.126760563380284,
+    "hydro_twh": 1.24,
+    "hydro_share_pct": 17.464788732394368,
+    "bioenergy_twh": 0.02,
+    "bioenergy_share_pct": 0.28169014084507044,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 3.33,
+    "fossil_share_pct": 46.90140845070423,
+    "coal_twh": 2.07,
+    "coal_share_pct": 29.154929577464788,
+    "gas_twh": 1.09,
+    "gas_share_pct": 15.35211267605634,
+    "other_fossil_twh": 0.17,
+    "other_fossil_share_pct": 2.394366197183099,
+    "net_imports_twh": 1.38,
+    "net_import_share_pct": 16.27358490566038,
+    "price_avg_eur_mwh": null,
+    "price_coverage": "incomplete",
+    "price_months_available": 3,
+    "price_months_complete": 3,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 406.9,
+    "estimated_generation_emissions_mtco2eq": 2.8889899999999997,
+    "decarbonization_rate_pct": 20.485412229105197,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 1822612.0,
+    "gdp_current_billion_eur": 16.949099999999998,
+    "gdp_per_capita_pps": 17842.6,
+    "gross_exports_twh": 6.492489,
+    "gross_imports_twh": 7.416017,
+    "household_price_energy_eur_mwh": 53.699999999999996,
+    "household_price_network_eur_mwh": 43.9,
+    "household_price_taxes_eur_mwh": 17.6,
+    "nonhousehold_price_energy_eur_mwh": 116.9,
+    "nonhousehold_price_network_eur_mwh": 8.4,
+    "nonhousehold_price_taxes_eur_mwh": 22.599999999999998,
+    "bev_stock": 2047.0,
+    "household_electricity_price_eur_mwh": 115.19999999999999,
+    "nonhousehold_electricity_price_eur_mwh": 147.9,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 0.12282,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.02,
+        "pct": 0.28169014084507044
+      },
+      "generation_coal": {
+        "twh": 2.07,
+        "pct": 29.154929577464788
+      },
+      "generation_gas": {
+        "twh": 1.09,
+        "pct": 15.35211267605634
+      },
+      "generation_hydro": {
+        "twh": 1.24,
+        "pct": 17.464788732394368
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 0.17,
+        "pct": 2.394366197183099
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 2.21,
+        "pct": 31.126760563380284
+      },
+      "generation_wind": {
+        "twh": 0.3,
+        "pct": 4.225352112676056
+      }
+    },
+    "quality_issues": [
+      {
+        "issue_type": "incomplete_wholesale_price_year",
+        "severity": "warning",
+        "details": "Historical Ember price year has fewer than 12 completed monthly values."
       }
     ],
     "data_status": "partial"
@@ -1376,137 +2406,983 @@
     "country_code": "NL",
     "country_name": "Niederlande",
     "period": "2025",
-    "generation_twh": 117.95278782500003,
-    "consumption_twh": 116.90329612499949,
-    "renewable_twh": 24.251612975000075,
-    "renewable_share_pct": 20.56044068325103,
-    "wind_twh": 22.73358245000008,
-    "solar_twh": 0.4975987500000043,
-    "nuclear_twh": 3.804152675000032,
-    "fossil_twh": 48.096285775000105,
-    "import_twh": 11.27763175,
-    "export_twh": 24.9272605,
-    "net_import_twh": -13.64962875,
-    "carbon_intensity_gco2eq_kwh": null,
-    "installed_capacity_mw": 65310.0,
-    "installed_capacity_snapshot": "2025-01-01T00:00:00+01:00",
-    "installed_capacity_snapshot_year": 2025,
-    "installed_capacity_age_years": 0,
-    "installed_capacity_status": "current",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 134.96,
+    "consumption_twh": 120.91,
+    "generation_per_capita_mwh": 7.479483376964577,
+    "consumption_per_capita_mwh": 6.700832358541693,
+    "renewable_per_capita_mwh": 3.829522090606493,
+    "low_carbon_share_pct": 54.15678719620627,
+    "self_sufficiency_pct": 111.62021338185428,
+    "renewable_twh": 69.1,
+    "renewable_share_pct": 51.200355660936566,
+    "wind_twh": 33.7,
+    "wind_share_pct": 24.97036158861885,
+    "solar_twh": 28.5,
+    "solar_share_pct": 21.117368109069353,
+    "hydro_twh": 0.05,
+    "hydro_share_pct": 0.03704801422643746,
+    "bioenergy_twh": 6.85,
+    "bioenergy_share_pct": 5.075577949021932,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 3.99,
+    "nuclear_share_pct": 2.9564315352697093,
+    "fossil_twh": 61.87,
+    "fossil_share_pct": 45.84321280379371,
+    "coal_twh": 9.55,
+    "coal_share_pct": 7.076170717249555,
+    "gas_twh": 47.09,
+    "gas_share_pct": 34.8918197984588,
+    "other_fossil_twh": 5.23,
+    "other_fossil_share_pct": 3.8752222880853586,
+    "net_imports_twh": -14.05,
+    "net_import_share_pct": -11.620213381854274,
+    "price_avg_eur_mwh": 87.3181095890411,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 253.6,
+    "estimated_generation_emissions_mtco2eq": 34.225856,
+    "decarbonization_rate_pct": -1.120459348458871,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 18044027.0,
+    "gdp_current_billion_eur": 1170.579,
+    "gdp_per_capita_pps": 55152.1,
+    "gross_exports_twh": 30.354713,
+    "gross_imports_twh": 16.306658,
+    "household_price_energy_eur_mwh": 146.8,
+    "household_price_network_eur_mwh": 114.0,
+    "household_price_taxes_eur_mwh": -13.5,
+    "nonhousehold_price_energy_eur_mwh": 106.30000000000001,
+    "nonhousehold_price_network_eur_mwh": 57.4,
+    "nonhousehold_price_taxes_eur_mwh": 82.5,
+    "bev_new_registrations": 155962.0,
+    "bev_stock": 680605.0,
+    "household_electricity_price_eur_mwh": 247.3,
+    "nonhousehold_electricity_price_eur_mwh": 246.20000000000002,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 40.8363,
     "mix": {
-      "generation_solar": {
-        "twh": 0.4975987500000043,
-        "pct": 0.42186264451694333
-      },
-      "generation_wind_onshore": {
-        "twh": 7.075160450000043,
-        "pct": 5.998298624782878
-      },
-      "generation_wind_offshore": {
-        "twh": 15.658422000000034,
-        "pct": 13.275160586481057
-      },
-      "generation_hydro": {
-        "twh": 0.0,
-        "pct": 0.0
-      },
       "generation_biomass": {
-        "twh": 1.020431774999995,
-        "pct": 0.8651188274701507
-      },
-      "generation_nuclear": {
-        "twh": 3.804152675000032,
-        "pct": 3.225148591353382
-      },
-      "generation_gas": {
-        "twh": 35.73869722500012,
-        "pct": 30.299154334549193
+        "twh": 6.85,
+        "pct": 5.075577949021932
       },
       "generation_coal": {
-        "twh": 12.35758854999999,
-        "pct": 10.476724440234726
+        "twh": 9.55,
+        "pct": 7.076170717249555
       },
-      "generation_lignite": {
+      "generation_gas": {
+        "twh": 47.09,
+        "pct": 34.8918197984588
+      },
+      "generation_hydro": {
+        "twh": 0.05,
+        "pct": 0.03704801422643746
+      },
+      "generation_nuclear": {
+        "twh": 3.99,
+        "pct": 2.9564315352697093
+      },
+      "generation_other_fossil": {
+        "twh": 5.23,
+        "pct": 3.8752222880853586
+      },
+      "generation_other_renewables": {
         "twh": 0.0,
         "pct": 0.0
       },
-      "generation_oil": {
-        "twh": 0.0,
-        "pct": 0.0
+      "generation_solar": {
+        "twh": 28.5,
+        "pct": 21.117368109069353
       },
-      "generation_other": {
-        "twh": 41.80073640000025,
-        "pct": 35.438531950612024
+      "generation_wind": {
+        "twh": 33.7,
+        "pct": 24.97036158861885
       }
     },
-    "price_avg_eur_mwh": 86.81152825342465,
-    "price_median_eur_mwh": 90.24,
-    "price_min_eur_mwh": -350.0,
-    "price_max_eur_mwh": 523.47,
-    "negative_price_intervals": 711,
-    "negative_price_hours": 581.25,
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "NO",
+    "country_name": "Norwegen",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 160.84,
+    "consumption_twh": 138.04,
+    "generation_per_capita_mwh": 28.750487099461242,
+    "consumption_per_capita_mwh": 24.67493931366345,
+    "renewable_per_capita_mwh": 28.46269622511324,
+    "low_carbon_share_pct": 98.99900522258143,
+    "self_sufficiency_pct": 116.5169516082295,
+    "renewable_twh": 159.23,
+    "renewable_share_pct": 98.99900522258143,
+    "wind_twh": 13.58,
+    "wind_share_pct": 8.443173339965181,
+    "solar_twh": 0.53,
+    "solar_share_pct": 0.3295200198955484,
+    "hydro_twh": 144.78,
+    "hydro_share_pct": 90.0149216612783,
+    "bioenergy_twh": 0.24,
+    "bioenergy_share_pct": 0.1492166127828898,
+    "other_renewables_twh": 0.1,
+    "other_renewables_share_pct": 0.062173588659537427,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 1.61,
+    "fossil_share_pct": 1.0009947774185526,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 0.9,
+    "gas_share_pct": 0.5595622979358369,
+    "other_fossil_twh": 0.71,
+    "other_fossil_share_pct": 0.4414324794827157,
+    "net_imports_twh": -22.8,
+    "net_import_share_pct": -16.516951608229498,
+    "price_avg_eur_mwh": 44.842164383561645,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 28.06,
+    "estimated_generation_emissions_mtco2eq": 4.5131704,
+    "decarbonization_rate_pct": 5.36256323777403,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 5594340.0,
+    "gdp_current_billion_eur": 470.3587,
+    "gdp_per_capita_pps": 66164.8,
+    "gross_exports_twh": 34.315,
+    "gross_imports_twh": 11.515,
+    "household_price_energy_eur_mwh": 62.9,
+    "household_price_network_eur_mwh": 96.69999999999999,
+    "household_price_taxes_eur_mwh": 35.1,
+    "nonhousehold_price_energy_eur_mwh": 51.0,
+    "nonhousehold_price_network_eur_mwh": 22.700000000000003,
+    "nonhousehold_price_taxes_eur_mwh": 28.7,
+    "bev_new_registrations": 173080.0,
+    "bev_stock": 945115.0,
+    "household_electricity_price_eur_mwh": 194.7,
+    "nonhousehold_electricity_price_eur_mwh": 102.4,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 56.7069,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.24,
+        "pct": 0.1492166127828898
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 0.9,
+        "pct": 0.5595622979358369
+      },
+      "generation_hydro": {
+        "twh": 144.78,
+        "pct": 90.0149216612783
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 0.71,
+        "pct": 0.4414324794827157
+      },
+      "generation_other_renewables": {
+        "twh": 0.1,
+        "pct": 0.062173588659537427
+      },
+      "generation_solar": {
+        "twh": 0.53,
+        "pct": 0.3295200198955484
+      },
+      "generation_wind": {
+        "twh": 13.58,
+        "pct": 8.443173339965181
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "PL",
+    "country_name": "Polen",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 172.58,
+    "consumption_twh": 173.53,
+    "generation_per_capita_mwh": 4.728543698683978,
+    "consumption_per_capita_mwh": 4.754572882330692,
+    "renewable_per_capita_mwh": 1.4779096483196998,
+    "low_carbon_share_pct": 31.25507011241163,
+    "self_sufficiency_pct": 99.45254422866364,
+    "renewable_twh": 53.94,
+    "renewable_share_pct": 31.25507011241163,
+    "wind_twh": 23.98,
+    "wind_share_pct": 13.895005214972766,
+    "solar_twh": 19.55,
+    "solar_share_pct": 11.328079731139182,
+    "hydro_twh": 1.7,
+    "hydro_share_pct": 0.985050411403407,
+    "bioenergy_twh": 8.48,
+    "bioenergy_share_pct": 4.913663228647583,
+    "other_renewables_twh": 0.23,
+    "other_renewables_share_pct": 0.13327152624869623,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 118.64,
+    "fossil_share_pct": 68.74492988758836,
+    "coal_twh": 87.4,
+    "coal_share_pct": 50.643179974504584,
+    "gas_twh": 24.81,
+    "gas_share_pct": 14.375941592305017,
+    "other_fossil_twh": 6.43,
+    "other_fossil_share_pct": 3.7258083207787687,
+    "net_imports_twh": 0.95,
+    "net_import_share_pct": 0.5474557713363682,
+    "price_avg_eur_mwh": 103.72945205479452,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 590.86,
+    "estimated_generation_emissions_mtco2eq": 101.97061880000001,
+    "decarbonization_rate_pct": 2.878182684879266,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 36497495.0,
+    "gdp_current_billion_eur": 922.8655,
+    "gdp_per_capita_pps": 33816.5,
+    "gross_exports_twh": 14.972264,
+    "gross_imports_twh": 15.924133,
+    "household_price_energy_eur_mwh": 77.2,
+    "household_price_network_eur_mwh": 72.5,
+    "household_price_taxes_eur_mwh": 112.9,
+    "nonhousehold_price_energy_eur_mwh": 83.0,
+    "nonhousehold_price_network_eur_mwh": 41.5,
+    "nonhousehold_price_taxes_eur_mwh": 116.0,
+    "bev_new_registrations": 43311.0,
+    "bev_stock": 102710.0,
+    "household_electricity_price_eur_mwh": 262.6,
+    "nonhousehold_electricity_price_eur_mwh": 240.5,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 6.1626,
+    "mix": {
+      "generation_biomass": {
+        "twh": 8.48,
+        "pct": 4.913663228647583
+      },
+      "generation_coal": {
+        "twh": 87.4,
+        "pct": 50.643179974504584
+      },
+      "generation_gas": {
+        "twh": 24.81,
+        "pct": 14.375941592305017
+      },
+      "generation_hydro": {
+        "twh": 1.7,
+        "pct": 0.985050411403407
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 6.43,
+        "pct": 3.7258083207787687
+      },
+      "generation_other_renewables": {
+        "twh": 0.23,
+        "pct": 0.13327152624869623
+      },
+      "generation_solar": {
+        "twh": 19.55,
+        "pct": 11.328079731139182
+      },
+      "generation_wind": {
+        "twh": 23.98,
+        "pct": 13.895005214972766
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "PT",
+    "country_name": "Portugal",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 51.14,
+    "consumption_twh": 60.43,
+    "generation_per_capita_mwh": 4.4909987703761285,
+    "consumption_per_capita_mwh": 5.306825492644299,
+    "renewable_per_capita_mwh": 3.633019537161917,
+    "low_carbon_share_pct": 80.8955807587016,
+    "self_sufficiency_pct": 84.62684097302665,
+    "renewable_twh": 41.37,
+    "renewable_share_pct": 80.8955807587016,
+    "wind_twh": 13.68,
+    "wind_share_pct": 26.75009777082519,
+    "solar_twh": 8.86,
+    "solar_share_pct": 17.32499022291748,
+    "hydro_twh": 15.2,
+    "hydro_share_pct": 29.72233085647243,
+    "bioenergy_twh": 3.43,
+    "bioenergy_share_pct": 6.707078607743449,
+    "other_renewables_twh": 0.2,
+    "other_renewables_share_pct": 0.3910833007430583,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 9.77,
+    "fossil_share_pct": 19.104419241298395,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 8.42,
+    "gas_share_pct": 16.46460696128275,
+    "other_fossil_twh": 1.35,
+    "other_fossil_share_pct": 2.639812280015643,
+    "net_imports_twh": 9.29,
+    "net_import_share_pct": 15.373159026973356,
+    "price_avg_eur_mwh": 67.8786301369863,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 127.94,
+    "estimated_generation_emissions_mtco2eq": 6.5428516,
+    "decarbonization_rate_pct": -15.615398517983012,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 11387222.0,
+    "gdp_current_billion_eur": 306.7496,
+    "gdp_per_capita_pps": 33825.0,
+    "gross_exports_twh": 3.789,
+    "gross_imports_twh": 13.08,
+    "household_price_energy_eur_mwh": 118.0,
+    "household_price_network_eur_mwh": 42.6,
+    "household_price_taxes_eur_mwh": 80.4,
+    "nonhousehold_price_energy_eur_mwh": 88.2,
+    "nonhousehold_price_network_eur_mwh": 25.2,
+    "nonhousehold_price_taxes_eur_mwh": 48.0,
+    "bev_new_registrations": 52435.0,
+    "bev_stock": 241819.0,
+    "household_electricity_price_eur_mwh": 241.0,
+    "nonhousehold_electricity_price_eur_mwh": 161.4,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 14.50914,
+    "mix": {
+      "generation_biomass": {
+        "twh": 3.43,
+        "pct": 6.707078607743449
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 8.42,
+        "pct": 16.46460696128275
+      },
+      "generation_hydro": {
+        "twh": 15.2,
+        "pct": 29.72233085647243
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 1.35,
+        "pct": 2.639812280015643
+      },
+      "generation_other_renewables": {
+        "twh": 0.2,
+        "pct": 0.3910833007430583
+      },
+      "generation_solar": {
+        "twh": 8.86,
+        "pct": 17.32499022291748
+      },
+      "generation_wind": {
+        "twh": 13.68,
+        "pct": 26.75009777082519
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "RO",
+    "country_name": "Rumänien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 49.78,
+    "consumption_twh": 53.52,
+    "generation_per_capita_mwh": 2.6140631873370115,
+    "consumption_per_capita_mwh": 2.8104592564539344,
+    "renewable_per_capita_mwh": 1.229313363108868,
+    "low_carbon_share_pct": 67.51707513057453,
+    "self_sufficiency_pct": 93.01195814648729,
+    "renewable_twh": 23.41,
+    "renewable_share_pct": 47.02691844114102,
+    "wind_twh": 5.97,
+    "wind_share_pct": 11.992768179991964,
+    "solar_twh": 4.87,
+    "solar_share_pct": 9.78304539975894,
+    "hydro_twh": 12.08,
+    "hydro_share_pct": 24.26677380474086,
+    "bioenergy_twh": 0.49,
+    "bioenergy_share_pct": 0.9843310566492567,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 10.2,
+    "nuclear_share_pct": 20.490156689433505,
+    "fossil_twh": 16.17,
+    "fossil_share_pct": 32.482924869425474,
+    "coal_twh": 7.56,
+    "coal_share_pct": 15.186822016874245,
+    "gas_twh": 8.43,
+    "gas_share_pct": 16.934511852149456,
+    "other_fossil_twh": 0.18,
+    "other_fossil_share_pct": 0.3615910004017678,
+    "net_imports_twh": 3.74,
+    "net_import_share_pct": 6.988041853512705,
+    "price_avg_eur_mwh": 108.17380821917808,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 259.6,
+    "estimated_generation_emissions_mtco2eq": 12.922888,
+    "decarbonization_rate_pct": 0.04235493434983512,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 19043151.0,
+    "gdp_current_billion_eur": 380.05809999999997,
+    "gdp_per_capita_pps": 32353.1,
+    "gross_exports_twh": 15.344700000000001,
+    "gross_imports_twh": 19.088099999999997,
+    "household_price_energy_eur_mwh": 108.60000000000001,
+    "household_price_network_eur_mwh": 73.80000000000001,
+    "household_price_taxes_eur_mwh": 56.800000000000004,
+    "nonhousehold_price_energy_eur_mwh": 119.4,
+    "nonhousehold_price_network_eur_mwh": 43.4,
+    "nonhousehold_price_taxes_eur_mwh": 51.8,
+    "bev_new_registrations": 8849.0,
+    "bev_stock": 61453.0,
+    "household_electricity_price_eur_mwh": 239.20000000000002,
+    "nonhousehold_electricity_price_eur_mwh": 214.6,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 3.68718,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.49,
+        "pct": 0.9843310566492567
+      },
+      "generation_coal": {
+        "twh": 7.56,
+        "pct": 15.186822016874245
+      },
+      "generation_gas": {
+        "twh": 8.43,
+        "pct": 16.934511852149456
+      },
+      "generation_hydro": {
+        "twh": 12.08,
+        "pct": 24.26677380474086
+      },
+      "generation_nuclear": {
+        "twh": 10.2,
+        "pct": 20.490156689433505
+      },
+      "generation_other_fossil": {
+        "twh": 0.18,
+        "pct": 0.3615910004017678
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 4.87,
+        "pct": 9.78304539975894
+      },
+      "generation_wind": {
+        "twh": 5.97,
+        "pct": 11.992768179991964
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "RS",
+    "country_name": "Serbien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 36.67,
+    "consumption_twh": 37.99,
+    "generation_per_capita_mwh": 5.583314795875564,
+    "consumption_per_capita_mwh": 5.78429585752148,
+    "renewable_per_capita_mwh": 1.5530354763548064,
+    "low_carbon_share_pct": 27.81565312244341,
+    "self_sufficiency_pct": 96.5254014214267,
+    "renewable_twh": 10.2,
+    "renewable_share_pct": 27.81565312244341,
+    "wind_twh": 1.47,
+    "wind_share_pct": 4.008726479410962,
+    "solar_twh": 0.16,
+    "solar_share_pct": 0.436323970548132,
+    "hydro_twh": 8.16,
+    "hydro_share_pct": 22.25252249795473,
+    "bioenergy_twh": 0.41,
+    "bioenergy_share_pct": 1.118080174529588,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 0.0,
+    "nuclear_share_pct": 0.0,
+    "fossil_twh": 26.47,
+    "fossil_share_pct": 72.18434687755658,
+    "coal_twh": 23.85,
+    "coal_share_pct": 65.03954185983093,
+    "gas_twh": 2.51,
+    "gas_share_pct": 6.844832287973819,
+    "other_fossil_twh": 0.11,
+    "other_fossil_share_pct": 0.29997272975184075,
+    "net_imports_twh": 1.32,
+    "net_import_share_pct": 3.474598578573309,
+    "price_avg_eur_mwh": 118.0001095890411,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 695.8,
+    "estimated_generation_emissions_mtco2eq": 25.514986,
+    "decarbonization_rate_pct": -4.158558127002181,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 6567783.0,
+    "gdp_current_billion_eur": 88.67280000000001,
+    "gdp_per_capita_pps": 21589.7,
+    "gross_exports_twh": 6.500271,
+    "gross_imports_twh": 8.53365,
+    "household_price_energy_eur_mwh": 45.0,
+    "household_price_network_eur_mwh": 38.3,
+    "household_price_taxes_eur_mwh": 32.4,
+    "nonhousehold_price_energy_eur_mwh": 105.6,
+    "nonhousehold_price_network_eur_mwh": 23.5,
+    "nonhousehold_price_taxes_eur_mwh": 45.900000000000006,
+    "bev_new_registrations": 873.0,
+    "bev_stock": 4605.0,
+    "household_electricity_price_eur_mwh": 115.69999999999999,
+    "nonhousehold_electricity_price_eur_mwh": 175.0,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 0.2763,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.41,
+        "pct": 1.118080174529588
+      },
+      "generation_coal": {
+        "twh": 23.85,
+        "pct": 65.03954185983093
+      },
+      "generation_gas": {
+        "twh": 2.51,
+        "pct": 6.844832287973819
+      },
+      "generation_hydro": {
+        "twh": 8.16,
+        "pct": 22.25252249795473
+      },
+      "generation_nuclear": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_other_fossil": {
+        "twh": 0.11,
+        "pct": 0.29997272975184075
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 0.16,
+        "pct": 0.436323970548132
+      },
+      "generation_wind": {
+        "twh": 1.47,
+        "pct": 4.008726479410962
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "SK",
+    "country_name": "Slowakei",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 29.09,
+    "consumption_twh": 26.74,
+    "generation_per_capita_mwh": 5.367702374281085,
+    "consumption_per_capita_mwh": 4.9340791161318736,
+    "renewable_per_capita_mwh": 1.0056369178354043,
+    "low_carbon_share_pct": 85.14953592299759,
+    "self_sufficiency_pct": 108.78833208676141,
+    "renewable_twh": 5.45,
+    "renewable_share_pct": 18.73496046751461,
+    "wind_twh": 0.0,
+    "wind_share_pct": 0.0,
+    "solar_twh": 0.7,
+    "solar_share_pct": 2.4063251976624267,
+    "hydro_twh": 3.16,
+    "hydro_share_pct": 10.862839463733243,
+    "bioenergy_twh": 1.58,
+    "bioenergy_share_pct": 5.4314197318666215,
+    "other_renewables_twh": 0.01,
+    "other_renewables_share_pct": 0.034376074252320386,
+    "nuclear_twh": 19.32,
+    "nuclear_share_pct": 66.41457545548299,
+    "fossil_twh": 4.32,
+    "fossil_share_pct": 14.850464077002407,
+    "coal_twh": 0.31,
+    "coal_share_pct": 1.0656583018219319,
+    "gas_twh": 3.28,
+    "gas_share_pct": 11.275352354761086,
+    "other_fossil_twh": 0.73,
+    "other_fossil_share_pct": 2.5094534204193883,
+    "net_imports_twh": -2.35,
+    "net_import_share_pct": -8.788332086761406,
+    "price_avg_eur_mwh": 102.45383561643835,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 95.02,
+    "estimated_generation_emissions_mtco2eq": 2.7641317999999995,
+    "decarbonization_rate_pct": 2.2327399938265273,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 5419451.0,
+    "gdp_current_billion_eur": 136.7543,
+    "gdp_per_capita_pps": 31138.8,
+    "gross_exports_twh": 18.32,
+    "gross_imports_twh": 15.968,
+    "household_price_energy_eur_mwh": 82.19999999999999,
+    "household_price_network_eur_mwh": 43.4,
+    "household_price_taxes_eur_mwh": 61.5,
+    "nonhousehold_price_energy_eur_mwh": 118.2,
+    "nonhousehold_price_network_eur_mwh": 51.9,
+    "nonhousehold_price_taxes_eur_mwh": 71.5,
+    "bev_new_registrations": 4377.0,
+    "bev_stock": 18895.0,
+    "household_electricity_price_eur_mwh": 187.1,
+    "nonhousehold_electricity_price_eur_mwh": 241.6,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 1.1337,
+    "mix": {
+      "generation_biomass": {
+        "twh": 1.58,
+        "pct": 5.4314197318666215
+      },
+      "generation_coal": {
+        "twh": 0.31,
+        "pct": 1.0656583018219319
+      },
+      "generation_gas": {
+        "twh": 3.28,
+        "pct": 11.275352354761086
+      },
+      "generation_hydro": {
+        "twh": 3.16,
+        "pct": 10.862839463733243
+      },
+      "generation_nuclear": {
+        "twh": 19.32,
+        "pct": 66.41457545548299
+      },
+      "generation_other_fossil": {
+        "twh": 0.73,
+        "pct": 2.5094534204193883
+      },
+      "generation_other_renewables": {
+        "twh": 0.01,
+        "pct": 0.034376074252320386
+      },
+      "generation_solar": {
+        "twh": 0.7,
+        "pct": 2.4063251976624267
+      },
+      "generation_wind": {
+        "twh": 0.0,
+        "pct": 0.0
+      }
+    },
+    "quality_issues": [],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "SI",
+    "country_name": "Slowenien",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 14.86,
+    "consumption_twh": 14.37,
+    "generation_per_capita_mwh": 6.9737428725625925,
+    "consumption_per_capita_mwh": 6.743787690358308,
+    "renewable_per_capita_mwh": 2.7688481122556725,
+    "low_carbon_share_pct": 78.93674293405115,
+    "self_sufficiency_pct": 103.40988169798192,
+    "renewable_twh": 5.9,
+    "renewable_share_pct": 39.70390309555855,
+    "wind_twh": 0.01,
+    "wind_share_pct": 0.06729475100942127,
+    "solar_twh": 1.54,
+    "solar_share_pct": 10.363391655450876,
+    "hydro_twh": 4.06,
+    "hydro_share_pct": 27.321668909825032,
+    "bioenergy_twh": 0.29,
+    "bioenergy_share_pct": 1.9515477792732168,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 5.83,
+    "nuclear_share_pct": 39.2328398384926,
+    "fossil_twh": 3.13,
+    "fossil_share_pct": 21.063257065948857,
+    "coal_twh": 2.18,
+    "coal_share_pct": 14.670255720053838,
+    "gas_twh": 0.97,
+    "gas_share_pct": 6.527590847913863,
+    "other_fossil_twh": null,
+    "other_fossil_share_pct": null,
+    "net_imports_twh": -0.49,
+    "net_import_share_pct": -3.409881697981907,
+    "price_avg_eur_mwh": 104.85810958904109,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 182.23,
+    "estimated_generation_emissions_mtco2eq": 2.7079378,
+    "decarbonization_rate_pct": 20.948290820753087,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 2130850.0,
+    "gdp_current_billion_eur": 70.4862,
+    "gdp_per_capita_pps": 37689.0,
+    "gross_exports_twh": 10.81346,
+    "gross_imports_twh": 10.321652,
+    "household_price_energy_eur_mwh": 112.8,
+    "household_price_network_eur_mwh": 42.0,
+    "household_price_taxes_eur_mwh": 42.7,
+    "nonhousehold_price_energy_eur_mwh": 116.8,
+    "nonhousehold_price_network_eur_mwh": 21.8,
+    "nonhousehold_price_taxes_eur_mwh": 47.4,
+    "bev_new_registrations": 6430.0,
+    "bev_stock": 24548.0,
+    "household_electricity_price_eur_mwh": 197.5,
+    "nonhousehold_electricity_price_eur_mwh": 186.0,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 1.47288,
+    "mix": {
+      "generation_biomass": {
+        "twh": 0.29,
+        "pct": 1.9515477792732168
+      },
+      "generation_coal": {
+        "twh": 2.18,
+        "pct": 14.670255720053838
+      },
+      "generation_gas": {
+        "twh": 0.97,
+        "pct": 6.527590847913863
+      },
+      "generation_hydro": {
+        "twh": 4.06,
+        "pct": 27.321668909825032
+      },
+      "generation_nuclear": {
+        "twh": 5.83,
+        "pct": 39.2328398384926
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 1.54,
+        "pct": 10.363391655450876
+      },
+      "generation_wind": {
+        "twh": 0.01,
+        "pct": 0.06729475100942127
+      }
+    },
     "quality_issues": [
       {
-        "issue_type": "unmapped_generation_categories",
+        "issue_type": "negative_source_residual_treated_as_missing",
         "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
-      },
-      {
-        "issue_type": "unmapped_generation_categories",
-        "severity": "warning",
-        "details": "[\"others\", \"waste\"]"
+        "details": "Negative Ember residual categories are exposed as missing by product decision."
       }
     ],
+    "data_status": "complete"
+  },
+  {
+    "country_code": "SE",
+    "country_name": "Schweden",
+    "period": "2025",
+    "period_status": "closed",
+    "source": "ember",
+    "source_label": "Ember, CC BY 4.0",
+    "generation_twh": 170.28,
+    "consumption_twh": 136.58,
+    "generation_per_capita_mwh": 16.082797885472875,
+    "consumption_per_capita_mwh": 12.899862198719081,
+    "renewable_per_capita_mwh": 11.477458298347802,
+    "low_carbon_share_pct": 98.77848249941272,
+    "self_sufficiency_pct": 124.67418362864255,
+    "renewable_twh": 121.52,
+    "renewable_share_pct": 71.36481089969462,
+    "wind_twh": 38.9,
+    "wind_share_pct": 22.844726333098425,
+    "solar_twh": 4.43,
+    "solar_share_pct": 2.6015973690392293,
+    "hydro_twh": 68.23,
+    "hydro_share_pct": 40.069297627437166,
+    "bioenergy_twh": 9.96,
+    "bioenergy_share_pct": 5.849189570119803,
+    "other_renewables_twh": 0.0,
+    "other_renewables_share_pct": 0.0,
+    "nuclear_twh": 46.68,
+    "nuclear_share_pct": 27.41367159971811,
+    "fossil_twh": 2.08,
+    "fossil_share_pct": 1.221517500587268,
+    "coal_twh": 0.0,
+    "coal_share_pct": 0.0,
+    "gas_twh": 0.11,
+    "gas_share_pct": 0.06459948320413438,
+    "other_fossil_twh": 1.97,
+    "other_fossil_share_pct": 1.1569180173831337,
+    "net_imports_twh": -33.7,
+    "net_import_share_pct": -24.674183628642552,
+    "price_avg_eur_mwh": 42.507616438356166,
+    "price_coverage": "complete",
+    "price_months_available": 12,
+    "price_months_complete": 12,
+    "price_source_label": "Ember Wholesale Electricity Price Data, CC BY 4.0",
+    "carbon_intensity_gco2eq_kwh": 35.35,
+    "estimated_generation_emissions_mtco2eq": 6.019398,
+    "decarbonization_rate_pct": -1.31842934938378,
+    "eea_public_electricity_heat_emissions_mtco2eq": null,
+    "population": 10587710.0,
+    "gdp_current_billion_eur": 601.2409,
+    "gdp_per_capita_pps": 46407.9,
+    "gross_exports_twh": 38.873,
+    "gross_imports_twh": 5.1690000000000005,
+    "household_price_energy_eur_mwh": 68.7,
+    "household_price_network_eur_mwh": 106.7,
+    "household_price_taxes_eur_mwh": 93.60000000000001,
+    "nonhousehold_price_energy_eur_mwh": 60.8,
+    "nonhousehold_price_network_eur_mwh": 35.6,
+    "nonhousehold_price_taxes_eur_mwh": 24.8,
+    "bev_new_registrations": 99981.0,
+    "bev_stock": 432709.0,
+    "household_electricity_price_eur_mwh": 269.0,
+    "nonhousehold_electricity_price_eur_mwh": 121.2,
+    "capacity_factor_wind_pct": null,
+    "capacity_factor_solar_pct": null,
+    "capacity_factor_hydro_pct": null,
+    "capacity_factor_fossil_pct": null,
+    "capacity_factor_nuclear_pct": null,
+    "ev_battery_nominal_capacity_est_gwh": 25.96254,
+    "mix": {
+      "generation_biomass": {
+        "twh": 9.96,
+        "pct": 5.849189570119803
+      },
+      "generation_coal": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_gas": {
+        "twh": 0.11,
+        "pct": 0.06459948320413438
+      },
+      "generation_hydro": {
+        "twh": 68.23,
+        "pct": 40.069297627437166
+      },
+      "generation_nuclear": {
+        "twh": 46.68,
+        "pct": 27.41367159971811
+      },
+      "generation_other_fossil": {
+        "twh": 1.97,
+        "pct": 1.1569180173831337
+      },
+      "generation_other_renewables": {
+        "twh": 0.0,
+        "pct": 0.0
+      },
+      "generation_solar": {
+        "twh": 4.43,
+        "pct": 2.6015973690392293
+      },
+      "generation_wind": {
+        "twh": 38.9,
+        "pct": 22.844726333098425
+      }
+    },
+    "quality_issues": [],
     "data_status": "complete"
   }
 ]

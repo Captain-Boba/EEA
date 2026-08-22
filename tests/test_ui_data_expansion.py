@@ -117,7 +117,7 @@ process.stdout.write(JSON.stringify({
 
     def test_estimate_eea_hydro_and_derivation_definitions_are_visible(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
-        self.assertIn("Theoretische nominale Batteriekapazität = BEV-Bestand × 60 kWh", html)
+        self.assertIn("Pauschale Flottenannahme:</strong> Theoretische nominale Batteriekapazität = BEV-Bestand × 60 kWh", html)
         self.assertIn("weder nutzbare Energie noch eine V2G- oder netzverfügbare Speicherkapazität", html)
         self.assertIn("Die Kategorie umfasst die öffentliche Strom- <strong>und Wärmeerzeugung</strong>", html)
         self.assertIn("JRC Hydro-power database", html)
@@ -131,6 +131,37 @@ process.stdout.write(JSON.stringify({
         self.assertIn("const source = provenance?.source_label || metric.source", app)
         self.assertIn("const value = metricAvailable(metric) && row ? row[metric.id] : null", app)
         self.assertIn('filter(metric => metric.compare)', app)
+
+    def test_capacity_map_uses_an_api_reported_year_without_renaming_net_capacity(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        metrics = {metric["id"]: metric for metric in metric_catalog()}
+        self.assertIn("async function loadMapData", app)
+        self.assertIn("/api/map-data?metric=", app)
+        self.assertIn("function usesLatestAvailableMapYear(metric)", app)
+        self.assertIn("data_year", app)
+        self.assertIn("kein Leistungsdatenstand verfügbar", app)
+        self.assertIn("Keine Werte für den ausgewählten Datenstand verfügbar", app)
+        self.assertNotIn("2024", app[app.index("function usesLatestAvailableMapYear"):app.index("function countryName")])
+        for metric_id in (
+            "capacity_total_gw", "capacity_wind_gw", "capacity_solar_gw", "capacity_hydro_gw",
+            "capacity_fossil_gw", "capacity_nuclear_gw",
+        ):
+            self.assertEqual(metrics[metric_id]["unit"], "GW")
+            self.assertNotIn("GWp", metrics[metric_id]["unit"])
+
+    def test_storage_table_keeps_source_details_out_of_visible_value_cells(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        style = STYLE_PATH.read_text(encoding="utf-8")
+        self.assertIn('return `<td title="${escapeAttribute(title)}">${formatTableValue(row[metricId], metricId)}</td>`;', app)
+        self.assertNotIn("cell-provenance", app)
+        self.assertNotIn(".cell-provenance", style)
+
+    def test_table_headers_start_with_metrics_not_rank_or_country(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn("function leadingTableHeader", app)
+        self.assertIn('colspan="2" class="table-leading-spacer"', app)
+        self.assertNotIn("function countryHeader", app)
+        self.assertNotIn("function rankHeader", app)
 
 
 if __name__ == "__main__":

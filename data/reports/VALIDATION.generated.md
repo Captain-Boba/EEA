@@ -1,5 +1,10 @@
 # Validierungsbericht DE/FR/ES 2025
 
+> **Historischer Bericht der früheren Energy-Charts-Architektur.** Dieses
+> Dokument wird vom aktuellen `eea report`-Befehl nicht neu erzeugt und ist
+> nicht als Validierung des heutigen Ember-Datenkerns zu verwenden. Es bleibt
+> ausschließlich zur Nachvollziehbarkeit der damaligen Prüfmethode erhalten.
+
 | Land | Erzeugung TWh | Verbrauch TWh | EE TWh | EE % | Intervalle | max. Identitätsabweichung MW | mittl. EE-Abweichung %-Pkt. | Ergebnis |
 |---|---:|---:|---:|---:|---:|---:|---:|---|
 | DE | 425.128 | 465.818 | 263.966 | 62.09 | 35040 | 0.000000 | 1.354 | INTERNAL_PASS |

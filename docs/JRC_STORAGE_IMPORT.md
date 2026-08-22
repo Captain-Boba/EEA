@@ -34,6 +34,11 @@ For each technology the Atlas stores discharge power, storage energy, and the
 derived equivalent discharge duration. A duration is created only when both
 positive dimensions are available from the same source and scope.
 
+In tables and country summaries, storage energy is always presented before
+discharge power and equivalent discharge duration. This display order does not
+change the source fields or imply that missing energy can be derived from
+power.
+
 ## Battery-Charts
 
 The user manually saves the responses corresponding to `bess_monthly_energy`

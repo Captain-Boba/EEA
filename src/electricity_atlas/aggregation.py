@@ -5,7 +5,8 @@ import sqlite3
 from datetime import date
 from typing import Any, Iterable
 
-from .config import COUNTRIES, EMBER_SOURCE_NAME
+from .config import ATLAS_MIN_YEAR, COUNTRIES, EMBER_SOURCE_NAME
+from .metrics import METRICS_BY_ID
 
 
 def period_bounds(year: int, month: int | None = None) -> tuple[str, str]:
@@ -66,3 +67,38 @@ def aggregate_all(
     source: str = EMBER_SOURCE_NAME,
 ) -> list[dict[str, Any]]:
     return [aggregate_country(connection, code, year, month, source) for code in COUNTRIES]
+
+
+def map_metric_dataset(
+    connection: sqlite3.Connection,
+    metric_id: str,
+    requested_year: int,
+    source: str = EMBER_SOURCE_NAME,
+) -> dict[str, Any]:
+    """Return map rows and their actual reporting year without altering stored data."""
+    metric = METRICS_BY_ID.get(metric_id)
+    if metric is None or not metric["map"]:
+        raise ValueError("metric must be a known map metric")
+    if metric["temporal_availability"]["snapshot"]:
+        raise ValueError("snapshot metrics use /api/storage")
+
+    years = [requested_year]
+    if metric["group"] == "Installierte Leistung":
+        years.extend(range(requested_year - 1, ATLAS_MIN_YEAR - 1, -1))
+    for data_year in years:
+        rows = aggregate_all(connection, data_year, None, source)
+        for row in rows:
+            row.setdefault(metric_id, None)
+        if any(math.isfinite(float(row[metric_id])) for row in rows if row.get(metric_id) is not None):
+            return {
+                "metric_id": metric_id,
+                "requested_year": requested_year,
+                "data_year": data_year,
+                "rows": rows,
+            }
+    return {
+        "metric_id": metric_id,
+        "requested_year": requested_year,
+        "data_year": None,
+        "rows": [],
+    }

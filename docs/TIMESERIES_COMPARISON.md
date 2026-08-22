@@ -21,11 +21,14 @@ The URL stores the selected countries, metric, and range. Invalid URL values
 are rejected rather than silently applied. CSV, SVG, and PNG exports are
 created locally in the browser.
 
-Each country response also contains `baseline_values`. Yearly metrics use the
-2015 annual value. Monthly metrics use the matching calendar month in 2015,
-even when the visible range starts later. The live ranking reports the relative
-change `(current - baseline) / baseline * 100`. Missing and reported-zero
-baselines produce no percentage instead of a division or fallback value.
+Each country response also contains `baseline_values`. The baseline year is the
+first year of the requested range. Yearly metrics use that annual value;
+monthly metrics use the matching calendar month in that baseline year. The
+live ranking reports the relative change
+`(current - baseline) / baseline * 100`. Missing and reported-zero baselines
+produce no percentage instead of a division or fallback value. A range that
+starts in 2015 therefore retains the original same-calendar-month 2015
+comparison.
 
 The standard chart and fullscreen chart use the same `15:8` plot aspect ratio,
 the same internal SVG geometry and equally prominent ranking typography. The
@@ -38,7 +41,15 @@ Country colors are derived from prominent non-neutral colors in the bundled
 flag SVGs. If a flag color is too dark or conflicts with an already assigned
 line, the chart chooses a high-contrast fallback. Hover selects only the
 nearest period for the guide and live ranking; it no longer locks onto or
-dims individual country lines.
+dims individual country lines. Pointer movement remains continuous, but ranking
+updates are limited to one leading and one trailing update per 120 milliseconds
+so dense Max views do not flicker through periods unreadably. A click pins the
+selected period immediately. Pending hover updates are cancelled when the
+pointer leaves, a period is pinned, or the chart is rebuilt.
+
+The document title follows the active Atlas section and reads `EEA · Vergleich`
+in the comparison view. Direct links restore the comparison state without
+performing a data import.
 
 ## Local flag assets
 

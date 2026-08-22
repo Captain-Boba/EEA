@@ -247,6 +247,40 @@ process.stdout.write(JSON.stringify({
         self.assertTrue(result["missingFallback"]["active"])
         self.assertIn("Vergleichswert 2015 fehlt", result["missingFallback"]["text"])
 
+    def test_hover_uses_a_120ms_leading_plus_trailing_throttle_and_cleans_up(self):
+        script = r'''
+global.document = {getElementById: () => ({addEventListener: () => {}})};
+global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
+global.history = {replaceState: () => {}};
+global.fetch = () => new Promise(() => {});
+global.URLSearchParams = URLSearchParams;
+const {createLeadingTrailingThrottle} = require("./web/app.js");
+let now = 0;
+const queue = [];
+const timers = {
+  setTimeout(callback, delay) { const timer = {callback, due: now + delay, cancelled: false}; queue.push(timer); return timer; },
+  clearTimeout(timer) { timer.cancelled = true; },
+};
+const values = [];
+const throttle = createLeadingTrailingThrottle(value => values.push({value, now}), 120, () => now, timers);
+const flushDue = () => queue.filter(timer => !timer.cancelled && timer.due <= now).forEach(timer => { timer.cancelled = true; timer.callback(); });
+throttle.push("first");
+now = 20; throttle.push("middle");
+now = 80; throttle.push("last");
+now = 120; flushDue();
+now = 130; throttle.push("cancelled");
+throttle.cancel();
+now = 250; flushDue();
+process.stdout.write(JSON.stringify(values));
+'''
+        result = self.run_node(script)
+        self.assertEqual(result, [{"value": "first", "now": 0}, {"value": "last", "now": 120}])
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn("const CHART_HOVER_THROTTLE_MS = 120", app)
+        self.assertIn("scheduleChartHoverIndex(index)", app)
+        self.assertIn("clearChartHoverThrottle();\n    if (chartPinnedIndex", app)
+        self.assertIn("clearChartHoverThrottle();\n    const count", app)
+
 
 if __name__ == "__main__":
     unittest.main()

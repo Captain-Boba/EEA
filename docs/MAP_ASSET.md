@@ -41,3 +41,11 @@ Die Geometrie verwendet Natural-Earth- beziehungsweise ISO3-Codes. Die Laufzeita
 - `GRC` → `GR`
 
 Jeder der 31 von `/api/countries` gelieferten Atlas-Codes besitzt genau eine Kartenfläche. Nicht zum Atlas gehörende Länder bleiben als neutraler Hintergrund im SVG; dazu gehören insbesondere Albanien und Russland. Diese Flächen sind weder mit Atlaswerten verknüpft noch auswählbar.
+
+## Laufzeitverhalten
+
+- Kennzahlenfamilie und Darstellung werden getrennt gewählt; fehlende Werte bleiben grau und werden nicht als Null interpretiert.
+- Bei jährlichen Kennzahlen der Familie `Installierte Leistung` darf die Karte auf das jüngste verfügbare frühere Jahr ab 2015 zurückfallen. Angefordertes Jahr und tatsächlich verwendetes Datenjahr werden getrennt ausgewiesen; die Datenbank wird dabei nicht fortgeschrieben oder aufgefüllt.
+- Werte können auf der Karte ein- und ausgeblendet werden. SVG- und PNG-Export bilden den aktuellen Zustand einschließlich Titel, Zeitraum, Einheit, Farbskala und Legende ab.
+- Ein Kartenklick setzt einen dauerhaften Länderfokus, ohne die Länderauswahl des Zeitreihenvergleichs zu verändern.
+- Die analytische Karte verwendet ausschließlich lokale Assets. Der optionale Modus `Europa Overload` lädt separat zugeschaltete, attribuierte Postkartenbilder von Wikimedia Commons und verändert weder Geometrie noch Kartendaten.
