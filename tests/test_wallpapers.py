@@ -2,6 +2,8 @@ import re
 import unittest
 from pathlib import Path
 
+from electricity_atlas.config import ATLAS_COUNTRIES
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,15 +19,59 @@ class WallpaperTest(unittest.TestCase):
     def test_manifest_contains_unique_commons_wallpapers(self):
         titles = re.findall(r'\{title: "([^"]+)"', self.manifest)
         files = re.findall(r'file: "([^"]+)"', self.manifest)
-        self.assertEqual(len(titles), 186)
-        self.assertEqual(len(set(titles)), 186)
-        self.assertEqual(len(set(files)), 186)
+        self.assertEqual(len(titles), 250)
+        self.assertEqual(len(set(titles)), 250)
+        self.assertEqual(len(set(files)), 250)
 
     def test_manifest_carries_visible_attribution_fields(self):
-        self.assertEqual(len(re.findall(r'author: "[^"]+"', self.manifest)), 186)
-        self.assertEqual(len(re.findall(r'license: "[^"]+"', self.manifest)), 186)
+        self.assertEqual(len(re.findall(r'author: "[^"]+"', self.manifest)), 250)
+        self.assertEqual(len(re.findall(r'license: "[^"]+"', self.manifest)), 250)
         self.assertIn("https://commons.wikimedia.org/wiki/File:", self.javascript)
-        self.assertIn("Wikimedia Commons", self.javascript)
+
+    def test_manifest_sources_fit_square_preview(self):
+        dimensions = [
+            (int(width), int(height))
+            for width, height in re.findall(r'width: (\d+), height: (\d+)', self.manifest)
+        ]
+        self.assertEqual(len(dimensions), 250)
+        for width, height in dimensions:
+            self.assertGreaterEqual(width, 3000)
+            self.assertGreaterEqual(height, 2500)
+            self.assertGreaterEqual(width / height, 0.8)
+            self.assertLessEqual(width / height, 1.6)
+
+    def test_manifest_only_uses_atlas_countries(self):
+        atlas_country_names = {country.name for country in ATLAS_COUNTRIES.values()}
+        countries = re.findall(r'country: "([^"]+)"', self.manifest)
+        self.assertEqual(len(countries), 250)
+        for label in countries:
+            self.assertTrue(
+                all(country in atlas_country_names for country in label.split(" / ")),
+                f"Wallpaper country is outside the Atlas catalog: {label}",
+            )
+
+    def test_rejected_wallpapers_do_not_return(self):
+        rejected_files = {
+            "Ivo Pevalek.jpg",
+            "Seat of the European Central Bank and Frankfurt Skyline at dawn 20150422 1.jpg",
+            "Megyeri híd.jpg",
+            "Panorama of Tallinn, Estonia (8067727177).jpg",
+            "Lysekil Panorama.jpg",
+            "Znojmo Old Town Panorama from Castle 20190217.jpg",
+            "Korfu (GR), Korfu, Alte Festung -- 2018 -- 1137.jpg",
+            "The Duomo and Tower of Pisa at sunrise.jpg",
+            "Seine wide.jpg",
+            "Rouen France Panoramic-View-02.jpg",
+            "Real Monasterio de San Juan de la Peña, Huesca, España, 2023-01-05, DD 48-50 HDR.jpg",
+            "London 360 from St Paul's Cathedral - Sept 2007.jpg",
+            "Panorámica Madrid, con Sierra de Guadarrama al fondo.jpg",
+            "Firth of Forth bridges panorama by Greg Barbier 13750x1915.jpg",
+            "Warsaw 07-13 img29 View from Palace of Culture and Science.jpg",
+            "Livorno Panorama.jpg",
+            "Brandenburg Pano 02 (MK).jpg",
+        }
+        manifest_files = set(re.findall(r'file: "([^"]+)"', self.manifest))
+        self.assertTrue(rejected_files.isdisjoint(manifest_files))
 
     def test_random_sequence_uses_side_postcard_panels(self):
         self.assertNotIn("WALLPAPERS_ENABLED", self.javascript)
@@ -57,12 +103,33 @@ class WallpaperTest(unittest.TestCase):
         self.assertIn("resizeObserver?.disconnect()", self.javascript)
         self.assertIn("window.__atlasWallpaper = controller", self.javascript)
 
+    def test_postcards_have_an_accessible_lightbox_with_local_reactions(self):
+        self.assertIn('const REACTION_STORAGE_KEY = "eea-europa-overload-reactions"', self.javascript)
+        self.assertIn('lightbox.id = "wallpaper-lightbox"', self.javascript)
+        self.assertIn('lightbox.setAttribute("aria-modal", "true")', self.javascript)
+        self.assertIn('closeStar.src = "/assets/europe-star.svg"', self.javascript)
+        self.assertIn("function openLightbox(index, panel)", self.javascript)
+        self.assertIn("function closeLightbox", self.javascript)
+        self.assertIn('event.key === "Escape"', self.javascript)
+        self.assertIn('if (event.target === lightbox) closeLightbox()', self.javascript)
+        self.assertIn("function handleLightboxKeydown(event)", self.javascript)
+        self.assertIn("function setReaction(reaction)", self.javascript)
+        self.assertIn("window.scrollTo({top: lockedScrollY", self.javascript)
+        self.assertIn("panel.setAttribute(\"role\", \"button\")", self.javascript)
+
+    def test_lightbox_styles_preserve_image_and_respect_reduced_motion(self):
+        self.assertIn(".wallpaper-lightbox {", self.css)
+        self.assertIn("object-fit: contain", self.css)
+        self.assertIn(".wallpaper-lightbox-close", self.css)
+        self.assertIn(".wallpaper-reactions", self.css)
+        self.assertIn(".wallpaper-lightbox-card { transition: none; }", self.css)
+
     def test_page_has_stream_and_script(self):
         self.assertIn('id="wallpaper-stream"', self.html)
         self.assertIn('id="europe-overload"', self.html)
         self.assertIn('aria-pressed="false"', self.html)
         self.assertNotIn('id="wallpaper-credit"', self.html)
-        self.assertIn('src="/wallpapers.js?v=europa-overload-v1"', self.html)
+        self.assertIn('src="/wallpapers.js?v=europa-overload-v2"', self.html)
 
     def test_panels_scroll_naturally_and_keep_content_above_them(self):
         self.assertRegex(self.css, r"body\s*\{[^}]*isolation:\s*isolate;[^}]*background-attachment:\s*scroll;")

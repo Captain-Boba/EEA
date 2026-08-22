@@ -31,6 +31,13 @@ EMBER_FOSSIL_METRICS = (
     "generation_other_fossil",
 )
 
+HOUSEHOLD_PRICE_COMPONENT_METRICS = (
+    "household_price_energy_eur_mwh",
+    "household_price_network_eur_mwh",
+    "household_price_taxes_eur_mwh",
+)
+EUR_PER_MWH_TO_CENTS_PER_KWH = 0.1
+
 EUROSTAT_DIRECT_METRICS = (
     "capacity_total_gw",
     "capacity_wind_gw",
@@ -312,21 +319,16 @@ def aggregate_ember_country(
     else:
         supplemental = {}
         eea_emissions = None
-    generation_per_capita = (
-        generation_twh * 1_000_000 / population
-        if generation_twh is not None and population and population > 0
-        else None
-    )
-    consumption_per_capita = (
-        consumption_twh * 1_000_000 / population
-        if consumption_twh is not None and population and population > 0
-        else None
-    )
-    renewable_per_capita = (
-        renewable_twh * 1_000_000 / population
-        if renewable_twh is not None and population and population > 0
-        else None
-    )
+    def per_capita_mwh(value_twh: float | None) -> float | None:
+        return (
+            value_twh * 1_000_000 / population
+            if value_twh is not None and population and population > 0
+            else None
+        )
+
+    generation_per_capita = per_capita_mwh(generation_twh)
+    consumption_per_capita = per_capita_mwh(consumption_twh)
+    renewable_per_capita = per_capita_mwh(renewable_twh)
     net_imports_twh = values.get("net_imports")
     net_import_share = (
         net_imports_twh / consumption_twh * 100.0
@@ -358,14 +360,7 @@ def aggregate_ember_country(
         if carbon_intensity is not None and previous_carbon not in (None, 0)
         else None
     )
-    household_components = [
-        supplemental.get(metric)
-        for metric in (
-            "household_price_energy_eur_mwh",
-            "household_price_network_eur_mwh",
-            "household_price_taxes_eur_mwh",
-        )
-    ]
+    household_components = [supplemental.get(metric) for metric in HOUSEHOLD_PRICE_COMPONENT_METRICS]
     nonhousehold_components = [
         supplemental.get(metric)
         for metric in (
@@ -402,6 +397,12 @@ def aggregate_ember_country(
     def mix_value(metric: str, part: str) -> float | None:
         return mix.get(metric, {}).get(part)
 
+    public_supplemental = dict(supplemental)
+    for metric in HOUSEHOLD_PRICE_COMPONENT_METRICS:
+        value = public_supplemental.get(metric)
+        if value is not None:
+            public_supplemental[metric] = value * EUR_PER_MWH_TO_CENTS_PER_KWH
+
     return {
         "country_code": code,
         "country_name": COUNTRIES[code].name,
@@ -422,26 +423,36 @@ def aggregate_ember_country(
         else None,
         "wind_twh": values.get("generation_wind"),
         "wind_share_pct": mix_value("generation_wind", "pct"),
+        "wind_per_capita_mwh": per_capita_mwh(values.get("generation_wind")),
         "solar_twh": values.get("generation_solar"),
         "solar_share_pct": mix_value("generation_solar", "pct"),
+        "solar_per_capita_mwh": per_capita_mwh(values.get("generation_solar")),
         "hydro_twh": values.get("generation_hydro"),
         "hydro_share_pct": mix_value("generation_hydro", "pct"),
+        "hydro_per_capita_mwh": per_capita_mwh(values.get("generation_hydro")),
         "bioenergy_twh": values.get("generation_biomass"),
         "bioenergy_share_pct": mix_value("generation_biomass", "pct"),
+        "bioenergy_per_capita_mwh": per_capita_mwh(values.get("generation_biomass")),
         "other_renewables_twh": values.get("generation_other_renewables"),
         "other_renewables_share_pct": mix_value("generation_other_renewables", "pct"),
+        "other_renewables_per_capita_mwh": per_capita_mwh(values.get("generation_other_renewables")),
         "nuclear_twh": nuclear_twh,
         "nuclear_share_pct": mix_value("generation_nuclear", "pct"),
+        "nuclear_per_capita_mwh": per_capita_mwh(nuclear_twh),
         "fossil_twh": fossil_twh,
         "fossil_share_pct": renewable_share(fossil_twh, generation_twh)
         if fossil_twh is not None and generation_twh is not None
         else None,
+        "fossil_per_capita_mwh": per_capita_mwh(fossil_twh),
         "coal_twh": values.get("generation_coal"),
         "coal_share_pct": mix_value("generation_coal", "pct"),
+        "coal_per_capita_mwh": per_capita_mwh(values.get("generation_coal")),
         "gas_twh": values.get("generation_gas"),
         "gas_share_pct": mix_value("generation_gas", "pct"),
+        "gas_per_capita_mwh": per_capita_mwh(values.get("generation_gas")),
         "other_fossil_twh": values.get("generation_other_fossil"),
         "other_fossil_share_pct": mix_value("generation_other_fossil", "pct"),
+        "other_fossil_per_capita_mwh": per_capita_mwh(values.get("generation_other_fossil")),
         "net_imports_twh": net_imports_twh,
         "net_import_share_pct": net_import_share,
         "price_avg_eur_mwh": price["price_avg_eur_mwh"],
@@ -456,8 +467,12 @@ def aggregate_ember_country(
         "population": population,
         "gdp_current_billion_eur": gdp_current_billion_eur,
         "gdp_per_capita_pps": gdp_per_capita_pps,
-        **supplemental,
-        "household_electricity_price_eur_mwh": household_price,
+        **public_supplemental,
+        "household_electricity_price_eur_mwh": (
+            household_price * EUR_PER_MWH_TO_CENTS_PER_KWH
+            if household_price is not None
+            else None
+        ),
         "nonhousehold_electricity_price_eur_mwh": nonhousehold_price,
         "capacity_factor_wind_pct": _capacity_factor(values.get("generation_wind"), supplemental.get("capacity_wind_gw"), year),
         "capacity_factor_solar_pct": _capacity_factor(values.get("generation_solar"), supplemental.get("capacity_solar_gw"), year),

@@ -61,6 +61,40 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
         self.assertIn('href: `/assets/flags/${flagCode(entry.code)}.svg`', app)
         self.assertIn("const source = await serializedChartPngSvg();", app)
 
+    def test_comparison_family_picker_groups_metric_families(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn('const groups = new Map();', app)
+        self.assertIn('<optgroup label="${escapeAttribute(group)}">', app)
+        self.assertIn('${escapeHtml(variants[0].family)}</option>', app)
+        self.assertNotIn('const label = `${variants[0].group} · ${variants[0].family}', app)
+
+    def test_comparison_family_picker_renders_a_grouped_menu_grid(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
+        self.assertIn('id="compare-family-trigger"', html)
+        self.assertIn('id="compare-family-menu"', html)
+        self.assertLess(html.index('id="compare-family-menu"'), html.index('id="comparison-presets"'))
+        self.assertIn("function renderComparisonFamilyPicker(groups, activeFamily)", app)
+        self.assertIn('class="metric-family-group"', app)
+        self.assertIn('data-comparison-family=', app)
+        self.assertIn("grid-template-columns: repeat(5, minmax(0, 1fr))", style)
+        self.assertIn("top: calc(100% + .7rem)", style)
+        self.assertIn(".metric-family-option.active", style)
+
+    def test_native_selects_use_the_atlas_dropdown_component(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
+        self.assertIn("const ENHANCED_SELECT_IDS = Object.freeze", app)
+        self.assertIn("function configureEnhancedSelectMenus()", app)
+        self.assertIn("function renderEnhancedSelectMenu(select)", app)
+        self.assertIn("configureEnhancedSelectMenus();", app)
+        self.assertNotIn("function positionEnhancedSelectMenu(select)", app)
+        self.assertIn(".enhanced-select-menu", style)
+        self.assertIn(".enhanced-select-groups", style)
+        self.assertIn(".enhanced-select-menu.has-groups", style)
+        self.assertIn("overflow-wrap: anywhere", style)
+
     def test_table_formatter_keeps_two_decimal_places_by_default(self):
         script = r'''
 global.document = {getElementById: () => ({addEventListener: () => {}})};
@@ -84,11 +118,11 @@ global.fetch = () => new Promise(() => {});
 global.URLSearchParams = URLSearchParams;
 const {parseComparisonUrl} = require("./web/app.js");
 const catalog = new Map([
-  ["renewable_share_pct", {id: "renewable_share_pct", temporal_availability: {monthly: true, yearly: true}}],
+  ["renewable_share_pct", {id: "renewable_share_pct", unit: "%", map_config: {scale: "sequential"}, temporal_availability: {monthly: true, yearly: true}}],
 ]);
 const countries = new Set(["DE", "FR", "UK"]);
 const valid = parseComparisonUrl(
-  "?view=compare&metric=renewable_share_pct&countries=DE,FR,UK&start=2015-01&end=2026-08",
+  "?view=compare&metric=renewable_share_pct&countries=DE,FR,UK&start=2015-01&end=2026-08&axis=data-range",
   countries,
   catalog,
   new Date("2026-08-13T12:00:00Z"),
@@ -106,7 +140,7 @@ const future = parseComparisonUrl(
   new Date("2026-08-13T12:00:00Z"),
 );
 process.stdout.write(JSON.stringify({
-  valid: {ok: valid.valid, codes: valid.codes, metric: valid.metric.id, start: valid.start, end: valid.end},
+  valid: {ok: valid.valid, codes: valid.codes, metric: valid.metric.id, start: valid.start, end: valid.end, axisMode: valid.axisMode},
   duplicate: duplicate.valid,
   future: future.valid,
 }));
@@ -120,10 +154,62 @@ process.stdout.write(JSON.stringify({
                 "metric": "renewable_share_pct",
                 "start": "2015-01",
                 "end": "2026-08",
+                "axisMode": "data-range",
             },
         )
         self.assertFalse(result["duplicate"])
         self.assertFalse(result["future"])
+
+    def test_all_plots_can_use_their_visible_data_range(self):
+        script = r'''
+const axisMode = {value: "data-range", addEventListener: () => {}};
+global.document = {getElementById: id => id === "compare-axis-mode" ? axisMode : {addEventListener: () => {}}};
+global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
+global.history = {replaceState: () => {}};
+global.fetch = () => new Promise(() => {});
+global.URLSearchParams = URLSearchParams;
+const {chartScale} = require("./web/app.js");
+const payload = {
+  metric: {unit: "%", map_config: {scale: "sequential"}},
+  countries: [{values: [{value: 34.2}, {value: 65.1}]}],
+  atlas_average: {values: [{value: 48.6}, {value: 54.3}]},
+};
+const geometry = {left: 0, right: 100, top: 0, bottom: 100};
+const cropped = chartScale(payload, geometry);
+axisMode.value = "full";
+const full = chartScale(payload, geometry);
+axisMode.value = "data-range";
+const absolute = chartScale({
+  metric: {unit: "TWh", map_config: {scale: "sequential"}},
+  countries: [{values: [{value: 12.4}, {value: 48.7}]}],
+  atlas_average: {values: [{value: 19.6}, {value: 31.2}]},
+}, geometry);
+process.stdout.write(JSON.stringify({cropped: [cropped.minimum, cropped.maximum], full: [full.minimum, full.maximum], absolute: [absolute.minimum, absolute.maximum]}));
+'''
+        result = self.run_node(script)
+        self.assertEqual(result["cropped"], [34.2, 100])
+        self.assertEqual(result["full"], [0, 100])
+        self.assertEqual(result["absolute"], [12.4, 48.7])
+
+    def test_metric_variants_use_absolute_share_then_per_capita_order(self):
+        script = r'''
+global.document = {getElementById: () => ({addEventListener: () => {}})};
+global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
+global.history = {replaceState: () => {}};
+global.fetch = () => new Promise(() => {});
+global.URLSearchParams = URLSearchParams;
+const {orderedMetricVariants} = require("./web/app.js");
+const variants = orderedMetricVariants([
+  {id: "renewable_per_capita_mwh", unit: "MWh/Einwohner", representation: "Erzeugung in MWh je Einwohner"},
+  {id: "renewable_share_pct", unit: "%", representation: "Anteil an der Gesamterzeugung"},
+  {id: "renewable_twh", unit: "TWh", representation: "Erzeugung in TWh"},
+]);
+process.stdout.write(JSON.stringify(variants.map(metric => metric.id)));
+'''
+        self.assertEqual(
+            self.run_node(script),
+            ["renewable_twh", "renewable_share_pct", "renewable_per_capita_mwh"],
+        )
 
     def test_stock_chart_presets_cover_monthly_and_yearly_ranges_without_filling_gaps(self):
         script = r'''

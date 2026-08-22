@@ -17,9 +17,21 @@ country in the complete Atlas catalog. Missing countries are excluded and
 reported zero values are retained. The response and UI intentionally do not
 show a coverage count.
 
-The URL stores the selected countries, metric, and range. Invalid URL values
-are rejected rather than silently applied. CSV, SVG, and PNG exports are
-created locally in the browser.
+The URL stores the selected countries, metric, range, and Y-axis mode. Invalid
+URL values are rejected rather than silently applied. CSV, SVG, and PNG exports
+are created locally in the browser.
+
+Metric families are selected through a grouped Atlas menu. Within a family,
+variants keep the order absolute value, share, and yearly per-capita value when
+all three exist. The actual metric catalog remains the source of truth; the
+menu does not maintain a second hard-coded availability list.
+
+The Y-axis offers two modes. The full mode starts non-diverging absolute
+metrics at zero, shows ordinary shares from 0 to 100%, and keeps diverging
+metrics symmetric around zero. The visible-data-range mode uses the observed
+minimum and maximum, except that ordinary percentage metrics retain 100% as
+their upper bound. The selected mode is included in direct links and local
+SVG and PNG output.
 
 Each country response also contains `baseline_values`. The baseline year is the
 first year of the requested range. Yearly metrics use that annual value;
@@ -47,7 +59,7 @@ so dense Max views do not flicker through periods unreadably. A click pins the
 selected period immediately. Pending hover updates are cancelled when the
 pointer leaves, a period is pinned, or the chart is rebuilt.
 
-The document title follows the active Atlas section and reads `EEA · Vergleich`
+The document title follows the active Atlas section and reads `EEA · Plottool`
 in the comparison view. Direct links restore the comparison state without
 performing a data import.
 

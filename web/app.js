@@ -39,27 +39,27 @@ const NE_TO_ATLAS = {
   "SVK": "SK", "SVN": "SI", "SWE": "SE"
 };
 const MAP_PALETTES = {
-  generation: ["#e8eef8", "#b9c9e2", "#7f9dc6", "#466f9f", "#234a76"],
-  consumption: ["#e6f1f4", "#b7d5dc", "#78b2bf", "#3d8999", "#1b5e6d"],
-  renewables: ["#e8f4e8", "#b8dcb8", "#7fbe83", "#459e58", "#216b37"],
-  wind: ["#edf5ff", "#c2dcf4", "#8cbde4", "#5197cd", "#276da6"],
-  solar: ["#fff8df", "#f7e6a8", "#ebcc67", "#d7a72d", "#9e7314"],
-  hydro: ["#e5f4fb", "#b7dff1", "#75c4e5", "#369fcb", "#15719b"],
-  bioenergy: ["#edf1df", "#ccd7a3", "#a2b66d", "#758f3d", "#4a6124"],
-  "other-renewables": ["#e8f5ef", "#b9dfcf", "#82c6aa", "#4aa481", "#276e58"],
-  fossil: ["#f8e9e1", "#edc0aa", "#db8d6a", "#bb573b", "#7d2f24"],
-  coal: ["#eeeeed", "#c7c7c3", "#989891", "#686861", "#3d3d39"],
-  gas: ["#fff0e5", "#f7c89e", "#e99458", "#ca6130", "#8d351f"],
-  "other-fossil": ["#f4e9e3", "#dfc1b2", "#bf927a", "#95634e", "#643f32"],
-  nuclear: ["#f1eaf7", "#d5c0e4", "#ad91ca", "#805eaa", "#58377e"],
-  trade: ["#2a6fbb", "#80b1d3", "#f7f7f7", "#ef8a62", "#b2182b"],
-  price: ["#f8e9f2", "#e8bad3", "#cf80ad", "#ad4f85", "#7c2f5d"],
-  carbon: ["#f6ebe7", "#e7c1b5", "#ce8d7d", "#aa584b", "#71312d"],
-  population: ["#eeeaf6", "#cfc2e2", "#aa95ca", "#7b65ae", "#4c3b7e"],
-  gdp: ["#e8f3ed", "#bfdcc9", "#8bc09e", "#519972", "#2c6a4d"],
-  "gdp-per-capita": ["#f3eedf", "#dccb9f", "#bea66d", "#927c40", "#65552a"],
-  battery: ["#eef0ff", "#c8cef4", "#98a3e2", "#6975c6", "#414b91"],
-  "pumped-storage": ["#e3f4f3", "#b2dfdc", "#72c4bf", "#39a19d", "#1f716f"],
+  generation: ["#cadbf0", "#b9c9e2", "#7f9dc6", "#466f9f", "#234a76"],
+  consumption: ["#c8e3e8", "#b7d5dc", "#78b2bf", "#3d8999", "#1b5e6d"],
+  renewables: ["#c6e0c8", "#b8dcb8", "#7fbe83", "#459e58", "#216b37"],
+  wind: ["#cfe4f7", "#c2dcf4", "#8cbde4", "#5197cd", "#276da6"],
+  solar: ["#f6e9b6", "#f7e6a8", "#ebcc67", "#d7a72d", "#9e7314"],
+  hydro: ["#c7e7f5", "#b7dff1", "#75c4e5", "#369fcb", "#15719b"],
+  bioenergy: ["#dce7b6", "#ccd7a3", "#a2b66d", "#758f3d", "#4a6124"],
+  "other-renewables": ["#c8e6d9", "#b9dfcf", "#82c6aa", "#4aa481", "#276e58"],
+  fossil: ["#efd2c5", "#edc0aa", "#db8d6a", "#bb573b", "#7d2f24"],
+  coal: ["#d2d3d0", "#c7c7c3", "#989891", "#686861", "#3d3d39"],
+  gas: ["#f4d4b4", "#f7c89e", "#e99458", "#ca6130", "#8d351f"],
+  "other-fossil": ["#e6d0c4", "#dfc1b2", "#bf927a", "#95634e", "#643f32"],
+  nuclear: ["#e1d2ec", "#d5c0e4", "#ad91ca", "#805eaa", "#58377e"],
+  trade: ["#2a6fbb", "#80b1d3", "#d8e3ed", "#ef8a62", "#b2182b"],
+  price: ["#efd1e1", "#e8bad3", "#cf80ad", "#ad4f85", "#7c2f5d"],
+  carbon: ["#ecd0c6", "#e7c1b5", "#ce8d7d", "#aa584b", "#71312d"],
+  population: ["#ddd7ed", "#cfc2e2", "#aa95ca", "#7b65ae", "#4c3b7e"],
+  gdp: ["#cde5d8", "#bfdcc9", "#8bc09e", "#519972", "#2c6a4d"],
+  "gdp-per-capita": ["#e4d9b5", "#dccb9f", "#bea66d", "#927c40", "#65552a"],
+  battery: ["#d8ddf4", "#c8cef4", "#98a3e2", "#6975c6", "#414b91"],
+  "pumped-storage": ["#c6e5e2", "#b2dfdc", "#72c4bf", "#39a19d", "#1f716f"],
 };
 const MAP_PALETTE_BY_FAMILY = {
   "Erzeugung": "generation",
@@ -165,6 +165,12 @@ function formatTableValue(value, metricId) {
 function formatMetricValue(value, metric, compact = false) {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) return "—";
   const decimals = metric?.map_config?.decimals ?? 2;
+  if (compact && Math.abs(value) >= 1_000_000) {
+    return `${new Intl.NumberFormat("de-DE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value / 1_000_000)} Mio.`;
+  }
   return new Intl.NumberFormat("de-DE", {
     maximumFractionDigits: decimals,
     minimumFractionDigits: decimals,
@@ -189,10 +195,9 @@ function escapeAttribute(value) {
   return escapeHtml(value);
 }
 
-function metricHeader(id, activeKey, direction, allowMap = false) {
+function metricHeader(id, activeKey, direction, allowMap = true) {
   const metric = metricDefinition(id);
   const activeSort = activeKey === id;
-  const arrow = activeSort ? (direction > 0 ? "↑" : "↓") : "";
   const ariaSort = activeSort ? ` aria-sort="${direction > 0 ? "ascending" : "descending"}"` : "";
   const label = tableHeaderText(metric.label_de);
   const unitLabel = tableHeaderText(metric.unit);
@@ -200,12 +205,36 @@ function metricHeader(id, activeKey, direction, allowMap = false) {
   const mapAction = allowMap && metric.map
     ? `<button type="button" class="map-column-action${mapMetricId === id ? " active" : ""}" data-map-metric="${id}" aria-label="${escapeAttribute(label)} auf Karte anzeigen">Karte</button>`
     : "";
-  return `<th scope="col" data-key="${id}"${ariaSort} class="${mapMetricId === id ? "map-column-active" : ""}">
+  const descending = `<button type="button" class="sort-indicator${activeSort && direction < 0 ? " active" : ""}" data-sort-key="${id}" data-sort-direction="-1" aria-label="${escapeAttribute(label)} absteigend sortieren" aria-pressed="${activeSort && direction < 0}">↓</button>`;
+  const ascending = `<button type="button" class="sort-indicator${activeSort && direction > 0 ? " active" : ""}" data-sort-key="${id}" data-sort-direction="1" aria-label="${escapeAttribute(label)} aufsteigend sortieren" aria-pressed="${activeSort && direction > 0}">↑</button>`;
+  const headerActions = `<span class="table-header-actions">${descending}${mapAction}${ascending}</span>`;
+  return `<th scope="col" data-key="${id}"${ariaSort} class="${activeSort ? "sort-column-active" : ""}">
     <button type="button" class="sort-action" data-sort-key="${id}" aria-label="${escapeAttribute(label)} sortieren">
-      <span class="sort-label">${escapeHtml(label)}</span>${unit}<span class="sort-indicator" aria-hidden="true">${arrow}</span>
+      <span class="table-header-copy"><span class="sort-label">${escapeHtml(label)}</span>${unit}</span>
     </button>
-    ${mapAction}
+    ${headerActions}
   </th>`;
+}
+
+function fitTableHeaderText(headId) {
+  const head = $(headId);
+  if (!head?.querySelectorAll) return;
+  const apply = () => head.querySelectorAll(".table-header-copy").forEach(copy => {
+    copy.classList.remove("is-condensed");
+    copy.style.removeProperty("--header-text-scale");
+    const unit = copy.querySelector(".unit");
+    if (!unit) return;
+    unit.classList.remove("is-condensed");
+    unit.style.removeProperty("--unit-text-scale");
+    const availableWidth = Math.max(copy.clientWidth, 1);
+    const requiredWidth = unit.scrollWidth;
+    if (requiredWidth <= availableWidth) return;
+    const scale = Math.max(.7, Math.min(1, availableWidth / requiredWidth));
+    unit.style.setProperty("--unit-text-scale", scale.toFixed(3));
+    unit.classList.add("is-condensed");
+  });
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(apply);
+  else apply();
 }
 
 function tableHeaderText(value) {
@@ -358,8 +387,14 @@ function bindSort(selector, callback) {
   document.querySelectorAll(selector).forEach(button => button.addEventListener("click", () => callback(button.dataset.sortKey)));
 }
 
-function bindMapColumnActions() {
-  document.querySelectorAll("#summary-head [data-map-metric]").forEach(button => button.addEventListener("click", async () => {
+function bindSortDirection(selector, callback) {
+  document.querySelectorAll(selector).forEach(button => button.addEventListener("click", () => {
+    callback(button.dataset.sortKey, Number(button.dataset.sortDirection));
+  }));
+}
+
+function bindMapColumnActions(scope) {
+  scope?.querySelectorAll?.("[data-map-metric]").forEach(button => button.addEventListener("click", async () => {
     await setMapMetric(button.dataset.mapMetric, true);
   }));
 }
@@ -367,12 +402,18 @@ function bindMapColumnActions() {
 function renderHead() {
   $("summary-head").innerHTML = leadingTableHeader(true)
     + TABLE_METRIC_IDS.map(id => metricHeader(id, sortKey, sortDirection, true)).join("");
-  bindSort("#summary-head [data-sort-key]", key => {
+  bindSort("#summary-head .sort-action", key => {
     if (sortKey === key) sortDirection *= -1;
     else { sortKey = key; sortDirection = -1; }
     render();
   });
-  bindMapColumnActions();
+  bindSortDirection("#summary-head [data-sort-direction]", (key, direction) => {
+    sortKey = key;
+    sortDirection = direction;
+    render();
+  });
+  bindMapColumnActions($("summary-head"));
+  fitTableHeaderText("summary-head");
 }
 
 function render() {
@@ -380,16 +421,18 @@ function render() {
   renderHead();
   const sorted = sortRows(data, sortKey, sortDirection);
   const visibleRows = summaryExpanded ? sorted : sorted.slice(0, TABLE_PREVIEW_LIMIT);
-  $("summary-body").innerHTML = visibleRows.map((row, index) => `<tr data-country-row="${row.country_code}" style="--row-index:${index}">
-    <td class="selection-cell"><span class="table-rank">${index + 1}</span><input type="checkbox" aria-label="${escapeAttribute(row.country_name)} auswählen" data-country="${row.country_code}" ${selected.has(row.country_code) ? "checked" : ""}></td>
+  $("summary-body").innerHTML = visibleRows.map((row, index) => {
+    const isSelected = selected.has(row.country_code);
+    return `<tr data-country-row="${row.country_code}" style="--row-index:${index}">
+    <td class="selection-cell${isSelected ? " is-selected" : ""}"><button type="button" class="table-rank selection-toggle${isSelected ? " is-selected" : ""}" aria-label="${escapeAttribute(row.country_name)} ${isSelected ? "abwählen" : "auswählen"}" aria-pressed="${isSelected}" data-country="${row.country_code}">${index + 1}</button></td>
     <th scope="row">${tableCountry(row)}${statusBadge(row)}</th>
-    ${TABLE_METRIC_IDS.map(id => `<td data-metric="${id}" class="${mapMetricId === id ? "map-column-active" : ""}">${formatTableValue(row[id], id)}</td>`).join("")}
-  </tr>`).join("");
+    ${TABLE_METRIC_IDS.map(id => `<td data-metric="${id}" class="${sortKey === id ? "sort-column-active" : ""}">${formatTableValue(row[id], id)}</td>`).join("")}
+  </tr>`;
+  }).join("");
   updateTableDisclosure("summary", summaryExpanded, sorted.length);
   animateRowReorder("#summary-body [data-country-row]", previousPositions, row => row.dataset.countryRow);
-  document.querySelectorAll("input[data-country]").forEach(input => input.addEventListener("change", event => {
-    const changed = toggleCountry(event.target.dataset.country, event.target.checked);
-    if (!changed) event.target.checked = false;
+  document.querySelectorAll("button.selection-toggle[data-country]").forEach(button => button.addEventListener("click", () => {
+    toggleCountry(button.dataset.country);
   }));
   updateSelection();
 }
@@ -397,18 +440,25 @@ function render() {
 function renderStorage() {
   const previousPositions = rowPositions("#storage-body tr");
   $("storage-head").innerHTML = leadingTableHeader()
-    + STORAGE_METRIC_IDS.map(id => metricHeader(id, storageSortKey, storageSortDirection)).join("");
-  bindSort("#storage-head [data-sort-key]", key => {
+    + STORAGE_METRIC_IDS.map(id => metricHeader(id, storageSortKey, storageSortDirection, true)).join("");
+  bindSort("#storage-head .sort-action", key => {
     if (storageSortKey === key) storageSortDirection *= -1;
     else { storageSortKey = key; storageSortDirection = -1; }
     renderStorage();
   });
+  bindSortDirection("#storage-head [data-sort-direction]", (key, direction) => {
+    storageSortKey = key;
+    storageSortDirection = direction;
+    renderStorage();
+  });
+  bindMapColumnActions($("storage-head"));
+  fitTableHeaderText("storage-head");
   const sorted = sortRows(storageData, storageSortKey, storageSortDirection);
   const visibleRows = storageExpanded ? sorted : sorted.slice(0, TABLE_PREVIEW_LIMIT);
   $("storage-body").innerHTML = visibleRows.map((row, index) => `<tr data-storage-row="${row.country_code}" style="--row-index:${index}">
-    <td class="rank-column"><span class="table-rank">${index + 1}</span></td>
+    <td class="rank-column"><span class="table-rank${selected.has(row.country_code) ? " is-selected" : ""}" data-country="${row.country_code}">${index + 1}</span></td>
     <th scope="row">${tableCountry(row)}${row.quality_status === "missing" ? '<span class="status-badge missing">fehlend</span>' : ""}</th>
-    ${STORAGE_METRIC_IDS.map(id => storageCell(row, id)).join("")}
+    ${STORAGE_METRIC_IDS.map(id => storageCell(row, id, storageSortKey === id)).join("")}
   </tr>`).join("");
   updateTableDisclosure("storage", storageExpanded, sorted.length);
   animateRowReorder("#storage-body tr", previousPositions, row => row.dataset.storageRow);
@@ -441,25 +491,36 @@ function renderElectromobility() {
   region.hidden = false;
   $("ev-note").textContent = `Eurostat-Jahreswerte für ${selectedYear()}. Fehlende Land-Jahr-Werte bleiben leer und werden nicht aus Vorjahren fortgeschrieben.`;
   head.innerHTML = leadingTableHeader()
-    + EV_METRIC_IDS.map(id => metricHeader(id, evSortKey, evSortDirection)).join("");
-  bindSort("#ev-head [data-sort-key]", key => {
+    + EV_METRIC_IDS.map(id => metricHeader(id, evSortKey, evSortDirection, true)).join("");
+  bindSort("#ev-head .sort-action", key => {
     if (evSortKey === key) evSortDirection *= -1;
     else { evSortKey = key; evSortDirection = -1; }
     renderElectromobility();
   });
+  bindSortDirection("#ev-head [data-sort-direction]", (key, direction) => {
+    evSortKey = key;
+    evSortDirection = direction;
+    renderElectromobility();
+  });
+  bindMapColumnActions($("ev-head"));
+  fitTableHeaderText("ev-head");
   const sorted = sortRows(data, evSortKey, evSortDirection);
   const visibleRows = electromobilityRowsForView(data, false, evSortKey, evSortDirection, evExpanded);
   $("ev-body").innerHTML = visibleRows.map((row, index) => `<tr data-ev-row="${row.country_code}" style="--row-index:${index}">
-    <td class="rank-column"><span class="table-rank">${index + 1}</span></td>
+    <td class="rank-column"><span class="table-rank${selected.has(row.country_code) ? " is-selected" : ""}" data-country="${row.country_code}">${index + 1}</span></td>
     <th scope="row">${tableCountry(row)}</th>
-    ${EV_METRIC_IDS.map(id => `<td data-metric="${id}">${formatTableValue(row[id], id)}</td>`).join("")}
+    ${EV_METRIC_IDS.map(id => `<td data-metric="${id}" class="${evSortKey === id ? "sort-column-active" : ""}">${formatTableValue(row[id], id)}</td>`).join("")}
   </tr>`).join("");
   updateTableDisclosure("ev", evExpanded, sorted.length);
 }
 
-function storageCell(row, metricId) {
+function storageCell(row, metricId, isSortColumn = false) {
   const provenance = row.metric_provenance?.[metricId];
-  if (!provenance) return `<td>${formatTableValue(null, metricId)}</td>`;
+  const activeClass = isSortColumn ? "sort-column-active" : "";
+  if (!provenance) {
+    if (isSortColumn) return `<td class="${activeClass}">${formatTableValue(null, metricId)}</td>`;
+    return `<td>${formatTableValue(null, metricId)}</td>`;
+  }
   const coverageLabels = {
     national_registry_total: "nationaler Register-Gesamtbestand",
     tracked_project_inventory: "erfasster Projektbestand",
@@ -467,6 +528,7 @@ function storageCell(row, metricId) {
   const qualityLabel = storageQualityLabel(provenance.quality_status);
   const quality = qualityLabel === "vorhanden" ? "" : ` · ${qualityLabel}`;
   const title = `${provenance.source_label} · Stichtag ${provenance.date} · ${coverageLabels[provenance.coverage_type] || provenance.coverage_type}${quality}`;
+  if (isSortColumn) return `<td class="${activeClass}" title="${escapeAttribute(title)}">${formatTableValue(row[metricId], metricId)}</td>`;
   return `<td title="${escapeAttribute(title)}">${formatTableValue(row[metricId], metricId)}</td>`;
 }
 
@@ -522,8 +584,16 @@ function updateSelection() {
   }
   $("compare").disabled = selected.size < 1 || selected.size > 10;
   $("clear-selection").disabled = selected.size === 0;
-  document.querySelectorAll("input[data-country]").forEach(input => {
-    input.checked = selected.has(input.dataset.country);
+  document.querySelectorAll(".table-rank[data-country]").forEach(rank => {
+    rank.classList.toggle("is-selected", selected.has(rank.dataset.country));
+  });
+  document.querySelectorAll("button.selection-toggle[data-country]").forEach(button => {
+    const isSelected = selected.has(button.dataset.country);
+    button.classList.toggle("is-selected", isSelected);
+    button.closest(".selection-cell")?.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+    const country = countryName(button.dataset.country);
+    button.setAttribute("aria-label", `${country} ${isSelected ? "abwählen" : "auswählen"}`);
   });
   renderCountryControls();
 }
@@ -563,9 +633,19 @@ function mapMetrics() {
 }
 
 function orderedMetricVariants(metrics) {
-  return [...metrics].sort((first, second) => (
-    (STORAGE_VARIANT_ORDER.get(first.id) ?? 99) - (STORAGE_VARIANT_ORDER.get(second.id) ?? 99)
-  ));
+  return [...metrics].sort((first, second) => {
+    const firstRank = metricVariantRank(first);
+    const secondRank = metricVariantRank(second);
+    return firstRank - secondRank;
+  });
+}
+
+function metricVariantRank(metric) {
+  const storageRank = STORAGE_VARIANT_ORDER.get(metric.id);
+  if (storageRank !== undefined) return storageRank;
+  if (metric.id.includes("_per_capita") || metric.representation.includes("je Einwohner")) return 20;
+  if (metric.unit === "%" || metric.representation.startsWith("Anteil")) return 10;
+  return 0;
 }
 
 function familyKey(metric) {
@@ -632,6 +712,7 @@ function renderMapControls() {
     $("map-availability").textContent = "Für diese Darstellung und diesen Zeitraum nicht verfügbar.";
   }
   highlightMapColumn();
+  syncEnhancedSelectMenus(["map-family", "map-representation"]);
 }
 
 async function selectMapMetricForPeriod(metricId) {
@@ -671,8 +752,8 @@ async function setMapMetric(metricId, scrollToMap = false) {
 }
 
 function highlightMapColumn() {
-  document.querySelectorAll(".map-column-active").forEach(element => element.classList.remove("map-column-active"));
-  document.querySelectorAll(`[data-key="${mapMetricId}"], [data-metric="${mapMetricId}"]`).forEach(element => element.classList.add("map-column-active"));
+  // The table highlight represents the active sort. The map relation is shown
+  // exclusively by the selected "Karte" action in each column header.
 }
 
 function mapRow(code, metric) {
@@ -885,6 +966,14 @@ function focusMapCountry(path) {
   }
 }
 
+function clearMapCountryFocus() {
+  if (!focusedMapCountry) return;
+  focusedMapCountry = null;
+  mapSvg?.querySelectorAll(".atlas-country.selected").forEach(country => country.classList.remove("selected"));
+  $("map-detail").textContent = "Ein Land fokussieren, um Details anzuzeigen.";
+  hideMapTooltip();
+}
+
 function hideMapTooltip() {
   $("map-tooltip").hidden = true;
 }
@@ -913,6 +1002,10 @@ function configureMapCountries() {
         focusMapCountry(path);
       }
     });
+  });
+  mapSvg.addEventListener("click", event => {
+    if (event.target.closest?.(".map-country")) return;
+    clearMapCountryFocus();
   });
   updateSelection();
 }
@@ -1093,13 +1186,14 @@ function renderCountryControls() {
     const name = countryName(code);
     return `<span class="country-chip">
       <img src="/assets/flags/${flagCode(code)}.svg" alt="" width="24" height="18">
-      <span>${escapeHtml(name)} <b>${code}</b></span>
+      <b>${escapeHtml(code)}</b>
       <button type="button" data-remove-country="${code}" aria-label="${escapeAttribute(name)} entfernen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
     </span>`;
   }).join("");
   document.querySelectorAll("[data-remove-country]").forEach(button => button.addEventListener("click", () => {
     toggleCountry(button.dataset.removeCountry, false);
   }));
+  syncEnhancedSelectMenus(["compare-country-add"]);
 }
 
 function renderComparisonControls(metricId = null) {
@@ -1108,21 +1202,185 @@ function renderComparisonControls(metricId = null) {
   const activeMetric = metricCatalog.get(metricId || $("compare-metric").value)
     || metricCatalog.get(DEFAULT_COMPARISON_METRIC)
     || timeseriesMetrics()[0];
-  const families = new Map();
+  const groups = new Map();
   allMetrics.forEach(metric => {
+    if (!groups.has(metric.group)) groups.set(metric.group, new Map());
+    const families = groups.get(metric.group);
     const key = familyKey(metric);
     if (!families.has(key)) families.set(key, []);
     families.get(key).push(metric);
   });
-  $("compare-family").innerHTML = [...families].map(([key, variants]) => {
-    const available = variants.some(metric => metric.temporal_availability.monthly || metric.temporal_availability.yearly);
-    const label = `${variants[0].group} · ${variants[0].family}${available ? "" : " · kein Zeitverlauf"}`;
-    return `<option value="${escapeAttribute(key)}"${available ? "" : " disabled"}>${escapeHtml(label)}</option>`;
-  }).join("");
+  $("compare-family").innerHTML = [...groups].map(([group, families]) =>
+    `<optgroup label="${escapeAttribute(group)}">${[...families].map(([key, variants]) => {
+      const available = variants.some(metric => metric.temporal_availability.monthly || metric.temporal_availability.yearly);
+      return `<option value="${escapeAttribute(key)}"${available ? "" : " disabled"}>${escapeHtml(variants[0].family)}</option>`;
+    }).join("")}</optgroup>`
+  ).join("");
   const activeFamily = familyKey(activeMetric);
   $("compare-family").value = activeFamily;
+  renderComparisonFamilyPicker(groups, activeFamily);
   renderComparisonMetricOptions(activeFamily, activeMetric.id);
+  syncEnhancedSelectMenus(["compare-metric", "compare-axis-mode"]);
   renderCountryControls();
+}
+
+function renderComparisonFamilyPicker(groups, activeFamily) {
+  let activeGroup = "";
+  let activeLabel = "";
+  const menu = $("compare-family-menu");
+  const triggerValue = $("compare-family-value");
+  const menuGroups = [...groups].map(([group, families]) => {
+    const options = [...families].map(([key, variants]) => {
+      const available = variants.some(metric => metric.temporal_availability.monthly || metric.temporal_availability.yearly);
+      if (key === activeFamily) {
+        activeGroup = group;
+        activeLabel = variants[0].family;
+      }
+      return `<button type="button" class="metric-family-option${key === activeFamily ? " active" : ""}" data-comparison-family="${escapeAttribute(key)}" data-comparison-group="${escapeAttribute(group)}" aria-pressed="${key === activeFamily}"${available ? "" : " disabled"}>${escapeHtml(variants[0].family)}</button>`;
+    }).join("");
+    return `<section class="metric-family-group" aria-label="${escapeAttribute(group)}"><h3>${escapeHtml(group)}</h3><div class="metric-family-options">${options}</div></section>`;
+  }).join("");
+  triggerValue.innerHTML = `<span class="metric-family-selected-group">${escapeHtml(activeGroup)}</span><span class="metric-family-selected-label">${escapeHtml(activeLabel)}</span>`;
+  menu.innerHTML = `<p class="metric-family-menu-intro">Kennzahlenfamilie wählen</p><div class="metric-family-groups">${menuGroups}</div>`;
+  menu.querySelectorAll("[data-comparison-family]").forEach(button => button.addEventListener("click", () => {
+    if (button.disabled) return;
+    menu.querySelectorAll("[data-comparison-family]").forEach(option => {
+      option.classList.toggle("active", option === button);
+      option.setAttribute("aria-pressed", String(option === button));
+    });
+    triggerValue.innerHTML = `<span class="metric-family-selected-group">${escapeHtml(button.dataset.comparisonGroup)}</span><span class="metric-family-selected-label">${escapeHtml(button.textContent)}</span>`;
+    $("compare-family").value = button.dataset.comparisonFamily;
+    $("compare-family").dispatchEvent(new Event("change", {bubbles: true}));
+    closeComparisonFamilyPicker(true);
+  }));
+}
+
+function setComparisonFamilyPickerOpen(open) {
+  const picker = $("compare-family-picker");
+  const trigger = $("compare-family-trigger");
+  const menu = $("compare-family-menu");
+  picker.classList.toggle("is-open", open);
+  trigger.setAttribute("aria-expanded", String(open));
+  menu.hidden = !open;
+}
+
+function closeComparisonFamilyPicker(restoreFocus = false) {
+  const menu = $("compare-family-menu");
+  if (menu.hidden) return;
+  setComparisonFamilyPickerOpen(false);
+  if (restoreFocus) $("compare-family-trigger").focus();
+}
+
+const ENHANCED_SELECT_IDS = Object.freeze([
+  "period-type", "month", "map-family", "map-representation",
+  "compare-country-add", "compare-metric", "compare-axis-mode",
+]);
+
+function selectControlLabel(select) {
+  return select.closest(".select-field")?.querySelector(".field-label")?.textContent.trim()
+    || select.getAttribute("aria-label")
+    || "Auswahl";
+}
+
+function enhancedSelectControl(select) {
+  return select?.closest?.(".select-field")?.querySelector(".enhanced-select") || null;
+}
+
+function renderEnhancedSelectMenu(select) {
+  const control = enhancedSelectControl(select);
+  if (!control) return;
+  const trigger = control.querySelector(".enhanced-select-trigger");
+  const menu = control.querySelector(".enhanced-select-menu");
+  const selectedOption = select.selectedOptions[0];
+  trigger.querySelector(".enhanced-select-value").textContent = selectedOption?.textContent.trim() || "Auswählen …";
+  trigger.disabled = select.disabled;
+  const grouped = [...select.children].filter(child => child.tagName === "OPTGROUP");
+  const optionButton = option => {
+    const disabled = option.disabled || !option.value;
+    return `<button type="button" class="enhanced-select-option${option.value === select.value ? " active" : ""}" data-select-option="${escapeAttribute(option.value)}" aria-pressed="${option.value === select.value}"${disabled ? " disabled" : ""}>${escapeHtml(option.textContent.trim())}</button>`;
+  };
+  menu.innerHTML = grouped.length
+    ? `<div class="enhanced-select-groups">${grouped.map(group => `<section class="enhanced-select-group" aria-label="${escapeAttribute(group.label)}"><h3>${escapeHtml(group.label)}</h3><div class="enhanced-select-options">${[...group.children].map(optionButton).join("")}</div></section>`).join("")}</div>`
+    : `<div class="enhanced-select-options is-list">${[...select.options].map(optionButton).join("")}</div>`;
+  menu.classList.toggle("has-groups", Boolean(grouped.length));
+  menu.querySelectorAll("[data-select-option]").forEach(button => button.addEventListener("click", () => {
+    if (button.disabled) return;
+    select.value = button.dataset.selectOption;
+    select.dispatchEvent(new Event("change", {bubbles: true}));
+    closeEnhancedSelectMenu(select, true);
+  }));
+}
+
+function setEnhancedSelectMenuOpen(select, open) {
+  const control = enhancedSelectControl(select);
+  const trigger = control.querySelector(".enhanced-select-trigger");
+  const menu = control.querySelector(".enhanced-select-menu");
+  if (open) {
+    closeComparisonFamilyPicker();
+    document.querySelectorAll(".enhanced-select-menu:not([hidden])").forEach(other => {
+      if (other !== menu) closeEnhancedSelectMenu(other.closest(".enhanced-select").parentElement.querySelector("select"));
+    });
+    renderEnhancedSelectMenu(select);
+    menu.hidden = false;
+  } else {
+    menu.hidden = true;
+  }
+  control.classList.toggle("is-open", open);
+  trigger.setAttribute("aria-expanded", String(open));
+}
+
+function closeEnhancedSelectMenu(select, restoreFocus = false) {
+  const control = select ? enhancedSelectControl(select) : null;
+  const menu = control?.querySelector(".enhanced-select-menu");
+  if (!menu || menu.hidden) return;
+  setEnhancedSelectMenuOpen(select, false);
+  if (restoreFocus) control.querySelector(".enhanced-select-trigger").focus();
+}
+
+function syncEnhancedSelectMenus(ids = ENHANCED_SELECT_IDS) {
+  ids.forEach(id => {
+    const select = $(id);
+    if (enhancedSelectControl(select)) renderEnhancedSelectMenu(select);
+  });
+}
+
+function configureEnhancedSelectMenus() {
+  if (typeof document.createElement !== "function") return;
+  ENHANCED_SELECT_IDS.forEach(id => {
+    const select = $(id);
+    if (!select || select.closest(".enhanced-select")) return;
+    const field = select.closest(".select-field");
+    if (!field) return;
+    const caption = selectControlLabel(select);
+    const control = document.createElement("div");
+    const trigger = document.createElement("button");
+    const menu = document.createElement("div");
+    control.className = "enhanced-select";
+    trigger.type = "button";
+    trigger.className = "enhanced-select-trigger";
+    trigger.setAttribute("aria-label", `${caption} auswählen`);
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.setAttribute("aria-expanded", "false");
+    menu.className = "enhanced-select-menu";
+    menu.setAttribute("role", "dialog");
+    menu.setAttribute("aria-label", `${caption} auswählen`);
+    menu.hidden = true;
+    trigger.innerHTML = '<span class="enhanced-select-value"></span><span class="enhanced-select-chevron" aria-hidden="true"></span>';
+    control.append(trigger, menu);
+    select.classList.add("sr-only");
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
+    select.insertAdjacentElement("afterend", control);
+    trigger.addEventListener("click", () => setEnhancedSelectMenuOpen(select, menu.hidden));
+    trigger.addEventListener("keydown", event => {
+      if (!["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      setEnhancedSelectMenuOpen(select, true);
+    });
+    select.addEventListener("change", () => renderEnhancedSelectMenu(select));
+    if (typeof MutationObserver === "function") new MutationObserver(() => renderEnhancedSelectMenu(select)).observe(select, {childList: true, subtree: true, characterData: true});
+    renderEnhancedSelectMenu(select);
+  });
 }
 
 function renderComparisonMetricOptions(family, metricId = null) {
@@ -1138,6 +1396,27 @@ function renderComparisonMetricOptions(family, metricId = null) {
   if (!next) return;
   $("compare-metric").value = next.id;
   configureComparisonRange(next);
+  configureComparisonAxisMode(next);
+  syncEnhancedSelectMenus(["compare-metric", "compare-axis-mode"]);
+}
+
+function isPercentagePlotMetric(metric) {
+  return metric?.unit === "%" && metric.map_config?.scale !== "diverging";
+}
+
+function configureComparisonAxisMode(metric) {
+  const input = $("compare-axis-mode");
+  const options = [...input.options];
+  const percentage = isPercentagePlotMetric(metric);
+  const diverging = metric?.map_config?.scale === "diverging";
+  options.find(option => option.value === "full").textContent = percentage
+    ? "0 bis 100 %"
+    : diverging
+      ? "Symmetrisch um 0"
+      : "0 bis Maximum";
+  options.find(option => option.value === "data-range").textContent = percentage
+    ? "Minimum bis 100 %"
+    : "Minimum bis Maximum";
 }
 
 function configureComparisonRange(metric) {
@@ -1270,6 +1549,7 @@ function comparisonQuery() {
     start: $("compare-start").value,
     end: $("compare-end").value,
   });
+  params.set("axis", $("compare-axis-mode").value);
   return params;
 }
 
@@ -1304,7 +1584,10 @@ function parseComparisonUrl(search, validCodes, catalog, now = new Date()) {
   if (!pattern.test(start) || !pattern.test(end) || start < minimum || end > maximum || start > end) {
     return {valid: false};
   }
-  return {valid: true, codes, metric, start, end};
+  const axisMode = ["data-range", "minimum-to-100"].includes(params.get("axis"))
+    ? "data-range"
+    : "full";
+  return {valid: true, codes, metric, start, end, axisMode};
 }
 
 async function restoreComparisonState() {
@@ -1321,6 +1604,7 @@ async function restoreComparisonState() {
   renderComparisonControls(parsed.metric.id);
   $("compare-start").value = parsed.start;
   $("compare-end").value = parsed.end;
+  $("compare-axis-mode").value = parsed.axisMode;
   syncComparisonPresetFromFields(parsed.metric);
   updateSelection();
   $("comparison").hidden = false;
@@ -1376,6 +1660,7 @@ async function loadTimeseries({scroll = false, updateUrl = true, availabilityPre
     }
   }
   timeseriesData = payload;
+  configureComparisonAxisMode(payload.metric);
   await prepareTimeseriesColors(payload);
   clearChartHoverThrottle();
   chartHoverIndex = null;
@@ -1430,19 +1715,24 @@ function chartScale(payload, geometry) {
   let maximum = values.length ? Math.max(...values) : 1;
   const metric = payload.metric;
   const diverging = metric.map_config?.scale === "diverging";
+  const useDataRange = $("compare-axis-mode")?.value === "data-range";
   if (metric.unit === "%" && !diverging) {
-    minimum = 0;
+    minimum = useDataRange ? Math.min(Math.max(0, minimum), 99) : 0;
     maximum = 100;
   } else if (diverging) {
-    const extent = Math.max(Math.abs(minimum), Math.abs(maximum), 1);
-    minimum = -extent;
-    maximum = extent;
+    if (!useDataRange) {
+      const extent = Math.max(Math.abs(minimum), Math.abs(maximum), 1);
+      minimum = -extent;
+      maximum = extent;
+    }
   } else {
-    minimum = Math.min(0, minimum);
-    maximum = Math.max(maximum, minimum + 1);
+    if (!useDataRange) {
+      minimum = Math.min(0, minimum);
+      maximum = Math.max(maximum, minimum + 1);
+    }
   }
   if (minimum === maximum) maximum = minimum + 1;
-  const padding = diverging || metric.unit === "%" ? 0 : (maximum - minimum) * 0.06;
+  const padding = useDataRange || diverging || metric.unit === "%" ? 0 : (maximum - minimum) * 0.06;
   maximum += padding;
   const x = index => geometry.left + index / Math.max(1, payload.atlas_average.values.length - 1) * (geometry.right - geometry.left);
   const y = value => geometry.bottom - (value - minimum) / (maximum - minimum) * (geometry.bottom - geometry.top);
@@ -1516,7 +1806,10 @@ function renderTimeseriesChart() {
   svg.setAttribute("viewBox", `0 0 ${geometry.width} ${geometry.height}`);
   svg.appendChild(svgElement("rect", {class: "chart-background", x: 0, y: 0, width: geometry.width, height: geometry.height, rx: 12}));
   svg.appendChild(svgElement("text", {class: "chart-title", x: geometry.left, y: 34}, metric.label_de));
-  svg.appendChild(svgElement("text", {class: "chart-subtitle", x: geometry.left, y: 57}, `${metric.representation} · ${metric.unit} · ${payload.start} bis ${payload.end}`));
+  const axisNote = $("compare-axis-mode")?.value === "data-range"
+    ? ` · Y-Achse ${formatMetricValue(scale.minimum, metric)} bis ${formatMetricValue(scale.maximum, metric)}${metric.unit ? ` ${metric.unit}` : ""}`
+    : "";
+  svg.appendChild(svgElement("text", {class: "chart-subtitle", x: geometry.left, y: 57}, `${metric.representation} · ${metric.unit} · ${payload.start} bis ${payload.end}${axisNote}`));
 
   for (let tick = 0; tick <= 5; tick += 1) {
     const value = scale.minimum + (scale.maximum - scale.minimum) * tick / 5;
@@ -1837,6 +2130,8 @@ if (typeof module !== "undefined" && module.exports) {
     formatTableValue,
     availableComparisonRange,
     comparisonPresetRange,
+    chartScale,
+    orderedMetricVariants,
     chartIndexFromClientX,
     createLeadingTrailingThrottle,
     comparisonBaselineYear,
@@ -2017,13 +2312,14 @@ async function toggleMapFullscreen() {
 
 const TITLE_BY_SECTION = Object.freeze({
   map: "EEA · Karte",
-  comparison: "EEA · Vergleich",
-  summary: "EEA · Ranking",
+  comparison: "EEA · Plottool",
+  summary: "EEA · Stromsysteme",
   electromobility: "EEA · E-Mobilität",
   storage: "EEA · Speicher",
   sources: "EEA · Quellen",
 });
 let activeTitleSection = null;
+let titleUpdateFrame = null;
 
 function setDocumentTitle(section = null) {
   activeTitleSection = section;
@@ -2052,18 +2348,28 @@ function updateDynamicDocumentTitle() {
   if (section !== activeTitleSection) setDocumentTitle(section);
 }
 
+function scheduleDynamicDocumentTitle() {
+  if (titleUpdateFrame !== null) return;
+  titleUpdateFrame = requestAnimationFrame(() => {
+    titleUpdateFrame = null;
+    updateDynamicDocumentTitle();
+  });
+}
+
 function configureDynamicDocumentTitle() {
   const targets = [
     $("atlas-map-section"), $("comparison"), $("summary-section"), $("electromobility"), $("storage"),
     document.querySelector?.(".source-details"),
   ].filter(Boolean);
   if (typeof IntersectionObserver === "function") {
-    const observer = new IntersectionObserver(() => updateDynamicDocumentTitle(), {
+    const observer = new IntersectionObserver(() => scheduleDynamicDocumentTitle(), {
       rootMargin: "-18% 0px -55% 0px",
       threshold: [0, .1, .5],
     });
     targets.forEach(target => observer.observe(target));
   }
+  window.addEventListener("scroll", scheduleDynamicDocumentTitle, {passive: true});
+  window.addEventListener("resize", scheduleDynamicDocumentTitle);
   if (new URLSearchParams(window.location.search).get("view") === "compare") setDocumentTitle("comparison");
   else updateDynamicDocumentTitle();
 }
@@ -2109,7 +2415,7 @@ async function serializedMapSvg() {
     .export-subtitle{fill:#b6c1cc;font-size:16px}.export-label{fill:#f7f5f0;font-size:17px;font-weight:700}
     .export-small{fill:#b6c1cc;font-size:14px}.map-country{vector-effect:non-scaling-stroke;stroke:#52657a;stroke-width:1}
     .background-country{fill:#182638;opacity:.84}.background-country[data-clipped=true]{stroke:transparent}
-    .atlas-country{stroke:#c5d0da;stroke-width:1.1}.atlas-country.no-data{fill:#657486}.atlas-country.selected{stroke:#ffffff;stroke-width:4}
+    .atlas-country{stroke:#94b0c9;stroke-width:1.35}.atlas-country.no-data{fill:#657486}.atlas-country.selected{stroke:#ffffff;stroke-width:4}
     .map-value-label{fill:#fff;stroke:#070d18;stroke-width:3px;paint-order:stroke;text-anchor:middle;dominant-baseline:middle;font-size:13px;font-weight:750}
   `);
   root.appendChild(style);
@@ -2245,6 +2551,7 @@ function syncPeriodControls() {
   renderElectromobility();
   renderMapControls();
   renderMap();
+  syncEnhancedSelectMenus(["period-type", "month"]);
 }
 
 function updateComparisonFullscreenButton() {
@@ -2308,9 +2615,33 @@ $("compare-family").addEventListener("change", async event => {
   renderComparisonMetricOptions(event.target.value);
   await loadTimeseries({scroll: false, updateUrl: true});
 });
+$("compare-family-trigger").addEventListener("click", () => {
+  const menu = $("compare-family-menu");
+  document.querySelectorAll?.(".select-field select").forEach(select => closeEnhancedSelectMenu(select));
+  setComparisonFamilyPickerOpen(menu.hidden);
+});
+$("compare-family-trigger").addEventListener("keydown", event => {
+  if (!["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) return;
+  event.preventDefault();
+  setComparisonFamilyPickerOpen(true);
+});
+document.addEventListener?.("click", event => {
+  const picker = $("compare-family-picker");
+  const menu = $("compare-family-menu");
+  if (picker?.contains?.(event.target) || menu?.contains?.(event.target) || event.target.closest?.(".enhanced-select")) return;
+  closeComparisonFamilyPicker();
+  document.querySelectorAll?.(".select-field select").forEach(select => closeEnhancedSelectMenu(select));
+});
+document.addEventListener?.("keydown", event => {
+  if (event.key === "Escape") closeComparisonFamilyPicker(true);
+});
 $("compare-metric").addEventListener("change", async event => {
   configureComparisonRange(metricDefinition(event.target.value));
   await loadTimeseries({scroll: false, updateUrl: true});
+});
+$("compare-axis-mode").addEventListener("change", () => {
+  renderTimeseriesChart();
+  writeComparisonUrl();
 });
 $("comparison-fullscreen").addEventListener("click", toggleComparisonFullscreen);
 $("unpin-time").addEventListener("click", () => {
@@ -2382,6 +2713,7 @@ window.__atlasCompareTest = {
 };
 
 syncPeriodControls();
+configureEnhancedSelectMenus();
 loadCoverage();
 configureInfoPanels();
 if (typeof document.querySelector === "function") {

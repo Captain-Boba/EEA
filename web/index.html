@@ -24,15 +24,15 @@
     </header>
 
     <section class="controls" aria-label="Zeitraum">
-      <label>Jahr <input id="year" type="number" min="2015" value="2025"></label>
-      <label>Zeitraum
-        <select id="period-type">
+      <input id="year" type="number" min="2015" value="2025" aria-label="Jahr">
+      <div class="select-field">
+        <select id="period-type" aria-label="Zeitraum">
           <option value="year">Jahr</option>
           <option value="month">Monat</option>
         </select>
-      </label>
-      <label id="month-label" hidden>Monat
-        <select id="month">
+      </div>
+      <div id="month-label" class="select-field" hidden>
+        <select id="month" aria-label="Monat">
           <option value="1">Januar</option><option value="2">Februar</option>
           <option value="3">März</option><option value="4">April</option>
           <option value="5">Mai</option><option value="6">Juni</option>
@@ -40,9 +40,9 @@
           <option value="9">September</option><option value="10">Oktober</option>
           <option value="11">November</option><option value="12">Dezember</option>
         </select>
-      </label>
+      </div>
       <button id="load">Auswerten</button>
-      <button id="compare" disabled>Zeitreihe vergleichen (<span id="selected-count">0</span>)</button>
+      <button id="compare" disabled>Länder vergleichen (<span id="selected-count">0</span>)</button>
       <button id="clear-selection" class="europe-clear-action" type="button" disabled aria-label="Gesamte Länderauswahl aufheben">
         <img class="europe-star" src="/assets/europe-star.svg" alt="">
         <span>Auswahl aufheben</span>
@@ -52,28 +52,24 @@
     <p id="status" role="status">Daten werden geladen …</p>
 
     <section id="atlas-map-section" aria-labelledby="atlas-map-title">
-      <div class="section-heading">
-        <div>
+      <header class="tool-card-header">
+        <div class="table-card-title">
+          <span class="table-kicker">Europäischer Überblick</span>
           <h2 id="atlas-map-title">Europakarte</h2>
-          <button class="info-trigger" type="button" data-info-target="map-info" aria-expanded="false">Hinweise zur Karte</button>
-          <div id="map-info" class="info-popover" role="dialog" aria-label="Hinweise zur Karte" hidden>
-            <button class="info-close" type="button" aria-label="Hinweise schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
-            <p>Kennzahl und Darstellung wählen. Ein Land per Klick, Enter oder Leertaste dauerhaft fokussieren.</p>
-          </div>
         </div>
-      </div>
-      <div id="map-stage" class="map-stage">
-        <div class="map-controls" aria-label="Kartenkennzahl">
-          <label>Kennzahl
-            <select id="map-family" aria-controls="atlas-map"></select>
-          </label>
-          <label>Darstellung
-            <select id="map-representation" aria-controls="atlas-map"></select>
-          </label>
+      </header>
+        <div id="map-stage" class="map-stage">
+          <div class="map-controls" aria-label="Kartenkennzahl">
+          <div class="select-field">
+            <select id="map-family" aria-controls="atlas-map" aria-label="Kennzahl"></select>
+          </div>
+          <div class="select-field">
+            <select id="map-representation" aria-controls="atlas-map" aria-label="Darstellung"></select>
+          </div>
+          <label class="value-toggle"><input id="map-values" type="checkbox" checked> Werte anzeigen</label>
         </div>
         <p id="map-availability" class="hint" role="status"></p>
         <div class="map-actions tool-actions" aria-label="Karte anzeigen und exportieren">
-          <label class="value-toggle"><input id="map-values" type="checkbox" checked> Werte anzeigen</label>
           <button id="map-export-svg" type="button" disabled>SVG</button>
           <button id="map-export-png" type="button" disabled>PNG</button>
           <button id="map-fullscreen" type="button" aria-pressed="false">Vollbild</button>
@@ -96,37 +92,44 @@
       </div>
     </section>
 
-    <section id="comparison">
-      <div class="section-heading">
-        <div>
-          <h2>Zeitreihenvergleich</h2>
-          <button class="info-trigger" type="button" data-info-target="comparison-info" aria-expanded="false">Hinweise zum Vergleich</button>
-          <div id="comparison-info" class="info-popover" role="dialog" aria-label="Hinweise zum Zeitreihenvergleich" hidden>
-            <button class="info-close" type="button" aria-label="Hinweise schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
-            <p>Eine Kennzahl, bis zu zehn Länder und der Durchschnitt des vollständigen Atlas-Katalogs.</p>
-          </div>
+    <section id="comparison" aria-labelledby="comparison-title">
+      <header class="tool-card-header">
+        <div class="table-card-title">
+          <span class="table-kicker">Ländervergleich</span>
+          <h2 id="comparison-title">Plottool</h2>
         </div>
-      </div>
+      </header>
       <div id="comparison-stage" class="comparison-stage">
-        <div id="comparison-controls" class="comparison-controls" aria-label="Zeitreihenvergleich steuern">
+        <div id="comparison-controls" class="comparison-controls" aria-label="Plottool steuern">
           <div class="country-control">
-            <label>Land hinzufügen
-              <select id="compare-country-add"></select>
-            </label>
+            <div class="select-field">
+              <select id="compare-country-add" aria-label="Land hinzufügen"></select>
+            </div>
             <div id="compare-chips" class="country-chips" aria-label="Ausgewählte Länder"></div>
           </div>
-          <label>Kennzahlenfamilie
-            <select id="compare-family"></select>
-          </label>
-          <label>Darstellung
+          <div id="compare-family-picker" class="metric-family-picker">
+            <span id="compare-family-label" class="field-label">Kennzahlenfamilie</span>
+            <button id="compare-family-trigger" class="metric-family-trigger" type="button" aria-labelledby="compare-family-label compare-family-value" aria-haspopup="dialog" aria-expanded="false" aria-controls="compare-family-menu">
+              <span id="compare-family-value"></span>
+              <span class="metric-family-chevron" aria-hidden="true"></span>
+            </button>
+            <select id="compare-family" class="sr-only" tabindex="-1" aria-hidden="true"></select>
+          </div>
+          <div class="select-field"><span class="field-label">Darstellung</span>
             <select id="compare-metric"></select>
-          </label>
+          </div>
           <label id="compare-start-label">Von
             <input id="compare-start" type="month" min="2015-01">
           </label>
           <label id="compare-end-label">Bis
             <input id="compare-end" type="month" min="2015-01">
           </label>
+          <div id="compare-axis-mode-label" class="select-field"><span class="field-label">Y-Achse</span>
+            <select id="compare-axis-mode" aria-controls="timeseries-chart">
+              <option value="full">0 bis Maximum</option>
+              <option value="data-range">Minimum bis Maximum</option>
+            </select>
+          </div>
           <div class="comparison-actions tool-actions" aria-label="Zeitreihe exportieren">
             <button id="export-csv" type="button" disabled>CSV</button>
             <button id="export-svg" type="button" disabled>SVG</button>
@@ -134,6 +137,7 @@
             <button id="copy-link" type="button" disabled>Link kopieren</button>
             <button id="comparison-fullscreen" class="secondary-action" type="button" aria-pressed="false">Vollbild</button>
           </div>
+          <div id="compare-family-menu" class="metric-family-menu" role="dialog" aria-labelledby="compare-family-label" hidden></div>
         </div>
         <div id="comparison-presets" class="comparison-presets" role="group" aria-label="Schnellauswahl für den Vergleichszeitraum" data-has-active="false">
           <button type="button" data-range-preset="ytd" aria-pressed="false">YTD</button>
@@ -143,7 +147,7 @@
           <button type="button" data-range-preset="10y" aria-pressed="false">10 Jahre</button>
           <button type="button" data-range-preset="max" aria-pressed="false">Max</button>
         </div>
-        <p id="comparison-status" class="hint" role="status"></p>
+        <p id="comparison-status" class="hint" role="status" hidden></p>
         <div id="comparison-layout" class="comparison-layout">
           <div class="chart-panel">
             <svg id="timeseries-chart" viewBox="0 0 1600 500" role="img" aria-label="Zeitreihenplot"></svg>
@@ -168,7 +172,7 @@
         <header class="table-card-header">
           <div class="table-card-title">
             <span class="table-kicker">Ländervergleich</span>
-            <h2 id="summary-title">Europas Stromsysteme</h2>
+            <h2 id="summary-title">Stromsysteme</h2>
             <p id="summary-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
           </div>
           <div class="table-card-tools">
@@ -182,6 +186,7 @@
         </header>
         <div id="summary-table-region" class="table-wrap">
           <table id="summary-table">
+            <colgroup><col class="table-rank-col"><col class="table-country-col"><col span="9"></colgroup>
             <thead><tr id="summary-head"></tr></thead>
             <tbody id="summary-body"></tbody>
           </table>
@@ -211,6 +216,7 @@
         </div>
         <div id="ev-table-region" class="table-wrap">
           <table id="ev-table">
+            <colgroup><col class="table-rank-col"><col class="table-country-col"><col span="3"></colgroup>
             <thead><tr id="ev-head"></tr></thead>
             <tbody id="ev-body"></tbody>
           </table>
@@ -240,6 +246,7 @@
         </div>
         <div id="storage-table-region" class="table-wrap storage-wrap">
           <table id="storage-table">
+            <colgroup><col class="table-rank-col"><col class="table-country-col"><col span="6"></colgroup>
             <thead><tr id="storage-head"></tr></thead>
             <tbody id="storage-body"></tbody>
           </table>
@@ -344,7 +351,7 @@
       <div id="coverage"></div>
     </details>
   </main>
-  <script src="/wallpapers.js?v=europa-overload-v1"></script>
-  <script src="/app.js?v=ui-interactions-v7"></script>
+  <script src="/wallpapers.js?v=europa-overload-v2"></script>
+  <script src="/app.js?v=ui-interactions-v12"></script>
 </body>
 </html>

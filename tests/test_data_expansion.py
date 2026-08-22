@@ -79,6 +79,9 @@ class DataExpansionTests(unittest.TestCase):
         self.insert("DE", 2024, "population", 10_000_000, "people", source="eurostat")
         self.insert("DE", 2024, "capacity_wind_gw", 10, "GW", source="eurostat")
         self.insert("DE", 2024, "bev_stock", 100_000, "vehicles", source="eurostat")
+        self.insert("DE", 2024, "household_price_energy_eur_mwh", 120, "EUR/MWh", source="eurostat")
+        self.insert("DE", 2024, "household_price_network_eur_mwh", 80, "EUR/MWh", source="eurostat")
+        self.insert("DE", 2024, "household_price_taxes_eur_mwh", 90, "EUR/MWh", source="eurostat")
         summary = aggregate_country(self.connection, "DE", 2024)
         self.assertEqual(summary["renewable_per_capita_mwh"], 5)
         self.assertEqual(summary["low_carbon_share_pct"], 70)
@@ -87,6 +90,42 @@ class DataExpansionTests(unittest.TestCase):
         self.assertAlmostEqual(summary["decarbonization_rate_pct"], (350 - 300) / 350 * 100)
         self.assertEqual(summary["ev_battery_nominal_capacity_est_gwh"], 6)
         self.assertAlmostEqual(summary["capacity_factor_wind_pct"], 20 * 1000 / (10 * 8784) * 100)
+        self.assertEqual(summary["household_electricity_price_eur_mwh"], 29)
+        self.assertEqual(summary["household_price_energy_eur_mwh"], 12)
+        self.assertEqual(summary["household_price_network_eur_mwh"], 8)
+        self.assertEqual(summary["household_price_taxes_eur_mwh"], 9)
+
+    def test_generation_sources_expose_yearly_per_capita_values(self):
+        values = {
+            "generation_total": 100,
+            "generation_renewables": 35,
+            "generation_wind": 10,
+            "generation_solar": 5,
+            "generation_hydro": 15,
+            "generation_biomass": 4,
+            "generation_other_renewables": 1,
+            "generation_coal": 20,
+            "generation_gas": 10,
+            "generation_other_fossil": 5,
+            "generation_nuclear": 30,
+        }
+        for metric, value in values.items():
+            self.insert("DE", 2024, metric, value, "TWh")
+        self.insert("DE", 2024, "population", 10_000_000, "people", source="eurostat")
+
+        summary = aggregate_country(self.connection, "DE", 2024)
+
+        self.assertEqual(summary["renewable_per_capita_mwh"], 3.5)
+        self.assertEqual(summary["wind_per_capita_mwh"], 1)
+        self.assertEqual(summary["solar_per_capita_mwh"], 0.5)
+        self.assertEqual(summary["hydro_per_capita_mwh"], 1.5)
+        self.assertEqual(summary["bioenergy_per_capita_mwh"], 0.4)
+        self.assertEqual(summary["other_renewables_per_capita_mwh"], 0.1)
+        self.assertEqual(summary["fossil_per_capita_mwh"], 3.5)
+        self.assertEqual(summary["coal_per_capita_mwh"], 2)
+        self.assertEqual(summary["gas_per_capita_mwh"], 1)
+        self.assertEqual(summary["other_fossil_per_capita_mwh"], 0.5)
+        self.assertEqual(summary["nuclear_per_capita_mwh"], 3)
 
     def test_capacity_map_uses_latest_available_reporting_year_without_backfill(self):
         self.insert("DE", 2024, "capacity_total_gw", 266.344, "GW", source="eurostat")

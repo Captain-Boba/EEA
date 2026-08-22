@@ -91,6 +91,16 @@ process.stdout.write(JSON.stringify({
         metrics = {metric["id"]: metric for metric in metric_catalog()}
         yearly_metrics = {
             "renewable_per_capita_mwh",
+            "wind_per_capita_mwh",
+            "solar_per_capita_mwh",
+            "hydro_per_capita_mwh",
+            "bioenergy_per_capita_mwh",
+            "other_renewables_per_capita_mwh",
+            "fossil_per_capita_mwh",
+            "coal_per_capita_mwh",
+            "gas_per_capita_mwh",
+            "other_fossil_per_capita_mwh",
+            "nuclear_per_capita_mwh",
             "decarbonization_rate_pct",
             "eea_public_electricity_heat_emissions_mtco2eq",
             "capacity_total_gw",
@@ -114,6 +124,24 @@ process.stdout.write(JSON.stringify({
             self.assertTrue(metric["map"])
             self.assertFalse(metric["compare"])
             self.assertTrue(metric["temporal_availability"]["snapshot"])
+
+    def test_household_price_defaults_to_total_and_uses_cents_per_kwh(self):
+        family = [
+            metric
+            for metric in metric_catalog()
+            if metric["family"] == "Haushaltsstrompreis"
+        ]
+        self.assertEqual(family[0]["id"], "household_electricity_price_eur_mwh")
+        self.assertEqual(family[0]["representation"], "Gesamtpreis (2.500–4.999 kWh/Jahr)")
+        self.assertEqual({metric["unit"] for metric in family}, {"ct/kWh"})
+        self.assertEqual(
+            [metric["representation"] for metric in family[1:]],
+            [
+                "Energie und Vertrieb (Preisbestandteil)",
+                "Netzentgelte (Preisbestandteil)",
+                "Steuern, Abgaben und Umlagen (Preisbestandteil)",
+            ],
+        )
 
     def test_estimate_eea_hydro_and_derivation_definitions_are_visible(self):
         html = INDEX_PATH.read_text(encoding="utf-8")

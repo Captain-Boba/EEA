@@ -115,9 +115,11 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('id="europe-overload"', html)
         self.assertIn('aria-pressed="false"', html)
         self.assertIn("const TITLE_BY_SECTION", app)
-        for title in ("EEA · Karte", "EEA · Vergleich", "EEA · Ranking", "EEA · E-Mobilität", "EEA · Speicher", "EEA · Quellen"):
+        for title in ("EEA · Karte", "EEA · Plottool", "EEA · Stromsysteme", "EEA · E-Mobilität", "EEA · Speicher", "EEA · Quellen"):
             self.assertIn(title, app)
         self.assertIn("new IntersectionObserver", app)
+        self.assertIn('window.addEventListener("scroll", scheduleDynamicDocumentTitle, {passive: true});', app)
+        self.assertIn("requestAnimationFrame", app)
         self.assertIn('setDocumentTitle("map")', app)
         self.assertIn('setDocumentTitle("comparison")', app)
         self.assertIn("await loadTimeseries({scroll: false, updateUrl: false});\n  setDocumentTitle(\"comparison\");", app)
@@ -148,7 +150,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('class="sr-only"', app)
         self.assertIn('aria-label="Zeitraum"', html)
 
-    def test_map_fullscreen_exports_and_info_panels_are_wired(self):
+    def test_map_fullscreen_exports_are_wired_without_a_map_help_popover(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
@@ -157,17 +159,42 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertLess(html.index('id="map-stage"'), html.index('id="map-family"'))
         self.assertLess(html.index('id="map-family"'), html.index('class="map-layout"'))
         self.assertIn('id="map-values" type="checkbox" checked', html)
+        self.assertIn('<header class="tool-card-header">', html)
+        self.assertLess(html.index('class="tool-card-header"'), html.index('id="map-stage"'))
+        self.assertLess(html.index('id="comparison-title"'), html.index('id="comparison-stage"'))
+        self.assertIn('Länder vergleichen (<span id="selected-count">0</span>)', html)
+        self.assertIn('<h2 id="comparison-title">Plottool</h2>', html)
+        self.assertIn('border-radius: .9rem;', style)
         self.assertIn("#map-fullscreen", style)
         self.assertIn("#comparison-fullscreen", style)
         self.assertIn("--signal: #ffffff", style)
         self.assertIn("requestFullscreen", app)
         self.assertIn("serializedMapSvg", app)
         self.assertIn("buildMapPngBlob", app)
+
         self.assertIn('"Legende"', app)
         self.assertNotIn('querySelector("#map-tooltip")', app)
-        self.assertIn('data-info-target="map-info"', html)
-        self.assertIn('aria-expanded="false"', html)
+        self.assertNotIn('data-info-target="map-info"', html)
+        self.assertNotIn('id="map-info"', html)
+        self.assertNotIn('data-info-target="comparison-info"', html)
+        self.assertNotIn('id="comparison-info"', html)
+        self.assertIn(".comparison-presets button.active:hover:not(:disabled)", style)
         self.assertIn("closeInfoPanel", app)
+
+    def test_clicking_map_water_clears_the_country_focus(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn("function clearMapCountryFocus()", app)
+        self.assertIn('mapSvg.addEventListener("click", event => {', app)
+        self.assertIn('event.target.closest?.(".map-country")', app)
+        self.assertIn('$("map-detail").textContent = "Ein Land fokussieren, um Details anzuzeigen.";', app)
+
+    def test_compact_map_labels_keep_two_decimal_places_for_millions(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn("compact && Math.abs(value) >= 1_000_000", app)
+        self.assertIn("value / 1_000_000", app)
+        self.assertIn("minimumFractionDigits: 2", app)
+        self.assertIn("maximumFractionDigits: 2", app)
+        self.assertIn("Mio.", app)
 
     def test_motion_contract_preserves_reduced_motion_and_v2_structure(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
@@ -234,6 +261,13 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("function mapPaletteName(metric)", app)
         self.assertIn("MAP_PALETTE_BY_FAMILY[metric?.family]", app)
         self.assertIn("paletteColor(mapPaletteName(metric), position)", app)
+        self.assertIn('generation: ["#cadbf0"', app)
+        self.assertIn('renewables: ["#c6e0c8"', app)
+        self.assertIn('trade: ["#2a6fbb", "#80b1d3", "#d8e3ed"', app)
+        self.assertIn('class="table-header-copy"', app)
+        self.assertIn("function fitTableHeaderText(headId)", app)
+        self.assertIn("fitTableHeaderText(\"summary-head\")", app)
+        self.assertIn("transform: scaleX(var(--header-text-scale))", STYLE_PATH.read_text(encoding="utf-8"))
 
     def test_hydro_variants_annual_limits_storage_snapshot_and_net_import_scale(self):
         metrics = {metric["id"]: metric for metric in metric_catalog()}
@@ -273,6 +307,37 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn('return `${metric.group}::${metric.family}`;', app)
         self.assertIn("renderComparisonMetricOptions", app)
+
+    def test_each_generation_source_family_has_per_capita_as_third_variant(self):
+        expected = {
+            ("Erneuerbare", "Erneuerbare gesamt"): "renewable",
+            ("Erneuerbare", "Wind"): "wind",
+            ("Erneuerbare", "Solar"): "solar",
+            ("Erneuerbare", "Wasserkraft"): "hydro",
+            ("Erneuerbare", "Bioenergie"): "bioenergy",
+            ("Erneuerbare", "Sonstige Erneuerbare"): "other_renewables",
+            ("Fossile", "Fossile gesamt"): "fossil",
+            ("Fossile", "Kohle"): "coal",
+            ("Fossile", "Gas"): "gas",
+            ("Fossile", "Sonstige Fossile"): "other_fossil",
+            ("Kernenergie", "Kernenergie"): "nuclear",
+        }
+        catalog = metric_catalog()
+        for (group, family), prefix in expected.items():
+            variants = [
+                metric for metric in catalog
+                if metric["group"] == group and metric["family"] == family
+            ]
+            self.assertEqual(
+                [metric["id"] for metric in variants],
+                [f"{prefix}_twh", f"{prefix}_share_pct", f"{prefix}_per_capita_mwh"],
+            )
+            self.assertEqual(
+                [metric["representation"] for metric in variants],
+                ["Erzeugung in TWh", "Anteil an der Gesamterzeugung", "Erzeugung in MWh je Einwohner"],
+            )
+            self.assertFalse(variants[2]["temporal_availability"]["monthly"])
+            self.assertTrue(variants[2]["temporal_availability"]["yearly"])
 
     def test_page_order_and_runtime_catalog_driven_selection(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
@@ -314,7 +379,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('id="ranking-list"', html)
         self.assertIn('id="comparison-fullscreen"', html)
         self.assertIn('id="comparison-presets"', html)
-        self.assertIn('<section id="comparison">', html)
+        self.assertIn('<section id="comparison" aria-labelledby="comparison-title">', html)
         self.assertNotIn('id="compare-load"', html)
         for preset in ("ytd", "1y", "3y", "5y", "10y", "max"):
             self.assertIn(f'data-range-preset="{preset}"', html)

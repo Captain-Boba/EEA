@@ -6,7 +6,40 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 ## Aktuelle Arbeitsprioritäten
 
-### 1. Haupttabelle fachlich erweitern
+### 1. Ländersteckbrief als Beta-Pflichtfunktion entwickeln
+
+- Aus Tabelle und Karte eine zusammenhängende Detailansicht für genau ein Land öffnen.
+- Als eigene vollbreite, direkt verlinkbare Ansicht innerhalb der bestehenden Anwendung umsetzen; kein schmales Seitenpanel und kein kleines Modal.
+- Kennzahlen nach Stromsystem, Energiemix, Handel, Preisen, Klima, Sozioökonomie, Elektromobilität und Speicher gruppieren.
+- Monats-, Jahres- und Snapshotwerte sichtbar trennen. Zeitraum, tatsächlichen Datenstand, Einheit, Datenstatus, Coverage und Quelle direkt am jeweiligen Wert zeigen.
+- Fehlende Daten niemals durch Nullwerte oder Schätzungen ersetzen.
+- Einstieg mindestens aus Haupttabelle und Karte; Browsernavigation, globale Zeitraumwahl und bestehende Vergleichsauswahl bewahren.
+
+**Abnahme:** Ein Land besitzt eine vollständige, klar gegliederte Detailansicht, die aus der Atlasoberfläche geöffnet und eindeutig wieder verlassen werden kann.
+
+Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
+
+### 2. Europa Overload responsiv abschließen
+
+- Die Postkartenbreite nicht länger auf beiden Referenzmonitoren nahezu identisch deckeln, sondern an die tatsächlich verfügbare Seitenfläche koppeln.
+- 1920×1080 und 2560×1440 jeweils bei 100 % Browserzoom abnehmen: keine problematische Überdeckung des Atlas, keine horizontale Scrollleiste, vollständige Captions und sichtbar bessere Nutzung der WQHD-Fläche.
+- Das globale `body { zoom: 1.1; }` prüfen und nicht durch weitere Zoom- oder Transform-Tricks kompensieren.
+- Die bereits vorhandene Vollbildansicht mit Stern-Schließen, Tastaturbedienung und lokalen Reaktionen bewahren.
+
+**Abnahme:** Die Postkarten sind auf Full HD kompakt und auf WQHD sichtbar größer; beide Ansichten funktionieren zusammen mit der Vollbild-Lightbox ohne Überdeckung oder Scrollsprünge.
+
+### 3. Öffentliche Beta vorbereiten
+
+- Den aktuellen SQLite- und Standardbibliothek-Ansatz beibehalten; keine neue Datenbanktechnik und keine unnötige Infrastruktur einführen.
+- Host und Port konfigurierbar machen, einen hostinggeeigneten Start und den vorhandenen Healthcheck absichern sowie feste Windows-Pfade ausschließen.
+- Den Datenbankpfad für einen persistenten, read-only Hostingbetrieb konfigurierbar machen. Datenupdates bleiben zunächst der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → neuer Deploy`.
+- Keine Importfunktion über die Weboberfläche und keinen automatischen Scheduler als Startvoraussetzung einführen.
+- Zuerst eine Hoster-Testadresse vollständig prüfen. DNS für `ee-atlas.eu` erst nach erfolgreicher Abnahme verbinden.
+- Deployment, Umgebungsvariablen, Datenbankaustausch und spätere Domainverbindung in einer verständlichen Schrittfolge dokumentieren.
+
+**Abnahme:** Lokaler Windowsbetrieb und hostingähnlicher Betrieb starten reproduzierbar; Atlas, API, Direktlinks, Vollbildansichten und Exporte sind an der Testadresse geprüft. Erst danach wird die Domain verbunden und die Beta veröffentlicht.
+
+### 4. Haupttabelle fachlich erweitern
 
 - Die verfügbare Desktopbreite mit weiteren, bewusst ausgewählten Kennzahlen nutzen.
 - Vor der Umsetzung eine feste Spaltenauswahl beschließen. Die Haupttabelle bleibt ein kuratierter Überblick; Karte und Zeitreihenvergleich bieten weiterhin den vollständigen jeweils geeigneten Kennzahlenkatalog.
@@ -16,25 +49,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 **Abnahme:** Die zusätzliche Spaltenauswahl ist fachlich dokumentiert und nutzt große Bildschirme besser, ohne die Tabelle zu einer unlesbaren Vollansicht aller Kennzahlen zu machen.
 
-### 2. Kartenfokus vollständig bedienbar machen
-
-- Der dauerhafte Fokus eines angeklickten Landes bleibt von Hover, Tastaturfokus und Vergleichsauswahl getrennt.
-- Eine eindeutige Aktion zum Lösen des Fokus ergänzen; alternativ löst ein erneuter Klick auf dasselbe Land den Fokus.
-- Fokus setzen und lösen sowie die unveränderte Vergleichsauswahl automatisiert absichern.
-
-**Abnahme:** Ein Land lässt sich per Maus und Tastatur festhalten und wieder lösen. Temporäre Hinweise überschreiben die Infokachel nicht und Kartenaktionen verändern niemals die Länderauswahl des Zeitreihenvergleichs.
-
-### 3. Ländersteckbrief entwickeln
-
-- Aus Tabelle und Karte eine zusammenhängende Detailansicht für genau ein Land öffnen.
-- Vorher festlegen, ob eine eigene Ansicht, ein großes Modal oder ein Seitenpanel die verständlichste Navigation bietet.
-- Kennzahlen nach Stromsystem, Energiemix, Handel, Preisen, Klima, Sozioökonomie, Elektromobilität und Speicher gruppieren.
-- Zeitraum, Einheit, Datenstatus, Coverage und Quelle direkt am jeweiligen Wert zeigen.
-- Fehlende Daten niemals durch Nullwerte oder Schätzungen ersetzen.
-
-**Abnahme:** Ein Land besitzt eine vollständige, klar gegliederte Detailansicht, die aus der Atlasoberfläche geöffnet und eindeutig wieder verlassen werden kann.
-
-### 4. Quartettvergleich auf Basis der Ländersteckbriefe ergänzen
+### 5. Quartettvergleich auf Basis der Ländersteckbriefe ergänzen
 
 - Mehrere Länder als kompakte Steckbriefkarten nebeneinander vergleichen.
 - Für jede Kennzahl dokumentieren, ob ein höherer, ein niedrigerer oder kein Wert als vorteilhaft markiert werden darf.
@@ -43,7 +58,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 **Abnahme:** Ausgewählte Länder lassen sich übersichtlich als Quartett vergleichen; jede Hervorhebung folgt einer dokumentierten Kennzahlenregel.
 
-### 5. Datenprüfung und Berichte modernisieren
+### 6. Datenprüfung und Berichte modernisieren
 
 - Die als historisch gekennzeichnete `data/reports/VALIDATION.generated.md` durch einen reproduzierbaren Validierungsbericht des aktuellen Ember-Datenkerns ablösen.
 - Den Vertrag des CLI-Befehls `report` bereinigen: Hilfe, tatsächlich erzeugte Dateien und Dokumentation müssen übereinstimmen.
@@ -53,7 +68,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 **Abnahme:** Kein als aktuell bezeichneter Bericht weist Energy Charts als Anwendungsquelle aus. Dokumentierte Ember-Stichproben sind nachvollziehbar, und Bericht, API sowie Oberfläche beschreiben denselben Datenbestand. Der historische Bericht kann anschließend entfallen.
 
-### 6. Speicherpflege und internationale Coverage stabilisieren
+### 7. Speicherpflege und internationale Coverage stabilisieren
 
 - Den bewussten JRC-CLI-Abruf höchstens einmal pro Kalendermonat betreiben und die reale Abdeckung beobachten.
 - Battery-Charts ausschließlich über den manuellen, atomaren Import der beiden JSON-Dateien aktualisieren. Der Atlas führt keinen automatischen Battery-Charts-Netzwerkzugriff aus.
@@ -64,7 +79,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 **Abnahme:** Mehrere reale Monatsaktualisierungen laufen mit maximal einem JRC-Request, ohne Battery-Charts-Netzwerkzugriff, ohne Duplikate und ohne Verlust des vorherigen Datenstands bei Fehlern.
 
-### 7. Zusätzliche Leistungs- und Wasserkraftkennzahlen evaluieren
+### 8. Zusätzliche Leistungs- und Wasserkraftkennzahlen evaluieren
 
 - Prüfen, ob für Photovoltaik eine europaweit vergleichbare DC-Nennleistung in GWp als eigene Kennzahl verfügbar ist. Die vorhandene Eurostat-Kennzahl bleibt korrekt als elektrische Nettoleistung in GW bezeichnet.
 - Eine belastbare Quelle für den Energieinhalt regulierter Wasserkraftreservoirs suchen und strikt von Pumpspeicher-Speicherenergie sowie dem unvollständigen JRC-Anlagenportfolio trennen.
@@ -78,7 +93,9 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 - 31 europäische Atlasländer; Albanien und Russland gehören nicht zum Katalog.
 - Monats- und Jahreswerte sind ab 2015 vorgesehen. Ember ist die alleinige Anwendungsquelle für Erzeugung, Nachfrage, Energiemix, Nettoimporte, CO₂-Intensität und nationale Großhandelspreise.
+- Der zentrale Kennzahlenkatalog enthält 82 Definitionen. Für Gesamtstromerzeugung, Erneuerbare, einzelne erneuerbare und fossile Technologien sowie Kernenergie stehen jährliche Pro-Kopf-Werte auf Basis der Bevölkerung desselben Kalenderjahrs bereit.
 - Eurostat ergänzt Bevölkerung, BIP, installierte elektrische Nettoleistung, Endkundenpreise, Bruttostromhandel und Elektromobilität.
+- Haushaltsstrompreise und ihre Bestandteile werden in der analytischen Ausgabe in ct/kWh dargestellt; Nicht-Haushaltswerte bleiben in EUR/MWh. Die importierten Eurostat-Rohwerte werden dadurch nicht umgeschrieben.
 - EEA-Inventaremissionen sowie das JRC-Wasserkraftinventar sind als eigenständige, klar beschriftete Datensätze integriert.
 - Batterien und Pumpspeicher sind in Speicherenergie, Entladeleistung und äquivalente Entladedauer getrennt. Deutschland-Batterien stammen aus Battery-Charts; andere Batterien und sämtliche Pumpspeicher aus JRC.
 - Netzwerkimporte sind validiert, zurückhaltend und atomar. Fehlerhafte Aktualisierungen verändern vorhandene Daten nicht.
@@ -89,20 +106,23 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 - Für jährliche Kennzahlen der installierten Leistung verwendet die Karte bei Bedarf das jüngste verfügbare frühere Datenjahr und weist angefordertes sowie tatsächliches Jahr getrennt aus. Es findet kein Datenbank-Backfill statt.
 - Der geografische Europa-Ausschnitt ist beibehalten, die Karte ist groß und nativ vollbildfähig.
 - Werte sind standardmäßig sichtbar. SVG- und PNG-Export enthalten den aktuellen Kartenstand mit Titel, Zeitraum, Einheit, Farbskala und automatisch erzeugter Legende.
-- Kartenklicks setzen einen dauerhaften Länderfokus und verändern die Vergleichsauswahl nicht.
+- Kartenklicks setzen einen dauerhaften Länderfokus und verändern die Vergleichsauswahl nicht. Ein Klick auf den Kartenhintergrund löst den Fokus wieder.
 - Die globale Leiste für Jahr, Zeitraum, Auswertung und Vergleich wandert beim Scrollen mit.
 - Das Browser-Tab zeigt `EEA` und die aktuelle Hauptansicht.
-- `Europa Overload` ist ein optionaler, speicherbarer Schalter für attribuierte Wikimedia-Commons-Postkarten. Ohne Aktivierung werden keine Postkartenbilder geladen.
+- `Europa Overload` ist ein optionaler, speicherbarer Schalter für 250 kuratierte und attribuierte Wikimedia-Commons-Postkarten aus den Atlasländern. Ohne Aktivierung werden keine Postkartenbilder geladen.
+- Die Postkarten lassen sich per Maus und Tastatur in einer Vollbild-Lightbox öffnen. Titel, Land, Urheber, Lizenz und Commons-Link bleiben sichtbar; Like und Dislike werden ausschließlich lokal und ohne öffentliche Zähler gespeichert.
 - Lokales Atlas-Logo, kontextbezogene Info-Popovers, konsistente Interaktionszustände, reduzierte Bewegung bei `prefers-reduced-motion` sowie dezente Auswahl-, Sortier-, Fokus- und Exportanimationen sind umgesetzt.
+- Karten- und Plottool-Auswahl verwenden gruppierte Atlas-Menüs. Kennzahlenvarianten folgen, soweit vorhanden, der Reihenfolge absolut, Anteil und pro Kopf.
 
 ### Tabellen
 
-- Haupt-, Speicher- und Elektromobilitätstabellen besitzen lokale Flaggen, sortierabhängige Ränge und einheitliche Formatierung.
+- Haupt-, Speicher- und Elektromobilitätstabellen besitzen lokale Flaggen, sortierabhängige Ränge, explizite Auf-/Ab-Sortierung und einheitliche Formatierung.
 - Tabellenköpfe bleiben beim vertikalen Scrollen unter der globalen Steuerleiste sichtbar; Kopf- und Datenspalten bleiben ausgerichtet.
 - Beim Ausklappen bleibt die aktuelle Kameraposition erhalten. Beim Einklappen wird zur jeweiligen Tabellenüberschrift zurückgescrollt.
 - Spaltenüberschriften und Inhalte sind zentriert; die frühere gebrochene sichtbare Überschrift `Auswahl` ist entfernt.
 - Numerische Werte verwenden je Kennzahl eine einheitliche Präzision mit nachgestellten Nullen.
-- Die Haupttabellen-Kennzahlen lassen sich sortieren und direkt auf die Karte übertragen.
+- Kennzahlenspalten lassen sich sortieren, markieren die aktive Sortierspalte und können aus Haupt-, Speicher- und Elektromobilitätstabelle direkt auf die Karte übertragen werden.
+- In der Haupttabelle dient der Rangkreis gleichzeitig als eindeutige Auswahlaktion für den Ländervergleich; eine separate sichtbare Auswahlspalte ist nicht erforderlich.
 - Die Speichertabelle zeigt Speicherenergie vor Entladeleistung und Entladedauer.
 
 ### Zeitreihenvergleich
@@ -112,12 +132,13 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 - Das Live-Ranking folgt dem berührten oder fixierten Zeitpunkt und ordnet die gewählten Länder neu. Hover-Aktualisierungen werden mit 120 Millisekunden führend und nachlaufend gedrosselt, ohne die freie Bewegung durch den Plot zu verhindern; Klick fixiert sofort.
 - Relative Veränderungen verwenden das Startjahr des gewählten Zeitraums. Bei Monatswerten wird stets derselbe Kalendermonat dieses Basisjahrs verglichen. Fehlende und echte Null-Basiswerte bleiben unberechnet.
 - YTD, ein Jahr, drei Jahre, fünf Jahre, zehn Jahre und Max stehen als Schnellbereiche bereit; ein eigener Zeitraum bleibt möglich.
+- Die Y-Achse kann zwischen vollständigem Bezugsrahmen und sichtbarem Datenbereich wechseln. Normale Prozentwerte behalten 100 % als Obergrenze, divergierende Kennzahlen können symmetrisch um null dargestellt werden; der Modus ist Bestandteil des Direktlinks.
 - Standard- und Vollbildansicht verwenden dieselbe Diagrammgeometrie. Auswahl, Zeitraum, Kennzahl und fixierter Zeitpunkt bleiben beim Wechsel erhalten.
 - Direktlinks sowie lokale CSV-, SVG- und PNG-Exporte sind umgesetzt.
 
 ### Qualitätssicherung
 
-- Der vollständige lokale Stand besteht am 22. August 2026 aus 110 erfolgreichen automatisierten Tests.
+- Der vollständige lokale Stand besteht am 22. August 2026 aus 124 erfolgreichen automatisierten Tests.
 - Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures und führt keine Live-Imports aus.
 - Karte, Flaggen, Logo und Diagramme sind lokale Assets. Nur der ausdrücklich aktivierte Europa-Overload-Modus lädt Wikimedia-Commons-Bilder.
 - Der ältere K2-Auftrag `docs/K2_DATA_EXPANSION_UI_INTEGRATION.md` bleibt als archivierte Übergabedokumentation erhalten.
