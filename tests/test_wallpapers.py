@@ -83,6 +83,12 @@ class WallpaperTest(unittest.TestCase):
             "Façade of Versailles (24277036086).jpg",
             "Njegošev mauzolej.JPG",
             "Malmö (S), Sekundarschule ProCivitas und Turning Torso -- 2017 -- 1655.jpg",
+            "Dublin - Trinity College Dublin - 20150315204112.jpg",
+            "HelsinkiStationEntranceAndClockTower.jpg",
+            "Croatia-01239 - The Peristil (9551533404).jpg",
+            "Opera Nacional, Riga, Letonia, 2012-08-07, DD 04.JPG",
+            "02022 0371 Wawel Castle.jpg",
+            "Clifton Suspension Bridge-9350.jpg",
         }
         manifest_files = set(re.findall(r'file: "([^"]+)"', self.manifest))
         self.assertTrue(rejected_files.isdisjoint(manifest_files))
@@ -151,7 +157,7 @@ class WallpaperTest(unittest.TestCase):
         self.assertRegex(self.css, r"\.wallpaper-panel\s*\{[^}]*position:\s*absolute;")
         self.assertIn(".wallpaper-panel:nth-child(odd)", self.css)
         self.assertIn(".wallpaper-panel:nth-child(even)", self.css)
-        self.assertIn("width: min(24rem, 24vw)", self.css)
+        self.assertIn("width: min(22.5rem, 22vw)", self.css)
         self.assertIn(".wallpaper-panel:nth-child(odd) { left: .75rem; }", self.css)
         self.assertIn(".wallpaper-panel:nth-child(even) { right: .75rem;", self.css)
         self.assertIn(".wallpaper-panel::after", self.css)
@@ -161,6 +167,12 @@ class WallpaperTest(unittest.TestCase):
         self.assertNotIn("wallpaper-credit", self.css)
         self.assertIn("background-size: cover", self.css)
         self.assertRegex(self.css, r"main\s*\{\s*position:\s*relative;\s*z-index:\s*1;")
+
+    def test_postcards_stay_in_the_available_desktop_gutter(self):
+        self.assertIn("@media (min-width: 1500px) and (max-width: 2199px)", self.css)
+        self.assertIn("width: calc(14rem - 1.5rem)", self.css)
+        self.assertIn("@media (max-width: 1499px)", self.css)
+        self.assertIn(".wallpaper-stream { display: none; }", self.css)
 
 
 if __name__ == "__main__":

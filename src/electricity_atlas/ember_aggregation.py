@@ -81,6 +81,12 @@ def _sum_present(values: dict[str, float], metrics: Iterable[str]) -> float | No
     return sum(present) if present else None
 
 
+def _ratio(numerator: float | None, denominator: float | None, scale: float = 1.0) -> float | None:
+    if numerator is None or denominator in (None, 0):
+        return None
+    return numerator / denominator * scale
+
+
 def _price_summary(
     connection: sqlite3.Connection,
     code: str,
@@ -371,6 +377,23 @@ def aggregate_ember_country(
     ]
     household_price = sum(household_components) if all(value is not None for value in household_components) else None
     nonhousehold_price = sum(nonhousehold_components) if all(value is not None for value in nonhousehold_components) else None
+    generation_gdp_intensity = _ratio(generation_twh, gdp_current_billion_eur)
+    consumption_gdp_intensity = _ratio(consumption_twh, gdp_current_billion_eur)
+    electricity_heat_emissions_gdp = _ratio(eea_emissions, gdp_current_billion_eur, 1000.0)
+    household_wholesale_price_gap = (
+        (household_price - price["price_avg_eur_mwh"]) * EUR_PER_MWH_TO_CENTS_PER_KWH
+        if household_price is not None and price["price_avg_eur_mwh"] is not None
+        else None
+    )
+    gross_imports_twh = supplemental.get("gross_imports_twh")
+    gross_exports_twh = supplemental.get("gross_exports_twh")
+    electricity_trade_throughput = (
+        (gross_imports_twh + gross_exports_twh) / consumption_twh * 100.0
+        if gross_imports_twh is not None
+        and gross_exports_twh is not None
+        and consumption_twh not in (None, 0)
+        else None
+    )
     ev_battery_capacity = (
         supplemental["bev_stock"] * EV_NOMINAL_BATTERY_KWH_PER_BEV / 1_000_000.0
         if supplemental.get("bev_stock") is not None
@@ -467,6 +490,11 @@ def aggregate_ember_country(
         "population": population,
         "gdp_current_billion_eur": gdp_current_billion_eur,
         "gdp_per_capita_pps": gdp_per_capita_pps,
+        "generation_gdp_intensity_kwh_eur": generation_gdp_intensity,
+        "consumption_gdp_intensity_kwh_eur": consumption_gdp_intensity,
+        "electricity_heat_emissions_gdp_t_million_eur": electricity_heat_emissions_gdp,
+        "household_wholesale_price_gap_ct_kwh": household_wholesale_price_gap,
+        "electricity_trade_throughput_pct": electricity_trade_throughput,
         **public_supplemental,
         "household_electricity_price_eur_mwh": (
             household_price * EUR_PER_MWH_TO_CENTS_PER_KWH

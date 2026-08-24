@@ -3,9 +3,11 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from calendar import monthrange
 from pathlib import Path
 
 from electricity_atlas.aggregation import aggregate_country, map_metric_dataset
+from electricity_atlas.config import EMBER_PRICE_ENDPOINT
 from electricity_atlas.db import initialize
 from electricity_atlas.eea_ghg_importer import EeaGhgImporter
 from electricity_atlas.eurostat_importer import EurostatDownload
@@ -64,6 +66,29 @@ class DataExpansionTests(unittest.TestCase):
                VALUES (?,?,?,?,?,'fixture','',?,?,?,'observed')""",
             (code, start, end, granularity, source, metric, value, unit),
         )
+
+    def insert_price_year(self, code, year, value):
+        for month in range(1, 13):
+            last_day = monthrange(year, month)[1]
+            self.connection.execute(
+                """INSERT INTO period_observation
+                   (country_code,period_start,period_end,granularity,source,source_endpoint,
+                    source_series,metric,value,unit,quality_status)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    code,
+                    f"{year:04d}-{month:02d}-01",
+                    f"{year:04d}-{month:02d}-{last_day:02d}",
+                    "monthly",
+                    "ember",
+                    EMBER_PRICE_ENDPOINT,
+                    "",
+                    "day_ahead_price",
+                    value,
+                    "EUR/MWh",
+                    "observed",
+                ),
+            )
 
     def test_five_derived_metrics_and_ev_capacity_are_exposed(self):
         for metric, value in (
@@ -127,6 +152,49 @@ class DataExpansionTests(unittest.TestCase):
         self.assertEqual(summary["other_fossil_per_capita_mwh"], 0.5)
         self.assertEqual(summary["nuclear_per_capita_mwh"], 3)
 
+    def test_cross_domain_metrics_are_derived_without_filling_missing_inputs(self):
+        for metric, value in (
+            ("generation_total", 100),
+            ("demand_total", 80),
+        ):
+            self.insert("DE", 2024, metric, value, "TWh")
+        for metric, value, unit in (
+            ("gdp_current_billion_eur", 200, "billion EUR"),
+            ("household_price_energy_eur_mwh", 100, "EUR/MWh"),
+            ("household_price_network_eur_mwh", 50, "EUR/MWh"),
+            ("household_price_taxes_eur_mwh", 50, "EUR/MWh"),
+            ("gross_imports_twh", 30, "TWh"),
+            ("gross_exports_twh", 20, "TWh"),
+        ):
+            self.insert("DE", 2024, metric, value, unit, source="eurostat")
+        self.insert(
+            "DE",
+            2024,
+            "eea_public_electricity_heat_emissions_mtco2eq",
+            20,
+            "Mt CO2eq",
+            source="eea",
+        )
+        self.insert_price_year("DE", 2024, 60)
+
+        summary = aggregate_country(self.connection, "DE", 2024)
+
+        self.assertEqual(summary["generation_gdp_intensity_kwh_eur"], 0.5)
+        self.assertEqual(summary["consumption_gdp_intensity_kwh_eur"], 0.4)
+        self.assertEqual(summary["electricity_heat_emissions_gdp_t_million_eur"], 100)
+        self.assertEqual(summary["household_wholesale_price_gap_ct_kwh"], 14)
+        self.assertEqual(summary["electricity_trade_throughput_pct"], 62.5)
+
+        missing = aggregate_country(self.connection, "FR", 2024)
+        for metric_id in (
+            "generation_gdp_intensity_kwh_eur",
+            "consumption_gdp_intensity_kwh_eur",
+            "electricity_heat_emissions_gdp_t_million_eur",
+            "household_wholesale_price_gap_ct_kwh",
+            "electricity_trade_throughput_pct",
+        ):
+            self.assertIsNone(missing[metric_id])
+
     def test_capacity_map_uses_latest_available_reporting_year_without_backfill(self):
         self.insert("DE", 2024, "capacity_total_gw", 266.344, "GW", source="eurostat")
         self.insert("DE", 2024, "capacity_solar_gw", 91.204, "GW", source="eurostat")
@@ -155,6 +223,28 @@ class DataExpansionTests(unittest.TestCase):
         self.assertEqual(result["data_year"], 2023)
         rows = {row["country_code"]: row for row in result["rows"]}
         self.assertEqual(rows["DE"]["capacity_total_gw"], 200)
+
+    def test_lagged_emissions_gdp_map_uses_latest_available_reporting_year(self):
+        self.insert(
+            "DE",
+            2024,
+            "eea_public_electricity_heat_emissions_mtco2eq",
+            20,
+            "Mt CO2eq",
+            source="eea",
+        )
+        self.insert("DE", 2024, "gdp_current_billion_eur", 200, "billion EUR", source="eurostat")
+
+        result = map_metric_dataset(
+            self.connection,
+            "electricity_heat_emissions_gdp_t_million_eur",
+            2025,
+        )
+
+        self.assertEqual(result["requested_year"], 2025)
+        self.assertEqual(result["data_year"], 2024)
+        rows = {row["country_code"]: row for row in result["rows"]}
+        self.assertEqual(rows["DE"]["electricity_heat_emissions_gdp_t_million_eur"], 100)
 
     def test_map_data_without_values_has_no_artificial_scale_rows(self):
         result = map_metric_dataset(self.connection, "capacity_total_gw", 2025)

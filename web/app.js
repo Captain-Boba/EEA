@@ -264,11 +264,10 @@ function bindProfileTriggers(scope = document) {
 }
 
 function updateTableDisclosure(kind, expanded, total) {
-  const visible = expanded ? total : Math.min(TABLE_PREVIEW_LIMIT, total);
   const button = $(`${kind}-toggle`);
   const state = $(`${kind}-table-state`);
   const count = $(`${kind}-count`);
-  if (!button || !state || !count) return;
+  if (!button) return;
   const card = button.closest?.(".table-card");
   card?.classList.toggle("table-card-expanded", expanded);
   button.hidden = total <= TABLE_PREVIEW_LIMIT;
@@ -276,8 +275,8 @@ function updateTableDisclosure(kind, expanded, total) {
   button.querySelector(".table-toggle-label").textContent = expanded
     ? "Auf Top 10 reduzieren"
     : `Alle ${total} Länder anzeigen`;
-  state.textContent = expanded ? "Vollständige Rangliste" : "Top 10 nach aktueller Sortierung";
-  count.textContent = `${visible} von ${total} Ländern`;
+  if (state) state.textContent = expanded ? "Vollständige Rangliste" : "Top 10 nach aktueller Sortierung";
+  if (count) count.textContent = `${expanded ? total : Math.min(TABLE_PREVIEW_LIMIT, total)} von ${total} Ländern`;
 }
 
 function syncStickyHeaderOffset() {
@@ -339,21 +338,6 @@ function animateTableDisclosure(kind, renderTable, collapsing) {
 function scrollTableCardHeading(kind) {
   const heading = $(`${kind}-toggle`)?.closest?.(".table-card")?.querySelector?.(".table-card-header");
   heading?.scrollIntoView?.({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
-}
-
-function statusBadge(row) {
-  const labels = {complete: "vollständig", partial: "teilweise", missing: "fehlend"};
-  const periodLabels = {provisional_current_month: "vorläufig", ytd: "YTD"};
-  const details = [
-    `Datenstatus: ${labels[row.data_status] || row.data_status}`,
-    `Zeitraum: ${row.period}`,
-    `Preisabdeckung: ${row.price_coverage || "fehlend"}`,
-    ...(row.quality_issues || []).map(issue => issue.details),
-  ].join("\n");
-  const period = periodLabels[row.period_status]
-    ? `<span class="period-flag ${row.period_status === "ytd" ? "ytd" : "provisional"}">${periodLabels[row.period_status]}</span>`
-    : "";
-  return `<span class="status-badge ${row.data_status}" title="${escapeAttribute(details)}" aria-label="${escapeAttribute(details)}">${labels[row.data_status] || row.data_status}</span>${period}`;
 }
 
 function sortRows(rows, key, direction) {
@@ -433,7 +417,7 @@ function render() {
     const isSelected = selected.has(row.country_code);
     return `<tr data-country-row="${row.country_code}" style="--row-index:${index}">
     <td class="selection-cell${isSelected ? " is-selected" : ""}"><button type="button" class="table-rank selection-toggle${isSelected ? " is-selected" : ""}" aria-label="${escapeAttribute(row.country_name)} ${isSelected ? "abwählen" : "auswählen"}" aria-pressed="${isSelected}" data-country="${row.country_code}">${index + 1}</button></td>
-    <th scope="row">${tableCountry(row)}${statusBadge(row)}</th>
+    <th scope="row">${tableCountry(row)}</th>
     ${TABLE_METRIC_IDS.map(id => `<td data-metric="${id}" class="${sortKey === id ? "sort-column-active" : ""}">${formatTableValue(row[id], id)}</td>`).join("")}
   </tr>`;
   }).join("");
@@ -492,8 +476,8 @@ function renderElectromobility() {
     region.hidden = true;
     toggle.hidden = true;
     toggle.setAttribute("aria-expanded", "false");
-    state.textContent = "Nur in der Jahresansicht verfügbar";
-    count.textContent = "Jahresansicht erforderlich";
+    if (state) state.textContent = "Nur in der Jahresansicht verfügbar";
+    if (count) count.textContent = "Jahresansicht erforderlich";
     $("ev-note").textContent = "Elektromobilitätswerte sind jährliche Eurostat-Daten. In der Monatsansicht werden keine Jahreswerte eingeblendet.";
     return;
   }
@@ -654,6 +638,7 @@ function orderedMetricVariants(metrics) {
 function metricVariantRank(metric) {
   const storageRank = STORAGE_VARIANT_ORDER.get(metric.id);
   if (storageRank !== undefined) return storageRank;
+  if (metric.id.includes("_gdp_") || metric.id === "household_wholesale_price_gap_ct_kwh") return 30;
   if (metric.id.includes("_per_capita") || metric.representation.includes("je Einwohner")) return 20;
   if (metric.unit === "%" || metric.representation.startsWith("Anteil")) return 10;
   return 0;
@@ -664,7 +649,7 @@ function familyKey(metric) {
 }
 
 function usesLatestAvailableMapYear(metric) {
-  return metric?.group === "Installierte Leistung" && !metric.temporal_availability.snapshot;
+  return Boolean(metric?.map_config?.latest_available_year) && !metric.temporal_availability.snapshot;
 }
 
 function metricAvailable(metric) {
@@ -1420,17 +1405,23 @@ function isPercentagePlotMetric(metric) {
   return metric?.unit === "%" && metric.map_config?.scale !== "diverging";
 }
 
+function isBoundedPercentagePlotMetric(metric) {
+  // Shares are naturally bounded by 0–100 %.  Self-sufficiency is a ratio of
+  // generation to consumption and can legitimately exceed 100 %.
+  return isPercentagePlotMetric(metric) && metric?.id !== "self_sufficiency_pct";
+}
+
 function configureComparisonAxisMode(metric) {
   const input = $("compare-axis-mode");
   const options = [...input.options];
-  const percentage = isPercentagePlotMetric(metric);
+  const boundedPercentage = isBoundedPercentagePlotMetric(metric);
   const diverging = metric?.map_config?.scale === "diverging";
-  options.find(option => option.value === "full").textContent = percentage
+  options.find(option => option.value === "full").textContent = boundedPercentage
     ? "0 bis 100 %"
     : diverging
       ? "Symmetrisch um 0"
       : "0 bis Maximum";
-  options.find(option => option.value === "data-range").textContent = percentage
+  options.find(option => option.value === "data-range").textContent = boundedPercentage
     ? "Minimum bis 100 %"
     : "Minimum bis Maximum";
 }
@@ -1732,7 +1723,8 @@ function chartScale(payload, geometry) {
   const metric = payload.metric;
   const diverging = metric.map_config?.scale === "diverging";
   const useDataRange = $("compare-axis-mode")?.value === "data-range";
-  if (metric.unit === "%" && !diverging) {
+  const boundedPercentage = isBoundedPercentagePlotMetric(metric);
+  if (boundedPercentage) {
     minimum = useDataRange ? Math.min(Math.max(0, minimum), 99) : 0;
     maximum = 100;
   } else if (diverging) {
@@ -1748,7 +1740,7 @@ function chartScale(payload, geometry) {
     }
   }
   if (minimum === maximum) maximum = minimum + 1;
-  const padding = useDataRange || diverging || metric.unit === "%" ? 0 : (maximum - minimum) * 0.06;
+  const padding = useDataRange || diverging || boundedPercentage ? 0 : (maximum - minimum) * 0.06;
   maximum += padding;
   const x = index => geometry.left + index / Math.max(1, payload.atlas_average.values.length - 1) * (geometry.right - geometry.left);
   const y = value => geometry.bottom - (value - minimum) / (maximum - minimum) * (geometry.bottom - geometry.top);
@@ -2427,7 +2419,7 @@ function renderCountryProfile(profile) {
   });
   const sections = [...mergedSections.values()].sort((first, second) => PROFILE_SECTION_ORDER.indexOf(first.id) - PROFILE_SECTION_ORDER.indexOf(second.id));
   $("country-profile").innerHTML = `<header class="country-profile-header">
-    <div class="country-profile-title"><img src="/assets/flags/${flagCode(country.code)}.svg" alt="" width="44" height="33"><div><span class="table-kicker">Ländersteckbrief</span><h2 id="country-profile-title">${escapeHtml(country.name)} <small>${escapeHtml(country.code)}</small></h2><p>${escapeHtml(profile.requested.period)} · Datenabdeckung: ${escapeHtml(profileStatusLabel(profile.coverage))}</p></div></div>
+    <div class="country-profile-title"><img src="/assets/flags/${flagCode(country.code)}.svg" alt="" width="44" height="33"><div><h2 id="country-profile-title">${escapeHtml(country.name)} <small>${escapeHtml(country.code)}</small></h2></div></div>
     <div class="profile-actions tool-actions"><button id="profile-back" type="button">Zurück zum Atlas</button><button id="profile-compare" type="button">Im Plottool vergleichen</button></div>
   </header>
   <section class="profile-highlights" aria-label="Hauptkennzahlen">${highlights.map(profileMetricCard).join("")}</section>
@@ -2445,6 +2437,7 @@ async function loadCountryProfile() {
   $("atlas-content").hidden = true;
   $("country-profile").hidden = false;
   $("country-profile").innerHTML = `<p class="hint" role="status">Steckbrief wird geladen …</p>`;
+  $("country-profile").scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
   setDocumentTitle("country");
   try {
     const response = await fetch(`/api/country-profile?country=${encodeURIComponent(code)}&${periodQuery()}`);

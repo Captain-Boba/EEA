@@ -57,7 +57,6 @@
     <section id="atlas-map-section" aria-labelledby="atlas-map-title">
       <header class="tool-card-header">
         <div class="table-card-title">
-          <span class="table-kicker">Europäischer Überblick</span>
           <h2 id="atlas-map-title">Europakarte</h2>
         </div>
       </header>
@@ -98,7 +97,6 @@
     <section id="comparison" aria-labelledby="comparison-title">
       <header class="tool-card-header">
         <div class="table-card-title">
-          <span class="table-kicker">Ländervergleich</span>
           <h2 id="comparison-title">Plottool</h2>
         </div>
       </header>
@@ -174,17 +172,7 @@
       <article class="table-card">
         <header class="table-card-header">
           <div class="table-card-title">
-            <span class="table-kicker">Ländervergleich</span>
             <h2 id="summary-title">Stromsysteme</h2>
-            <p id="summary-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
-          </div>
-          <div class="table-card-tools">
-            <span id="summary-count" class="table-count" aria-live="polite"></span>
-            <button class="info-trigger table-info-trigger" type="button" data-info-target="table-info" aria-expanded="false">Tabellenhilfe</button>
-            <div id="table-info" class="info-popover align-right" role="dialog" aria-label="Tabellenhilfe" hidden>
-              <button class="info-close" type="button" aria-label="Tabellenhilfe schließen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
-              <p>Spalten sortieren oder eine Kennzahl auf die Karte übertragen. Bis zu zehn Länder über die erste Spalte für den Zeitreihenvergleich auswählen.</p>
-            </div>
           </div>
         </header>
         <div id="summary-table-region" class="table-wrap">
@@ -205,12 +193,7 @@
       <article class="table-card ev-card">
         <header class="table-card-header">
           <div class="table-card-title">
-            <span class="table-kicker">Straßenverkehr</span>
             <h2 id="ev-title">Elektromobilität</h2>
-            <p id="ev-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
-          </div>
-          <div class="table-card-tools">
-            <span id="ev-count" class="table-count" aria-live="polite"></span>
           </div>
         </header>
         <div class="table-card-context">
@@ -235,12 +218,7 @@
       <article class="table-card storage-card">
         <header class="table-card-header">
           <div class="table-card-title">
-            <span class="table-kicker">Flexibilität &amp; Reserven</span>
             <h2 id="storage-title">Elektrische Speicher</h2>
-            <p id="storage-table-state" class="table-state">Top 10 nach aktueller Sortierung</p>
-          </div>
-          <div class="table-card-tools">
-            <span id="storage-count" class="table-count" aria-live="polite"></span>
           </div>
         </header>
         <div class="table-card-context">
@@ -323,6 +301,7 @@
           <p><strong>CO₂-armer Anteil:</strong> erneuerbare und nukleare Erzeugung im Verhältnis zur Gesamterzeugung. <strong>Eigenversorgung:</strong> Erzeugung im Verhältnis zum Verbrauch.</p>
           <p><strong>Geschätzte Erzeugungsemissionen:</strong> CO₂-Intensität × Erzeugung. Das Ergebnis ist eine rechnerische Schätzung und kein Treibhausgasinventar.</p>
           <p><strong>Dekarbonisierungsrate:</strong> Veränderung der CO₂-Intensität zum abgeschlossenen Vorjahr. Positive Werte bedeuten sinkende, negative Werte steigende CO₂-Intensität.</p>
+          <p><strong>Verknüpfte Darstellungen:</strong> Erzeugung und Verbrauch werden durch das nominale BIP desselben Jahres geteilt. Die Emissionsrelation verwendet das EEA-Inventar für öffentliche Strom- und Wärmeerzeugung. Der Preisabstand entspricht dem Haushaltsgesamtpreis abzüglich des kalendertäglich gewichteten Jahresmittels des Großhandelspreises. Der Stromhandelsdurchsatz setzt Bruttoimporte plus Bruttoexporte ins Verhältnis zum Verbrauch.</p>
         </article>
         <article>
           <h3>Natural Earth</h3>
@@ -345,6 +324,7 @@
         <li>Eurostat-Kennzahlen und daraus berechnete Pro-Kopf-, Kapazitätsfaktor- und EV-Werte sind ausschließlich in der Jahresansicht verfügbar.</li>
         <li>Die theoretische nominale EV-Batteriekapazität verwendet als pauschale Flottenannahme fest 60 kWh je BEV. Sie beschreibt weder nutzbare Energie noch V2G- oder netzverfügbare Speicherkapazität.</li>
         <li>EEA CRT 1.A.1.a umfasst öffentliche Strom- und Wärmeerzeugung und ist kein reiner Stromwert.</li>
+        <li>BIP-Relationen verwenden das nominale BIP zu laufenden Preisen. Längere Zeitvergleiche können deshalb durch Inflation und Preisniveauänderungen beeinflusst sein.</li>
         <li>Geschätzte Erzeugungsemissionen sind eine rechnerische Ableitung aus CO₂-Intensität und Erzeugung. Eine positive Dekarbonisierungsrate bedeutet sinkende CO₂-Intensität gegenüber dem Vorjahr.</li>
         <li>Speicherwerte sind separat datierte Bestandswerte und werden nicht wie Monats- oder Jahresflüsse behandelt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.</li>
         <li>Das JRC-Wasserkraftinventar ist ein separater Anlagen-Snapshot. Nur direkt berichtete Speicherenergie wird angezeigt; fehlende Energie bleibt fehlend.</li>

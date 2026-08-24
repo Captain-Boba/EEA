@@ -35,7 +35,14 @@ class CountryProfileTests(unittest.TestCase):
         profile = build_country_profile(self.connection, "DE", 2025)
         metrics = self.metrics(profile)
         self.assertEqual(profile["country"], {"code": "DE", "name": "Deutschland"})
-        self.assertEqual(len(metrics), 82)
+        self.assertEqual(len(metrics), 87)
+        self.assertTrue({
+            "generation_gdp_intensity_kwh_eur",
+            "consumption_gdp_intensity_kwh_eur",
+            "electricity_heat_emissions_gdp_t_million_eur",
+            "household_wholesale_price_gap_ct_kwh",
+            "electricity_trade_throughput_pct",
+        }.issubset(metrics))
         self.assertIsNone(metrics["generation_twh"]["value"])
         self.assertEqual(metrics["generation_twh"]["data_status"], "missing")
         self.assertEqual(metrics["generation_twh"]["temporal_basis"], "yearly")

@@ -358,8 +358,8 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         for table in ("summary", "storage"):
             self.assertIn(f'id="{table}-toggle"', html)
             self.assertIn(f'aria-controls="{table}-table-region"', html)
-            self.assertIn(f'id="{table}-count"', html)
-            self.assertIn(f'id="{table}-table-state"', html)
+            self.assertNotIn(f'id="{table}-count"', html)
+            self.assertNotIn(f'id="{table}-table-state"', html)
             self.assertLess(html.index(f'id="{table}-table-region"'), html.index(f'id="{table}-toggle"'))
         self.assertIn("const TABLE_PREVIEW_LIMIT = 10", app)
         self.assertIn("sorted.slice(0, TABLE_PREVIEW_LIMIT)", app)

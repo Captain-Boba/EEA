@@ -83,7 +83,7 @@ def map_metric_dataset(
         raise ValueError("snapshot metrics use /api/storage")
 
     years = [requested_year]
-    if metric["group"] == "Installierte Leistung":
+    if metric["map_config"].get("latest_available_year"):
         years.extend(range(requested_year - 1, ATLAS_MIN_YEAR - 1, -1))
     for data_year in years:
         rows = aggregate_all(connection, data_year, None, source)

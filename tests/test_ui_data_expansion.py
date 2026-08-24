@@ -109,12 +109,33 @@ process.stdout.write(JSON.stringify({
             "bev_stock",
             "bev_new_registrations",
             "ev_battery_nominal_capacity_est_gwh",
+            "generation_gdp_intensity_kwh_eur",
+            "consumption_gdp_intensity_kwh_eur",
+            "electricity_heat_emissions_gdp_t_million_eur",
+            "household_wholesale_price_gap_ct_kwh",
+            "electricity_trade_throughput_pct",
         }
         for metric_id in yearly_metrics:
             metric = metrics[metric_id]
             self.assertTrue(metric["map"])
             self.assertTrue(metric["compare"])
             self.assertTrue(metric["temporal_availability"]["yearly"])
+
+        expected_placement = {
+            "generation_gdp_intensity_kwh_eur": ("Stromsystem", "Erzeugung"),
+            "consumption_gdp_intensity_kwh_eur": ("Stromsystem", "Verbrauch"),
+            "electricity_heat_emissions_gdp_t_million_eur": ("Klima", "Inventaremissionen"),
+            "household_wholesale_price_gap_ct_kwh": ("Endkundenpreise", "Haushaltsstrompreis"),
+            "electricity_trade_throughput_pct": ("Handel", "Stromhandel"),
+        }
+        self.assertEqual(
+            {
+                metric_id: (metrics[metric_id]["group"], metrics[metric_id]["family"])
+                for metric_id in expected_placement
+            },
+            expected_placement,
+        )
+        self.assertIn('metric.id.includes("_gdp_")', APP_PATH.read_text(encoding="utf-8"))
         for metric_id in (
             "hydro_plant_capacity_gw",
             "hydro_pumping_power_gw",
@@ -140,6 +161,7 @@ process.stdout.write(JSON.stringify({
                 "Energie und Vertrieb (Preisbestandteil)",
                 "Netzentgelte (Preisbestandteil)",
                 "Steuern, Abgaben und Umlagen (Preisbestandteil)",
+                "Haushaltspreis minus Großhandelspreis",
             ],
         )
 
@@ -166,6 +188,7 @@ process.stdout.write(JSON.stringify({
         self.assertIn("async function loadMapData", app)
         self.assertIn("/api/map-data?metric=", app)
         self.assertIn("function usesLatestAvailableMapYear(metric)", app)
+        self.assertIn("metric?.map_config?.latest_available_year", app)
         self.assertIn("data_year", app)
         self.assertIn("kein Leistungsdatenstand verfügbar", app)
         self.assertIn("Keine Werte für den ausgewählten Datenstand verfügbar", app)
