@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 551" role="img" aria-labelledby="map-asset-title map-asset-desc">
-  <title id="map-asset-title">Europäische Länderkarte</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 551" role="img" aria-label="Karte der europäischen Länder" aria-describedby="map-asset-desc">
   <desc id="map-asset-desc">Vereinfachte Ländergeometrien für den European Electricity Atlas.</desc>
   <metadata>Natural Earth 1:50m Admin 0 Countries 5.1.1; public domain; https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_50m_admin_0_countries.geojson; visible extent (-25.0, 34.0, 42.0, 72.0); geometry clipped with margin (-30.0, 30.0, 55.0, 76.0); simplified tolerance 0.035 degrees.</metadata>
   <g id="europe-countries" fill-rule="evenodd">

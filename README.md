@@ -12,7 +12,7 @@ The main country table compares all 31 Atlas countries using consistently format
 
 ### Every metric on the map of Europe
 
-The fully local SVG map visualizes absolute, share, and yearly per-capita metrics with family-specific color scales and visible country values. Metric family and representation are selected independently through grouped Atlas menus. A country can be pinned without changing the comparison selection and cleared again by selecting the surrounding map background. In fullscreen mode, the legend remains available beside the map. The current map state can be exported as SVG or PNG, including its title, period, unit, color scale, and legend.
+The fully local SVG map visualizes absolute, share, yearly per-capita, and cross-domain metrics with family-specific color scales and visible country values. Metric family and representation are selected independently through grouped Atlas menus. A country can be pinned without changing the comparison selection and cleared again by selecting the surrounding map background. The legend identifies the minimum and maximum countries together with the Atlas average. In fullscreen mode, the legend remains available beside the map. The current map state can be exported as SVG or PNG, including its title, period, unit, color scale, and legend.
 
 [![Fullscreen map showing low-carbon electricity generation across Europe](docs/images/Map%20Tool%20V2.png)](docs/images/Map%20Tool%20V2.png)
 
@@ -28,7 +28,7 @@ Select a country name in a ranking or use the focused-country action on the map 
 
 ### An optional visual layer for Europe
 
-**Europa Overload** is an opt-in visual mode backed by a curated manifest of 250 attributed Wikimedia Commons images from the 31 Atlas countries. Images are requested only after the mode is enabled. Every postcard can be opened in a keyboard-accessible fullscreen detail view with its title, country, author, licence, and Commons source. Like and dislike choices are private browser-local reactions: they have no public count and are never sent to the Atlas server.
+**Europa Overload** is an opt-in visual mode backed by a curated catalog of 250 attributed Wikimedia Commons images from the 31 Atlas countries. Images are requested only after the mode is enabled. Every postcard opens in a keyboard-accessible fullscreen gallery with cyclic navigation, attribution, and public server-backed voting.
 
 ## What the Atlas offers
 
@@ -37,11 +37,12 @@ Select a country name in a ranking or use the focused-country action on the map 
 - yearly per-capita generation for total generation, renewables, individual renewable and fossil technologies, and nuclear power
 - national monthly and annual wholesale electricity prices
 - annual population and GDP metrics, installed generation capacity, household prices in ct/kWh, non-household prices in EUR/MWh, gross electricity trade, electric mobility, and inventory emissions
+- annual cross-domain relations for generation and consumption per nominal GDP, electricity-and-heat emissions per GDP, the household-to-wholesale price gap, and electricity-trade throughput
 - separate battery and pumped-storage power, energy capacity, and equivalent discharge duration snapshots
 - a fully local map of Europe without map tiles, CDNs, or tracking
 - a compact, fullscreen-capable time-series comparison for one to ten countries with an Atlas average, range-aware baseline, shareable links, and local exports
 - direct-linked country profiles that group all available metrics and make monthly, annual, snapshot, source, quality, and actual reporting period explicit
-- an optional **Europa Overload** mode with 250 attributed European postcards, fullscreen details, and browser-local reactions
+- an optional **Europa Overload** mode with 250 attributed European postcards, fullscreen gallery navigation, and public score-based voting
 - visible coverage gaps, provisional periods, and YTD values instead of fabricated zeroes
 
 ## Quick start with a ready-made data snapshot
@@ -161,6 +162,7 @@ Germany uses only the national Battery-Charts total for batteries. Other countri
 - annual prices are weighted by the actual duration of each month
 - positive net imports indicate an import surplus; negative values indicate an export surplus
 - Eurostat denominators are combined only with electricity values from the same calendar year
+- GDP relations use nominal GDP from the same year and remain missing when either input is unavailable or zero
 - per-capita generation metrics are annual-only and require a positive Eurostat population value from the same calendar year
 - Eurostat installed-capacity values are net maximum electrical capacity in GW; they are not module-nameplate solar capacity in GWp
 - household electricity totals and components are converted from the imported EUR/MWh observations to ct/kWh in the analytical response; non-household prices remain in EUR/MWh
@@ -170,7 +172,7 @@ Germany uses only the national Battery-Charts total for batteries. Other countri
 - theoretical EV battery capacity uses the flat fleet assumption `BEV stock × 60 kWh`; it is nominal traction-battery energy, not grid-accessible V2G storage
 - failed updates must not modify existing data
 
-A new SQLite file is initialized automatically when the server starts. The API operates read-only afterwards.
+A missing analytical SQLite file is initialized automatically when the server starts. Analytical requests operate read-only afterwards. Public Europa Overload votes are the sole write API and use a separate community database; they never modify `atlas.sqlite3`.
 
 ## Local API
 
@@ -185,8 +187,10 @@ A new SQLite file is initialized automatically when the server starts. The API o
 - `/api/country-profile?country=DE&year=2025&month=7`
 - `/api/coverage?year=2025`
 - `/api/storage`
+- `GET /api/wallpaper-votes`
+- `POST /api/wallpaper-votes`
 
-The web interface never performs imports. The analytical interface, map, flags, logo, and exports use local assets and no external map service. Only the optional Europa Overload mode requests attributed postcard images from Wikimedia Commons, and only after the user enables it. Its like and dislike state is stored exclusively in the current browser.
+The web interface never performs imports. The analytical interface, map, flags, logo, and exports use local assets and no external map service. Only the optional Europa Overload mode requests attributed postcard images from Wikimedia Commons, and only after the user enables it. Its public votes are stored separately from `atlas.sqlite3` in `data/community.sqlite3` by default; set `EEA_COMMUNITY_DB` to use a persistent hosting volume.
 
 ## Development and tests
 

@@ -880,6 +880,27 @@ function colorForValue(value, metric, scale) {
   return paletteColor(mapPaletteName(metric), position);
 }
 
+function mapLegendSummaries(metric) {
+  const rows = (metric.temporal_availability.snapshot ? storageData : mapData)
+    .map(row => ({...row, value: row[metric.id]}))
+    .filter(row => Number.isFinite(row.value))
+    .sort((first, second) => first.value - second.value || first.country_code.localeCompare(second.country_code));
+  if (!rows.length) return null;
+  const minimum = rows[0];
+  const maximum = rows.at(-1);
+  const average = rows.reduce((sum, row) => sum + row.value, 0) / rows.length;
+  return {minimum, maximum, average};
+}
+
+function mapLegendCountrySummary(label, row, metric) {
+  return `<div class="map-legend-summary">
+    <span class="map-legend-summary-label">${escapeHtml(label)}</span>
+    <img src="/assets/flags/${flagCode(row.country_code)}.svg" alt="" width="24" height="18">
+    <span class="map-legend-summary-country">${escapeHtml(row.country_name || countryName(row.country_code))}</span>
+    <b>${formatMetricValue(row.value, metric)}</b>
+  </div>`;
+}
+
 function renderLegend(metric, scale) {
   if (!scale) {
     $("map-legend").innerHTML = "<p>Keine Werte für den ausgewählten Datenstand verfügbar.</p>";
@@ -889,9 +910,18 @@ function renderLegend(metric, scale) {
   const colors = MAP_PALETTES[mapPaletteName(metric)];
   const gradient = `linear-gradient(90deg, ${colors.join(", ")})`;
   const midpoint = scale.midpoint;
+  const summaries = mapLegendSummaries(metric);
+  const summaryMarkup = summaries ? `<div class="map-legend-summaries">
+    ${mapLegendCountrySummary("Minimum", summaries.minimum, metric)}
+    ${mapLegendCountrySummary("Maximum", summaries.maximum, metric)}
+    <div class="map-legend-summary map-legend-average">
+      <span class="map-legend-summary-label">Atlas-Durchschnitt</span>
+      <b>${formatMetricValue(summaries.average, metric)}</b>
+    </div>
+  </div>` : "";
   $("map-legend").innerHTML = `<div class="legend-ramp" style="background:${gradient}" aria-hidden="true"></div>
     <div class="legend-values"><span>${escapeHtml(formatMetricValue(scale.min, metric))}</span>${midpoint !== null && midpoint !== undefined ? `<span>${escapeHtml(formatMetricValue(midpoint, metric))}</span>` : ""}<span>${escapeHtml(formatMetricValue(scale.max, metric))}</span></div>
-    <p>${escapeHtml(metric.unit || "ohne Einheit")} · Grau = kein Wert</p>`;
+    <p>${escapeHtml(metric.unit || "ohne Einheit")} · Grau = kein Wert</p>${summaryMarkup}`;
   if (motionAllowed()) {
     const legend = $("map-legend");
     legend.classList.remove("legend-morph");

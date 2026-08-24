@@ -27,6 +27,12 @@ def frontend_country_mapping():
 
 
 class MapAssetTests(unittest.TestCase):
+    def test_map_asset_has_no_native_hover_title(self):
+        source = SVG_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("<title", source)
+        self.assertNotIn("Europäische Länderkarte", source)
+        self.assertIn('aria-label="Karte der europäischen Länder"', source)
+
     def test_all_atlas_countries_have_exactly_one_local_geometry(self):
         root = ET.parse(SVG_PATH).getroot()
         paths = root.findall(".//{http://www.w3.org/2000/svg}path")
@@ -181,6 +187,12 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn(".comparison-presets button.active:hover:not(:disabled)", style)
         self.assertIn("closeInfoPanel", app)
 
+    def test_comparison_fullscreen_uses_one_chart_surface(self):
+        style = STYLE_PATH.read_text(encoding="utf-8")
+        self.assertIn(".comparison-stage:fullscreen .chart-panel,", style)
+        self.assertIn(".comparison-stage:fullscreen .chart-background { fill: #081a2c; }", style)
+        self.assertIn("background: #081a2c;", style)
+
     def test_clicking_map_water_clears_the_country_focus(self):
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn("function clearMapCountryFocus()", app)
@@ -195,6 +207,15 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("minimumFractionDigits: 2", app)
         self.assertIn("maximumFractionDigits: 2", app)
         self.assertIn("Mio.", app)
+
+    def test_map_legend_includes_country_extremes_and_atlas_average(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        style = STYLE_PATH.read_text(encoding="utf-8")
+        self.assertIn("function mapLegendSummaries(metric)", app)
+        self.assertIn('mapLegendCountrySummary("Minimum", summaries.minimum, metric)', app)
+        self.assertIn('mapLegendCountrySummary("Maximum", summaries.maximum, metric)', app)
+        self.assertIn("Atlas-Durchschnitt", app)
+        self.assertIn("map-legend-summary", style)
 
     def test_motion_contract_preserves_reduced_motion_and_v2_structure(self):
         html = INDEX_PATH.read_text(encoding="utf-8")

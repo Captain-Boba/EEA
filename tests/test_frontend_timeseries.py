@@ -61,6 +61,11 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
         self.assertIn('href: `/assets/flags/${flagCode(entry.code)}.svg`', app)
         self.assertIn("const source = await serializedChartPngSvg();", app)
 
+    def test_live_ranking_units_are_centered_below_the_value(self):
+        style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
+        self.assertIn(".ranking-value {\n  justify-items: center;", style)
+        self.assertIn("text-align: center;", style)
+
     def test_comparison_family_picker_groups_metric_families(self):
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn('const groups = new Map();', app)

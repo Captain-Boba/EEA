@@ -1,6 +1,6 @@
 # European Electricity Atlas – Roadmap
 
-Stand: 24. August 2026
+Stand: 25. August 2026
 
 Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktentscheidungen. Historische K2-Arbeitsaufträge sind als solche gekennzeichnet und gelten nicht als aktuelle Spezifikation.
 
@@ -11,15 +11,15 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 - Die Postkartenbreite nicht länger auf beiden Referenzmonitoren nahezu identisch deckeln, sondern an die tatsächlich verfügbare Seitenfläche koppeln.
 - 1920×1080 und 2560×1440 jeweils bei 100 % Browserzoom abnehmen: keine problematische Überdeckung des Atlas, keine horizontale Scrollleiste, vollständige Captions und sichtbar bessere Nutzung der WQHD-Fläche.
 - Das globale `body { zoom: 1.1; }` prüfen und nicht durch weitere Zoom- oder Transform-Tricks kompensieren.
-- Die bereits vorhandene Vollbildansicht mit Stern-Schließen, Tastaturbedienung und lokalen Reaktionen bewahren.
+- Die bereits vorhandene Vollbildgalerie mit Stern-Schließen, zyklischer Tastaturbedienung und öffentlichen Daumenstimmen bewahren.
 
-**Abnahme:** Die Postkarten sind auf Full HD kompakt und auf WQHD sichtbar größer; beide Ansichten funktionieren zusammen mit der Vollbild-Lightbox ohne Überdeckung oder Scrollsprünge.
+**Abnahme:** Die Postkarten sind auf Full HD kompakt und auf WQHD sichtbar größer; beide Ansichten funktionieren zusammen mit der Vollbildgalerie ohne Überdeckung oder Scrollsprünge.
 
 ### 2. Öffentliche Beta vorbereiten
 
 - Den aktuellen SQLite- und Standardbibliothek-Ansatz beibehalten; keine neue Datenbanktechnik und keine unnötige Infrastruktur einführen.
 - Host und Port konfigurierbar machen, einen hostinggeeigneten Start und den vorhandenen Healthcheck absichern sowie feste Windows-Pfade ausschließen.
-- Den Datenbankpfad für einen persistenten, read-only Hostingbetrieb konfigurierbar machen. Datenupdates bleiben zunächst der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → neuer Deploy`.
+- Den Datenbankpfad für einen persistenten, read-only Hostingbetrieb konfigurierbar machen. Die getrennte Community-Datenbank für öffentliche Stimmen benötigt einen konfigurierbaren persistenten Schreibpfad und ein dokumentiertes Backupverfahren. Datenupdates bleiben zunächst der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → neuer Deploy`.
 - Keine Importfunktion über die Weboberfläche und keinen automatischen Scheduler als Startvoraussetzung einführen.
 - Zuerst eine Hoster-Testadresse vollständig prüfen. DNS für `ee-atlas.eu` erst nach erfolgreicher Abnahme verbinden.
 - Deployment, Umgebungsvariablen, Datenbankaustausch und spätere Domainverbindung in einer verständlichen Schrittfolge dokumentieren.
@@ -80,7 +80,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 - 31 europäische Atlasländer; Albanien und Russland gehören nicht zum Katalog.
 - Monats- und Jahreswerte sind ab 2015 vorgesehen. Ember ist die alleinige Anwendungsquelle für Erzeugung, Nachfrage, Energiemix, Nettoimporte, CO₂-Intensität und nationale Großhandelspreise.
-- Der zentrale Kennzahlenkatalog enthält 82 Definitionen. Für Gesamtstromerzeugung, Erneuerbare, einzelne erneuerbare und fossile Technologien sowie Kernenergie stehen jährliche Pro-Kopf-Werte auf Basis der Bevölkerung desselben Kalenderjahrs bereit.
+- Der zentrale Kennzahlenkatalog enthält 87 Definitionen. Für Gesamtstromerzeugung, Erneuerbare, einzelne erneuerbare und fossile Technologien sowie Kernenergie stehen jährliche Pro-Kopf-Werte auf Basis der Bevölkerung desselben Kalenderjahrs bereit. Fünf zusätzliche Jahreskennzahlen verknüpfen Erzeugung, Verbrauch und Inventaremissionen mit dem nominalen BIP sowie Haushalts- mit Großhandelspreisen und Bruttostromhandel mit dem Verbrauch.
 - Eurostat ergänzt Bevölkerung, BIP, installierte elektrische Nettoleistung, Endkundenpreise, Bruttostromhandel und Elektromobilität.
 - Haushaltsstrompreise und ihre Bestandteile werden in der analytischen Ausgabe in ct/kWh dargestellt; Nicht-Haushaltswerte bleiben in EUR/MWh. Die importierten Eurostat-Rohwerte werden dadurch nicht umgeschrieben.
 - EEA-Inventaremissionen sowie das JRC-Wasserkraftinventar sind als eigenständige, klar beschriftete Datensätze integriert.
@@ -90,15 +90,15 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 ### Europakarte und Midnight-Grid-Oberfläche
 
 - Die lokale SVG-Karte unterstützt den vollständigen Karten-Kennzahlenkatalog mit getrennten Familien und Darstellungen.
-- Für jährliche Kennzahlen der installierten Leistung verwendet die Karte bei Bedarf das jüngste verfügbare frühere Datenjahr und weist angefordertes sowie tatsächliches Jahr getrennt aus. Es findet kein Datenbank-Backfill statt.
+- Für ausdrücklich als verzögert berichtete Jahreskennzahlen, insbesondere installierte Leistung und die Inventaremissions-BIP-Relation, verwendet die Karte bei Bedarf das jüngste verfügbare frühere Datenjahr und weist angefordertes sowie tatsächliches Jahr getrennt aus. Es findet kein Datenbank-Backfill statt.
 - Der geografische Europa-Ausschnitt ist beibehalten, die Karte ist groß und nativ vollbildfähig.
-- Werte sind standardmäßig sichtbar. SVG- und PNG-Export enthalten den aktuellen Kartenstand mit Titel, Zeitraum, Einheit, Farbskala und automatisch erzeugter Legende.
+- Werte sind standardmäßig sichtbar. Die Legende nennt Minimum und Maximum samt Land sowie den Atlas-Durchschnitt. SVG- und PNG-Export enthalten den aktuellen Kartenstand mit Titel, Zeitraum, Einheit, Farbskala und automatisch erzeugter Legende.
 - Kartenklicks setzen einen dauerhaften Länderfokus und verändern die Vergleichsauswahl nicht. Ein Klick auf den Kartenhintergrund löst den Fokus wieder.
 - Ländersteckbriefe sind eine vollbreite, direkt verlinkbare Detailansicht. Sie öffnen aus Tabellen und aus dem Kartenfokus, bewahren die Vergleichsauswahl und zeigen jeden Katalogwert mit Zeitbasis, tatsächlichem Datenstand, Quelle, Status und Qualität. Monatswerte, Jahreswerte und Snapshots werden nicht vermischt; fehlende Werte bleiben leer. Kapazitätswerte können das jüngste verfügbare frühere Berichtsjahr anzeigen, ohne einen Datenbank-Backfill vorzunehmen.
 - Die globale Leiste für Jahr, Zeitraum, Auswertung und Vergleich wandert beim Scrollen mit.
 - Das Browser-Tab zeigt `EEA` und die aktuelle Hauptansicht.
 - `Europa Overload` ist ein optionaler, speicherbarer Schalter für 250 kuratierte und attribuierte Wikimedia-Commons-Postkarten aus den Atlasländern. Ohne Aktivierung werden keine Postkartenbilder geladen.
-- Die Postkarten lassen sich per Maus und Tastatur in einer Vollbild-Lightbox öffnen. Titel, Land, Urheber, Lizenz und Commons-Link bleiben sichtbar; Like und Dislike werden ausschließlich lokal und ohne öffentliche Zähler gespeichert.
+- Die Postkarten lassen sich per Maus und Tastatur in einer Vollbildgalerie öffnen. Titel, Land, Urheber, Lizenz und Commons-Link bleiben sichtbar; öffentliche Daumenstimmen, Score und geteilte Rangplätze werden getrennt in der Community-Datenbank gespeichert.
 - Lokales Atlas-Logo, kontextbezogene Info-Popovers, konsistente Interaktionszustände, reduzierte Bewegung bei `prefers-reduced-motion` sowie dezente Auswahl-, Sortier-, Fokus- und Exportanimationen sind umgesetzt.
 - Karten- und Plottool-Auswahl verwenden gruppierte Atlas-Menüs. Kennzahlenvarianten folgen, soweit vorhanden, der Reihenfolge absolut, Anteil und pro Kopf.
 
@@ -126,7 +126,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 ### Qualitätssicherung
 
-- Der vollständige lokale Stand besteht am 24. August 2026 aus 124 erfolgreichen automatisierten Tests.
+- Der vollständige lokale Stand besteht am 25. August 2026 aus 141 erfolgreichen automatisierten Tests.
 - Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures und führt keine Live-Imports aus.
 - Karte, Flaggen, Logo und Diagramme sind lokale Assets. Nur der ausdrücklich aktivierte Europa-Overload-Modus lädt Wikimedia-Commons-Bilder.
 - Der ältere K2-Auftrag `docs/K2_DATA_EXPANSION_UI_INTEGRATION.md` bleibt als archivierte Übergabedokumentation erhalten.

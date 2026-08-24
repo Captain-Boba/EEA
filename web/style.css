@@ -231,6 +231,13 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   font-variant-numeric: tabular-nums;
 }
 .map-legend p { margin: .4rem 0; color: var(--muted); font-size: .8rem; }
+.map-legend-summaries { display: grid; gap: .32rem; margin-top: .7rem; }
+.map-legend-summary { display: grid; grid-template-columns: minmax(6.7rem, 1fr) 1.5rem minmax(0, 1.6fr) auto; align-items: center; gap: .35rem; color: var(--muted); font-size: .8rem; }
+.map-legend-summary img { display: block; border-radius: .1rem; box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
+.map-legend-summary-label { color: var(--muted); }
+.map-legend-summary-country { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.map-legend-summary b { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.map-legend-average { grid-template-columns: minmax(0, 1fr) auto; margin-top: .15rem; padding-top: .42rem; border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent); }
 .map-detail {
   display: grid;
   gap: .25rem;
@@ -644,7 +651,12 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .ranking-country, .ranking-value { display: grid; }
 .ranking-country small, .ranking-value small { color: var(--muted); font-size: .8rem; }
 .ranking-fallback-marker { margin-left: .12rem; color: var(--europe-gold); font-size: .7em; }
-.ranking-value { text-align: right; font-weight: 750; }
+.ranking-value {
+  justify-items: center;
+  min-width: max-content;
+  text-align: center;
+  font-weight: 750;
+}
 .ranking-change { min-width: 5.5rem; color: var(--muted); text-align: right; font-size: .95rem; }
 .ranking-number, .ranking-average-number { font-variant-numeric: tabular-nums; }
 .ranking-footnotes { margin: auto 0 0; padding-top: .7rem; color: var(--muted); font-size: .78rem; line-height: 1.35; text-align: right; }
@@ -679,6 +691,14 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 }
 .comparison-stage:fullscreen .ranking-panel { padding: 1rem; }
 .comparison-stage:fullscreen .chart-panel { height: auto; aspect-ratio: auto; }
+.comparison-stage:fullscreen .chart-panel,
+.comparison-stage:fullscreen .ranking-panel {
+  background: #081a2c;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.comparison-stage:fullscreen .chart-background { fill: #081a2c; }
 #status.error { color: var(--danger); }
 details { margin-top: 1.5rem; padding: .9rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
 details summary { cursor: pointer; font-weight: 650; }
@@ -1677,7 +1697,29 @@ main { position: relative; z-index: 1; }
   box-shadow: 0 3px 14px rgba(0,0,0,.55);
 }
 .wallpaper-lightbox-close img { width: 100%; height: 100%; }
-.wallpaper-reactions { display: inline-flex; gap: .45rem; margin-left: auto; }
+.wallpaper-gallery-previous,
+.wallpaper-gallery-next {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  padding: .55rem;
+  border-radius: 50%;
+  place-items: center;
+  transform: translateY(-50%);
+}
+.wallpaper-gallery-previous { left: .75rem; }
+.wallpaper-gallery-next { right: .75rem; }
+.wallpaper-gallery-previous svg,
+.wallpaper-gallery-next svg,
+.wallpaper-reactions svg { width: 100%; height: 100%; }
+.wallpaper-gallery-position { color: var(--europe-gold); font-weight: 800; letter-spacing: .08em; }
+.wallpaper-vote-summary { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.4; white-space: nowrap; }
+.wallpaper-reactions { display: inline-flex; align-items: center; gap: .45rem; margin-left: auto; }
+.wallpaper-reactions button { display: grid; width: 2.6rem; height: 2.4rem; padding: .48rem; place-items: center; }
+.wallpaper-reactions button:disabled { cursor: wait; opacity: .52; }
 .wallpaper-reactions button[aria-pressed="true"] { border-color: var(--europe-gold); color: var(--europe-gold); background: rgba(184,154,90,.17); }
 @media (max-width: 700px) {
   .wallpaper-lightbox { padding: .6rem; }
@@ -1685,6 +1727,8 @@ main { position: relative; z-index: 1; }
   .wallpaper-lightbox-image { max-height: 62vh; }
   .wallpaper-lightbox-info { align-items: flex-start; flex-direction: column; }
   .wallpaper-reactions { margin-left: 0; }
+  .wallpaper-gallery-previous { left: .3rem; }
+  .wallpaper-gallery-next { right: .3rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wallpaper-panel,
