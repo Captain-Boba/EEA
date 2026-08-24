@@ -249,10 +249,18 @@ function leadingTableHeader(withSelection = false) {
 }
 
 function tableCountry(row) {
-  return `<span class="table-country">
+  return `<button type="button" class="table-country profile-open" data-country-profile="${row.country_code}" aria-label="Steckbrief für ${escapeAttribute(row.country_name)} öffnen">
     <img src="/assets/flags/${flagCode(row.country_code)}.svg" alt="" loading="lazy">
     <span class="table-country-copy"><span class="country-name">${escapeHtml(row.country_name)}</span><small>${escapeHtml(row.country_code)}</small></span>
-  </span>`;
+  </button>`;
+}
+
+function bindProfileTriggers(scope = document) {
+  scope?.querySelectorAll?.("[data-country-profile]").forEach(button => {
+    if (button.dataset.profileBound) return;
+    button.dataset.profileBound = "true";
+    button.addEventListener("click", () => openCountryProfile(button.dataset.countryProfile));
+  });
 }
 
 function updateTableDisclosure(kind, expanded, total) {
@@ -434,6 +442,7 @@ function render() {
   document.querySelectorAll("button.selection-toggle[data-country]").forEach(button => button.addEventListener("click", () => {
     toggleCountry(button.dataset.country);
   }));
+  bindProfileTriggers($("summary-body"));
   updateSelection();
 }
 
@@ -461,6 +470,7 @@ function renderStorage() {
     ${STORAGE_METRIC_IDS.map(id => storageCell(row, id, storageSortKey === id)).join("")}
   </tr>`).join("");
   updateTableDisclosure("storage", storageExpanded, sorted.length);
+  bindProfileTriggers($("storage-body"));
   animateRowReorder("#storage-body tr", previousPositions, row => row.dataset.storageRow);
 }
 
@@ -512,6 +522,7 @@ function renderElectromobility() {
     ${EV_METRIC_IDS.map(id => `<td data-metric="${id}" class="${evSortKey === id ? "sort-column-active" : ""}">${formatTableValue(row[id], id)}</td>`).join("")}
   </tr>`).join("");
   updateTableDisclosure("ev", evExpanded, sorted.length);
+  bindProfileTriggers($("ev-body"));
 }
 
 function storageCell(row, metricId, isSortColumn = false) {
@@ -826,7 +837,8 @@ function countryDetail(code, metric) {
       <span>${escapeHtml(periodLabel(metric, row))}</span>
       <span>Datenstatus: ${escapeHtml(statusLabel(row, metric))}</span>
       ${coverage}
-      <span>Quelle: ${escapeHtml(source)}</span>`,
+      <span>Quelle: ${escapeHtml(source)}</span>
+      <button type="button" class="profile-open map-profile-open" data-country-profile="${escapeAttribute(code)}">Steckbrief öffnen</button>`,
     label: `${countryName(code)}, ${metric.label_de}: ${formatted}${unit}, ${periodLabel(metric, row)}, Datenstatus ${statusLabel(row, metric)}, Quelle ${source}`,
   };
 }
@@ -955,6 +967,7 @@ function focusMapCountry(path) {
   const detail = countryDetail(focusedMapCountry, metricDefinition(mapMetricId));
   const panel = $("map-detail");
   panel.innerHTML = detail.html;
+  bindProfileTriggers(panel);
   hideMapTooltip();
   if (motionAllowed()) {
     path.classList.remove("map-focus-pulse");
@@ -1032,7 +1045,10 @@ function renderMap() {
   $("map-period").textContent = periodLabel(metric, mapRow("DE", metric));
   renderLegend(metric, scale);
   renderMapLabels(metric);
-  if (focusedMapCountry) $("map-detail").innerHTML = countryDetail(focusedMapCountry, metric).html;
+  if (focusedMapCountry) {
+    $("map-detail").innerHTML = countryDetail(focusedMapCountry, metric).html;
+    bindProfileTriggers($("map-detail"));
+  }
   highlightMapColumn();
 }
 
@@ -2310,6 +2326,179 @@ async function toggleMapFullscreen() {
   }
 }
 
+const PROFILE_SECTION_ORDER = Object.freeze([
+  "Stromsystem", "Erneuerbare", "Fossile", "Kernenergie", "Installierte Leistung",
+  "Handel", "Preise", "Endkundenpreise", "Klima", "Sozioökonomie", "Elektromobilität",
+  "Kapazitäten und Speicher", "Wasserkraftinventar",
+]);
+const PROFILE_SECTION_LABELS = Object.freeze({
+  Handel: "Stromhandel und Preise", Preise: "Stromhandel und Preise", Endkundenpreise: "Stromhandel und Preise",
+  "Kapazitäten und Speicher": "Speicher", Wasserkraftinventar: "JRC-Wasserkraftinventar",
+});
+const PROFILE_SECTION_MERGES = Object.freeze({
+  Handel: "Stromhandel und Preise", Preise: "Stromhandel und Preise", Endkundenpreise: "Stromhandel und Preise",
+});
+let activeProfileCountry = null;
+
+function profileUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("view") !== "country") return null;
+  const code = (params.get("country") || "").toUpperCase();
+  return /^[A-Z]{2}$/.test(code) ? code : null;
+}
+
+function syncControlsFromProfileUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("view") !== "country") return;
+  const year = Number.parseInt(params.get("year"), 10);
+  if (Number.isFinite(year)) $("year").value = String(year);
+  const month = Number.parseInt(params.get("month"), 10);
+  const monthly = params.get("period") === "month" || Number.isFinite(month);
+  $("period-type").value = monthly ? "month" : "year";
+  if (Number.isFinite(month) && month >= 1 && month <= 12) $("month").value = String(month);
+}
+
+function profileUrl(code) {
+  const params = new URLSearchParams(window.location.search);
+  params.set("view", "country");
+  params.set("country", code);
+  params.set("year", String(selectedYear()));
+  params.set("period", isMonthView() ? "month" : "year");
+  if (isMonthView()) params.set("month", $("month").value);
+  else params.delete("month");
+  return `${window.location.pathname}?${params.toString()}`;
+}
+
+function profileMetricSort(first, second) {
+  const firstRank = STORAGE_VARIANT_ORDER.get(first.id) ?? metricVariantRank(first);
+  const secondRank = STORAGE_VARIANT_ORDER.get(second.id) ?? metricVariantRank(second);
+  return first.family.localeCompare(second.family, "de") || firstRank - secondRank || first.label.localeCompare(second.label, "de");
+}
+
+function profileStatusLabel(status) {
+  return {complete: "vollständig", partial: "teilweise", missing: "fehlend", ytd: "YTD", observed: "vorhanden"}[status] || status || "vorhanden";
+}
+
+function profileBasisLabel(metric) {
+  if (metric.temporal_basis === "snapshot") return metric.actual_period ? `Snapshot ${metric.actual_period}` : "Kein Snapshot verfügbar";
+  const prefix = metric.temporal_basis === "monthly" ? "Monatswert" : "Jahreswert";
+  return metric.actual_period ? `${prefix} · Datenstand ${metric.actual_period}` : `${prefix} · kein Datenstand`;
+}
+
+function profileMetricCard(metric) {
+  const catalogMetric = metricDefinition(metric.id);
+  const displayed = formatMetricValue(metric.value, catalogMetric);
+  const unit = displayed === "—" ? "" : ` ${metric.unit}`;
+  const warning = metric.warnings?.length ? `<span class="profile-warning" title="${escapeAttribute(metric.warnings.join(" · "))}">Hinweis</span>` : "";
+  return `<article class="profile-metric${metric.value === null ? " is-missing" : ""}">
+    <h4>${escapeHtml(metric.family)}</h4>
+    <p class="profile-representation">${escapeHtml(metric.representation)}</p>
+    <p class="profile-value">${escapeHtml(displayed)}<small>${escapeHtml(unit)}</small></p>
+    <p class="profile-meta"><span>${escapeHtml(profileBasisLabel(metric))}</span><span>Status: ${escapeHtml(profileStatusLabel(metric.data_status))} · ${escapeHtml(profileStatusLabel(metric.quality_status))}</span>${warning}</p>
+    <p class="profile-source">${escapeHtml(metric.source)}</p>
+  </article>`;
+}
+
+function profileSectionHtml(section) {
+  const families = new Map();
+  [...section.metrics].sort(profileMetricSort).forEach(metric => {
+    const key = section.id === "Kapazitäten und Speicher" ? metric.family : "";
+    if (!families.has(key)) families.set(key, []);
+    families.get(key).push(metric);
+  });
+  const heading = PROFILE_SECTION_LABELS[section.id] || section.label;
+  return `<section class="profile-section" aria-labelledby="profile-section-${escapeAttribute(section.id)}">
+    <h3 id="profile-section-${escapeAttribute(section.id)}">${escapeHtml(heading)}</h3>
+    ${[...families].map(([family, metrics]) => `${family ? `<h4 class="profile-subsection-title">${escapeHtml(family)}</h4>` : ""}<div class="profile-grid">${metrics.map(profileMetricCard).join("")}</div>`).join("")}
+  </section>`;
+}
+
+function renderCountryProfile(profile) {
+  const country = profile.country;
+  const highlightIds = ["generation_twh", "consumption_twh", "renewable_share_pct", "carbon_intensity_gco2eq_kwh", "price_avg_eur_mwh"];
+  const metrics = new Map(profile.sections.flatMap(section => section.metrics.map(metric => [metric.id, metric])));
+  const highlights = highlightIds.map(id => metrics.get(id)).filter(Boolean);
+  const mergedSections = new Map();
+  profile.sections.forEach(section => {
+    const id = PROFILE_SECTION_MERGES[section.id] || section.id;
+    const existing = mergedSections.get(id);
+    if (existing) existing.metrics.push(...section.metrics);
+    else mergedSections.set(id, {id, label: PROFILE_SECTION_LABELS[id] || section.label, metrics: [...section.metrics]});
+  });
+  const sections = [...mergedSections.values()].sort((first, second) => PROFILE_SECTION_ORDER.indexOf(first.id) - PROFILE_SECTION_ORDER.indexOf(second.id));
+  $("country-profile").innerHTML = `<header class="country-profile-header">
+    <div class="country-profile-title"><img src="/assets/flags/${flagCode(country.code)}.svg" alt="" width="44" height="33"><div><span class="table-kicker">Ländersteckbrief</span><h2 id="country-profile-title">${escapeHtml(country.name)} <small>${escapeHtml(country.code)}</small></h2><p>${escapeHtml(profile.requested.period)} · Datenabdeckung: ${escapeHtml(profileStatusLabel(profile.coverage))}</p></div></div>
+    <div class="profile-actions tool-actions"><button id="profile-back" type="button">Zurück zum Atlas</button><button id="profile-compare" type="button">Im Plottool vergleichen</button></div>
+  </header>
+  <section class="profile-highlights" aria-label="Hauptkennzahlen">${highlights.map(profileMetricCard).join("")}</section>
+  <p class="profile-time-note">Monats-, Jahres- und Snapshotwerte sind anhand von Zeitbasis und tatsächlichem Datenstand getrennt ausgewiesen. Fehlende Werte bleiben leer.</p>
+  <div class="profile-sections">${sections.map(profileSectionHtml).join("")}</div>`;
+  $("profile-back").addEventListener("click", () => leaveCountryProfile(true));
+  $("profile-compare").addEventListener("click", openProfileInComparison);
+  setDocumentTitle("country");
+}
+
+async function loadCountryProfile() {
+  const code = profileUrlState();
+  if (!code) return;
+  activeProfileCountry = code;
+  $("atlas-content").hidden = true;
+  $("country-profile").hidden = false;
+  $("country-profile").innerHTML = `<p class="hint" role="status">Steckbrief wird geladen …</p>`;
+  setDocumentTitle("country");
+  try {
+    const response = await fetch(`/api/country-profile?country=${encodeURIComponent(code)}&${periodQuery()}`);
+    if (!response.ok) throw new Error((await response.json()).error || response.statusText);
+    renderCountryProfile(await response.json());
+  } catch (error) {
+    $("country-profile").innerHTML = `<p class="error">Steckbrief konnte nicht geladen werden: ${escapeHtml(error.message)}</p><button id="profile-back" type="button">Zurück zum Atlas</button>`;
+    $("profile-back").addEventListener("click", () => leaveCountryProfile(true));
+  }
+}
+
+function leaveCountryProfile(pushHistory = false) {
+  if (pushHistory) {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("view"); params.delete("country"); params.delete("period");
+    window.history.pushState({}, "", `${window.location.pathname}${params.toString() ? `?${params}` : ""}`);
+  }
+  activeProfileCountry = null;
+  $("country-profile").hidden = true;
+  $("atlas-content").hidden = false;
+  updateDynamicDocumentTitle();
+}
+
+function openCountryProfile(code) {
+  if (!code) return;
+  window.history.pushState({}, "", profileUrl(code));
+  void loadCountryProfile();
+}
+
+function openProfileInComparison() {
+  const code = activeProfileCountry;
+  if (!code) return;
+  if (!selected.has(code) && selected.size >= 10) {
+    $("country-profile").querySelector(".profile-time-note").textContent = "Maximal zehn Länder können gleichzeitig im Plottool verglichen werden.";
+    return;
+  }
+  selected.add(code);
+  updateSelection();
+  leaveCountryProfile(false);
+  const params = new URLSearchParams(window.location.search);
+  params.set("view", "compare"); params.delete("country"); params.delete("period");
+  window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+  $("comparison").scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
+  setDocumentTitle("comparison");
+}
+
+function configureCountryProfileNavigation() {
+  syncControlsFromProfileUrl();
+  window.addEventListener("popstate", () => {
+    if (profileUrlState()) void loadCountryProfile();
+    else leaveCountryProfile(false);
+  });
+}
+
 const TITLE_BY_SECTION = Object.freeze({
   map: "EEA · Karte",
   comparison: "EEA · Plottool",
@@ -2317,13 +2506,16 @@ const TITLE_BY_SECTION = Object.freeze({
   electromobility: "EEA · E-Mobilität",
   storage: "EEA · Speicher",
   sources: "EEA · Quellen",
+  country: "EEA",
 });
 let activeTitleSection = null;
 let titleUpdateFrame = null;
 
 function setDocumentTitle(section = null) {
   activeTitleSection = section;
-  document.title = TITLE_BY_SECTION[section] || "EEA";
+  document.title = section === "country" && activeProfileCountry
+    ? `EEA · ${countryName(activeProfileCountry)}`
+    : (TITLE_BY_SECTION[section] || "EEA");
 }
 
 function visibleTitleSection() {
@@ -2370,7 +2562,8 @@ function configureDynamicDocumentTitle() {
   }
   window.addEventListener("scroll", scheduleDynamicDocumentTitle, {passive: true});
   window.addEventListener("resize", scheduleDynamicDocumentTitle);
-  if (new URLSearchParams(window.location.search).get("view") === "compare") setDocumentTitle("comparison");
+  if (profileUrlState()) setDocumentTitle("country");
+  else if (new URLSearchParams(window.location.search).get("view") === "compare") setDocumentTitle("comparison");
   else updateDynamicDocumentTitle();
 }
 
@@ -2712,6 +2905,8 @@ window.__atlasCompareTest = {
   buildChartPngBlob,
 };
 
+if (typeof window.addEventListener === "function") configureCountryProfileNavigation();
+else syncControlsFromProfileUrl();
 syncPeriodControls();
 configureEnhancedSelectMenus();
 loadCoverage();
@@ -2723,6 +2918,12 @@ if (typeof document.querySelector === "function") {
 loadMetricCatalog()
   .then(() => Promise.all([loadMapAsset(), loadSummary(), loadStorage()]))
   .then(async () => {
+    // A country profile is a self-contained direct view.  Do not let the
+    // comparison initializer replace its URL with the default plot state.
+    if (profileUrlState()) {
+      await loadCountryProfile();
+      return;
+    }
     const restored = await restoreComparisonState();
     if (!restored) await initializeDefaultComparison();
   })

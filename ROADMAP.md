@@ -6,20 +6,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 ## Aktuelle Arbeitsprioritäten
 
-### 1. Ländersteckbrief als Beta-Pflichtfunktion entwickeln
-
-- Aus Tabelle und Karte eine zusammenhängende Detailansicht für genau ein Land öffnen.
-- Als eigene vollbreite, direkt verlinkbare Ansicht innerhalb der bestehenden Anwendung umsetzen; kein schmales Seitenpanel und kein kleines Modal.
-- Kennzahlen nach Stromsystem, Energiemix, Handel, Preisen, Klima, Sozioökonomie, Elektromobilität und Speicher gruppieren.
-- Monats-, Jahres- und Snapshotwerte sichtbar trennen. Zeitraum, tatsächlichen Datenstand, Einheit, Datenstatus, Coverage und Quelle direkt am jeweiligen Wert zeigen.
-- Fehlende Daten niemals durch Nullwerte oder Schätzungen ersetzen.
-- Einstieg mindestens aus Haupttabelle und Karte; Browsernavigation, globale Zeitraumwahl und bestehende Vergleichsauswahl bewahren.
-
-**Abnahme:** Ein Land besitzt eine vollständige, klar gegliederte Detailansicht, die aus der Atlasoberfläche geöffnet und eindeutig wieder verlassen werden kann.
-
-Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
-
-### 2. Europa Overload responsiv abschließen
+### 1. Europa Overload responsiv abschließen
 
 - Die Postkartenbreite nicht länger auf beiden Referenzmonitoren nahezu identisch deckeln, sondern an die tatsächlich verfügbare Seitenfläche koppeln.
 - 1920×1080 und 2560×1440 jeweils bei 100 % Browserzoom abnehmen: keine problematische Überdeckung des Atlas, keine horizontale Scrollleiste, vollständige Captions und sichtbar bessere Nutzung der WQHD-Fläche.
@@ -28,7 +15,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 
 **Abnahme:** Die Postkarten sind auf Full HD kompakt und auf WQHD sichtbar größer; beide Ansichten funktionieren zusammen mit der Vollbild-Lightbox ohne Überdeckung oder Scrollsprünge.
 
-### 3. Öffentliche Beta vorbereiten
+### 2. Öffentliche Beta vorbereiten
 
 - Den aktuellen SQLite- und Standardbibliothek-Ansatz beibehalten; keine neue Datenbanktechnik und keine unnötige Infrastruktur einführen.
 - Host und Port konfigurierbar machen, einen hostinggeeigneten Start und den vorhandenen Healthcheck absichern sowie feste Windows-Pfade ausschließen.
@@ -39,7 +26,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 
 **Abnahme:** Lokaler Windowsbetrieb und hostingähnlicher Betrieb starten reproduzierbar; Atlas, API, Direktlinks, Vollbildansichten und Exporte sind an der Testadresse geprüft. Erst danach wird die Domain verbunden und die Beta veröffentlicht.
 
-### 4. Haupttabelle fachlich erweitern
+### 3. Haupttabelle fachlich erweitern
 
 - Die verfügbare Desktopbreite mit weiteren, bewusst ausgewählten Kennzahlen nutzen.
 - Vor der Umsetzung eine feste Spaltenauswahl beschließen. Die Haupttabelle bleibt ein kuratierter Überblick; Karte und Zeitreihenvergleich bieten weiterhin den vollständigen jeweils geeigneten Kennzahlenkatalog.
@@ -49,7 +36,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 
 **Abnahme:** Die zusätzliche Spaltenauswahl ist fachlich dokumentiert und nutzt große Bildschirme besser, ohne die Tabelle zu einer unlesbaren Vollansicht aller Kennzahlen zu machen.
 
-### 5. Quartettvergleich auf Basis der Ländersteckbriefe ergänzen
+### 4. Quartettvergleich auf Basis der Ländersteckbriefe ergänzen
 
 - Mehrere Länder als kompakte Steckbriefkarten nebeneinander vergleichen.
 - Für jede Kennzahl dokumentieren, ob ein höherer, ein niedrigerer oder kein Wert als vorteilhaft markiert werden darf.
@@ -58,7 +45,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 
 **Abnahme:** Ausgewählte Länder lassen sich übersichtlich als Quartett vergleichen; jede Hervorhebung folgt einer dokumentierten Kennzahlenregel.
 
-### 6. Datenprüfung und Berichte modernisieren
+### 5. Datenprüfung und Berichte modernisieren
 
 - Die als historisch gekennzeichnete `data/reports/VALIDATION.generated.md` durch einen reproduzierbaren Validierungsbericht des aktuellen Ember-Datenkerns ablösen.
 - Den Vertrag des CLI-Befehls `report` bereinigen: Hilfe, tatsächlich erzeugte Dateien und Dokumentation müssen übereinstimmen.
@@ -68,7 +55,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 
 **Abnahme:** Kein als aktuell bezeichneter Bericht weist Energy Charts als Anwendungsquelle aus. Dokumentierte Ember-Stichproben sind nachvollziehbar, und Bericht, API sowie Oberfläche beschreiben denselben Datenbestand. Der historische Bericht kann anschließend entfallen.
 
-### 7. Speicherpflege und internationale Coverage stabilisieren
+### 6. Speicherpflege und internationale Coverage stabilisieren
 
 - Den bewussten JRC-CLI-Abruf höchstens einmal pro Kalendermonat betreiben und die reale Abdeckung beobachten.
 - Battery-Charts ausschließlich über den manuellen, atomaren Import der beiden JSON-Dateien aktualisieren. Der Atlas führt keinen automatischen Battery-Charts-Netzwerkzugriff aus.
@@ -79,7 +66,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 
 **Abnahme:** Mehrere reale Monatsaktualisierungen laufen mit maximal einem JRC-Request, ohne Battery-Charts-Netzwerkzugriff, ohne Duplikate und ohne Verlust des vorherigen Datenstands bei Fehlern.
 
-### 8. Zusätzliche Leistungs- und Wasserkraftkennzahlen evaluieren
+### 7. Zusätzliche Leistungs- und Wasserkraftkennzahlen evaluieren
 
 - Prüfen, ob für Photovoltaik eine europaweit vergleichbare DC-Nennleistung in GWp als eigene Kennzahl verfügbar ist. Die vorhandene Eurostat-Kennzahl bleibt korrekt als elektrische Nettoleistung in GW bezeichnet.
 - Eine belastbare Quelle für den Energieinhalt regulierter Wasserkraftreservoirs suchen und strikt von Pumpspeicher-Speicherenergie sowie dem unvollständigen JRC-Anlagenportfolio trennen.
@@ -107,6 +94,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 - Der geografische Europa-Ausschnitt ist beibehalten, die Karte ist groß und nativ vollbildfähig.
 - Werte sind standardmäßig sichtbar. SVG- und PNG-Export enthalten den aktuellen Kartenstand mit Titel, Zeitraum, Einheit, Farbskala und automatisch erzeugter Legende.
 - Kartenklicks setzen einen dauerhaften Länderfokus und verändern die Vergleichsauswahl nicht. Ein Klick auf den Kartenhintergrund löst den Fokus wieder.
+- Ländersteckbriefe sind eine vollbreite, direkt verlinkbare Detailansicht. Sie öffnen aus Tabellen und aus dem Kartenfokus, bewahren die Vergleichsauswahl und zeigen jeden Katalogwert mit Zeitbasis, tatsächlichem Datenstand, Quelle, Status und Qualität. Monatswerte, Jahreswerte und Snapshots werden nicht vermischt; fehlende Werte bleiben leer. Kapazitätswerte können das jüngste verfügbare frühere Berichtsjahr anzeigen, ohne einen Datenbank-Backfill vorzunehmen.
 - Die globale Leiste für Jahr, Zeitraum, Auswertung und Vergleich wandert beim Scrollen mit.
 - Das Browser-Tab zeigt `EEA` und die aktuelle Hauptansicht.
 - `Europa Overload` ist ein optionaler, speicherbarer Schalter für 250 kuratierte und attribuierte Wikimedia-Commons-Postkarten aus den Atlasländern. Ohne Aktivierung werden keine Postkartenbilder geladen.

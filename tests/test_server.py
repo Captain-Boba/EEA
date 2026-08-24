@@ -36,6 +36,8 @@ class ServerSmokeTests(unittest.TestCase):
                     metrics = json.load(response)
                 with urlopen(base + "/api/storage", timeout=5) as response:
                     storage = json.load(response)
+                with urlopen(base + "/api/country-profile?country=DE&year=2025&month=7", timeout=5) as response:
+                    profile = json.load(response)
                 with urlopen(
                     base + "/api/timeseries?metric=generation_twh&countries=DE&start=2025-01&end=2025-02",
                     timeout=5,
@@ -71,6 +73,9 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertIn("JRC", storage["source_label"])
                 self.assertIn("Battery-Charts", storage["source_label"])
                 self.assertEqual(storage["countries"], [])
+                self.assertEqual(profile["country"]["code"], "DE")
+                self.assertEqual(profile["requested"]["period"], "2025-07")
+                self.assertTrue(profile["sections"])
                 self.assertEqual(timeseries["granularity"], "monthly")
                 self.assertEqual(len(timeseries["countries"]), 1)
                 self.assertEqual(len(timeseries["countries"][0]["values"]), 2)

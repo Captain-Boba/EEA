@@ -10,6 +10,7 @@ from urllib.parse import parse_qs, urlparse
 from .aggregation import aggregate_all, aggregate_country, map_metric_dataset
 from .config import COUNTRIES
 from .coverage import coverage_rows
+from .country_profile import build_country_profile
 from .db import database, read_database
 from .metrics import metric_catalog
 from .storage_online import latest_storage
@@ -59,6 +60,10 @@ class AtlasHandler(BaseHTTPRequestHandler):
                     payload = metric_catalog()
                 elif path == "/api/summary":
                     payload = aggregate_all(connection, year, month, source)
+                elif path == "/api/country-profile":
+                    payload = build_country_profile(
+                        connection, query.get("country", [""])[0], year, month
+                    )
                 elif path == "/api/map-data":
                     payload = map_metric_dataset(
                         connection, query.get("metric", [""])[0], year, source

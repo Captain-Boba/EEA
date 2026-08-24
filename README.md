@@ -22,6 +22,10 @@ The time-series comparison combines monthly or annual values with an Atlas avera
 
 [![Time-series comparison with country lines, Atlas average, and live ranking](docs/images/Comparison%20Tool%20V2.png)](docs/images/Comparison%20Tool%20V2.png)
 
+### Country profiles with transparent reporting periods
+
+Select a country name in a ranking or use the focused-country action on the map to open a full-width country profile. The direct link preserves the country and requested period. Each metric identifies its unit, source, data status, time basis, and actual reporting period. Monthly, annual, and snapshot observations are kept separate; a capacity value shown from an earlier reporting year is explicitly labelled as such and is never copied into a newer year.
+
 ### An optional visual layer for Europe
 
 **Europa Overload** is an opt-in visual mode backed by a curated manifest of 250 attributed Wikimedia Commons images from the 31 Atlas countries. Images are requested only after the mode is enabled. Every postcard can be opened in a keyboard-accessible fullscreen detail view with its title, country, author, licence, and Commons source. Like and dislike choices are private browser-local reactions: they have no public count and are never sent to the Atlas server.
@@ -36,6 +40,7 @@ The time-series comparison combines monthly or annual values with an Atlas avera
 - separate battery and pumped-storage power, energy capacity, and equivalent discharge duration snapshots
 - a fully local map of Europe without map tiles, CDNs, or tracking
 - a compact, fullscreen-capable time-series comparison for one to ten countries with an Atlas average, range-aware baseline, shareable links, and local exports
+- direct-linked country profiles that group all available metrics and make monthly, annual, snapshot, source, quality, and actual reporting period explicit
 - an optional **Europa Overload** mode with 250 attributed European postcards, fullscreen details, and browser-local reactions
 - visible coverage gaps, provisional periods, and YTD values instead of fabricated zeroes
 
@@ -176,6 +181,8 @@ A new SQLite file is initialized automatically when the server starts. The API o
 - `/api/map-data?metric=capacity_total_gw&year=2025`
 - `/api/compare?year=2025&countries=DE,FR`
 - `/api/timeseries?metric=renewable_share_pct&countries=DE,FR,UK&start=2015-01&end=2026-08`
+- `/api/country-profile?country=DE&year=2025`
+- `/api/country-profile?country=DE&year=2025&month=7`
 - `/api/coverage?year=2025`
 - `/api/storage`
 
@@ -200,6 +207,7 @@ Tests use local fixtures exclusively and never perform live imports.
 - [JRC storage import](docs/JRC_STORAGE_IMPORT.md)
 - [Local map of Europe and Natural Earth provenance](docs/MAP_ASSET.md)
 - [Time-series comparison behavior](docs/TIMESERIES_COMPARISON.md)
+- [Country profiles](docs/COUNTRY_PROFILES.md)
 - [Europa Overload behavior and privacy](docs/EUROPA_OVERLOAD.md)
 
 ## Known limitations

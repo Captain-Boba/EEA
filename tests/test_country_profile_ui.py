@@ -1,0 +1,46 @@
+from pathlib import Path
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+APP = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+HTML = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+STYLE = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
+
+
+class CountryProfileUiContractTests(unittest.TestCase):
+    def test_full_width_profile_container_and_entry_actions_exist(self):
+        self.assertIn('id="country-profile"', HTML)
+        self.assertIn('id="atlas-content"', HTML)
+        self.assertIn('data-country-profile="${row.country_code}"', APP)
+        self.assertIn('data-country-profile="${escapeAttribute(code)}"', APP)
+        self.assertIn("function openCountryProfile(code)", APP)
+        self.assertIn(".country-profile", STYLE)
+
+    def test_profile_uses_one_bundled_api_and_period_aware_direct_link(self):
+        self.assertIn("/api/country-profile?country=${encodeURIComponent(code)}&${periodQuery()}", APP)
+        self.assertIn('params.set("view", "country")', APP)
+        self.assertIn('params.set("period", isMonthView() ? "month" : "year")', APP)
+        self.assertIn('params.set("month", $("month").value)', APP)
+        self.assertIn("function syncControlsFromProfileUrl()", APP)
+        self.assertIn("function configureCountryProfileNavigation()", APP)
+
+    def test_profile_does_not_clear_comparison_and_enforces_ten_country_limit(self):
+        profile_compare = APP[APP.index("function openProfileInComparison()"):APP.index("function configureCountryProfileNavigation()")]
+        self.assertNotIn("selected.clear()", profile_compare)
+        self.assertIn("selected.size >= 10", profile_compare)
+        self.assertIn("selected.add(code)", profile_compare)
+        self.assertNotIn("loadTimeseries", profile_compare)
+
+    def test_profile_keeps_actual_period_visible_and_merges_trade_price_section(self):
+        self.assertIn("function profileBasisLabel(metric)", APP)
+        self.assertIn("Datenstand ${metric.actual_period}", APP)
+        self.assertIn("PROFILE_SECTION_MERGES", APP)
+        self.assertIn("Stromhandel und Preise", APP)
+        self.assertIn("setDocumentTitle(\"country\")", APP)
+
+    def test_direct_profile_view_cannot_be_replaced_by_default_comparison_initialization(self):
+        initialization = APP[APP.index("loadMetricCatalog()"):]
+        self.assertIn("if (profileUrlState()) {", initialization)
+        self.assertLess(initialization.index("if (profileUrlState()) {"), initialization.rindex("restoreComparisonState()"))
+        self.assertIn("await loadCountryProfile();", initialization)
