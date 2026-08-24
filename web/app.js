@@ -1110,6 +1110,7 @@ async function loadSummary() {
     renderCountryControls();
     renderMapControls();
     renderMap();
+    if (activeProfileCountry) await refreshActiveCountryProfile();
     const periodStatus = data[0]?.period_status;
     const periodNote = periodStatus === "provisional_current_month"
       ? " Laufender Monat: vorläufig."
@@ -1656,7 +1657,7 @@ async function initializeDefaultComparison() {
   renderComparisonControls(DEFAULT_COMPARISON_METRIC);
   updateSelection();
   $("comparison").hidden = false;
-  await applyComparisonPreset("max");
+  await applyComparisonPreset("10y");
 }
 
 async function compare() {
@@ -2397,27 +2398,21 @@ function profileMetricSort(first, second) {
   return first.family.localeCompare(second.family, "de") || firstRank - secondRank || first.label.localeCompare(second.label, "de");
 }
 
-function profileStatusLabel(status) {
-  return {complete: "vollständig", partial: "teilweise", missing: "fehlend", ytd: "YTD", observed: "vorhanden"}[status] || status || "vorhanden";
-}
-
-function profileBasisLabel(metric) {
-  if (metric.temporal_basis === "snapshot") return metric.actual_period ? `Snapshot ${metric.actual_period}` : "Kein Snapshot verfügbar";
-  const prefix = metric.temporal_basis === "monthly" ? "Monatswert" : "Jahreswert";
-  return metric.actual_period ? `${prefix} · Datenstand ${metric.actual_period}` : `${prefix} · kein Datenstand`;
+function profileSourceYear(metric) {
+  const period = String(metric.actual_period || selectedYear());
+  return period.match(/\b\d{4}\b/)?.[0] || "";
 }
 
 function profileMetricCard(metric) {
   const catalogMetric = metricDefinition(metric.id);
   const displayed = formatMetricValue(metric.value, catalogMetric);
   const unit = displayed === "—" ? "" : ` ${metric.unit}`;
-  const warning = metric.warnings?.length ? `<span class="profile-warning" title="${escapeAttribute(metric.warnings.join(" · "))}">Hinweis</span>` : "";
+  const source = [metric.source, profileSourceYear(metric)].filter(Boolean).join(" · ");
   return `<article class="profile-metric${metric.value === null ? " is-missing" : ""}">
     <h4>${escapeHtml(metric.family)}</h4>
     <p class="profile-representation">${escapeHtml(metric.representation)}</p>
     <p class="profile-value">${escapeHtml(displayed)}<small>${escapeHtml(unit)}</small></p>
-    <p class="profile-meta"><span>${escapeHtml(profileBasisLabel(metric))}</span><span>Status: ${escapeHtml(profileStatusLabel(metric.data_status))} · ${escapeHtml(profileStatusLabel(metric.quality_status))}</span>${warning}</p>
-    <p class="profile-source">${escapeHtml(metric.source)}</p>
+    <p class="profile-source">${escapeHtml(source)}</p>
   </article>`;
 }
 
@@ -2460,14 +2455,14 @@ function renderCountryProfile(profile) {
   setDocumentTitle("country");
 }
 
-async function loadCountryProfile() {
+async function loadCountryProfile({scroll = true} = {}) {
   const code = profileUrlState();
   if (!code) return;
   activeProfileCountry = code;
   $("atlas-content").hidden = true;
   $("country-profile").hidden = false;
   $("country-profile").innerHTML = `<p class="hint" role="status">Steckbrief wird geladen …</p>`;
-  $("country-profile").scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
+  if (scroll) $("country-profile").scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
   setDocumentTitle("country");
   try {
     const response = await fetch(`/api/country-profile?country=${encodeURIComponent(code)}&${periodQuery()}`);
@@ -2477,6 +2472,19 @@ async function loadCountryProfile() {
     $("country-profile").innerHTML = `<p class="error">Steckbrief konnte nicht geladen werden: ${escapeHtml(error.message)}</p><button id="profile-back" type="button">Zurück zum Atlas</button>`;
     $("profile-back").addEventListener("click", () => leaveCountryProfile(true));
   }
+}
+
+async function refreshActiveCountryProfile() {
+  if (!activeProfileCountry) return;
+  const params = new URLSearchParams(window.location.search);
+  params.set("view", "country");
+  params.set("country", activeProfileCountry);
+  params.set("year", String(selectedYear()));
+  params.set("period", isMonthView() ? "month" : "year");
+  if (isMonthView()) params.set("month", $("month").value);
+  else params.delete("month");
+  window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+  await loadCountryProfile({scroll: false});
 }
 
 function leaveCountryProfile(pushHistory = false) {

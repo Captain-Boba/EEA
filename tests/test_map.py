@@ -147,6 +147,8 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         style = STYLE_PATH.read_text(encoding="utf-8")
         self.assertIn("table-card.table-card-expanded thead th", style)
         self.assertIn("top: var(--atlas-controls-height)", style)
+        self.assertIn(".table-card:not(.table-card-expanded) thead th", style)
+        self.assertIn("position: static;", style)
         self.assertIn(".table-card.table-card-expanded .table-wrap", style)
         self.assertIn("overflow: visible", style)
         self.assertIn("syncStickyHeaderOffset", app)

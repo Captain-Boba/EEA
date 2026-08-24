@@ -25,6 +25,14 @@ class CountryProfileUiContractTests(unittest.TestCase):
         self.assertIn("function syncControlsFromProfileUrl()", APP)
         self.assertIn("function configureCountryProfileNavigation()", APP)
 
+    def test_active_profile_refreshes_with_the_global_period_controls(self):
+        summary = APP[APP.index("async function loadSummary()"):APP.index("function timeseriesMetrics()")]
+        self.assertIn("if (activeProfileCountry) await refreshActiveCountryProfile();", summary)
+        self.assertIn("async function refreshActiveCountryProfile()", APP)
+        self.assertIn('params.set("year", String(selectedYear()))', APP)
+        self.assertIn('params.set("period", isMonthView() ? "month" : "year")', APP)
+        self.assertIn('await loadCountryProfile({scroll: false});', APP)
+
     def test_profile_does_not_clear_comparison_and_enforces_ten_country_limit(self):
         profile_compare = APP[APP.index("function openProfileInComparison()"):APP.index("function configureCountryProfileNavigation()")]
         self.assertNotIn("selected.clear()", profile_compare)
@@ -32,9 +40,11 @@ class CountryProfileUiContractTests(unittest.TestCase):
         self.assertIn("selected.add(code)", profile_compare)
         self.assertNotIn("loadTimeseries", profile_compare)
 
-    def test_profile_keeps_actual_period_visible_and_merges_trade_price_section(self):
-        self.assertIn("function profileBasisLabel(metric)", APP)
-        self.assertIn("Datenstand ${metric.actual_period}", APP)
+    def test_profile_shows_only_source_and_year_for_metric_provenance(self):
+        self.assertIn("function profileSourceYear(metric)", APP)
+        self.assertIn('[metric.source, profileSourceYear(metric)].filter(Boolean).join(" · ")', APP)
+        self.assertNotIn('class="profile-meta"', APP)
+        self.assertNotIn('class="profile-warning"', APP)
         self.assertIn("PROFILE_SECTION_MERGES", APP)
         self.assertIn("Stromhandel und Preise", APP)
         self.assertIn("setDocumentTitle(\"country\")", APP)

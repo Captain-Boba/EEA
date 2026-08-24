@@ -4,6 +4,8 @@ Stand: 25. August 2026
 
 Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktentscheidungen. Historische K2-Arbeitsaufträge sind als solche gekennzeichnet und gelten nicht als aktuelle Spezifikation.
 
+Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROADMAP.md](BETA_ROADMAP.md).
+
 ## Aktuelle Arbeitsprioritäten
 
 ### 1. Europa Overload responsiv abschließen
@@ -126,7 +128,7 @@ Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktent
 
 ### Qualitätssicherung
 
-- Der vollständige lokale Stand besteht am 25. August 2026 aus 141 erfolgreichen automatisierten Tests.
+- Der vollständige lokale Stand besteht am 25. August 2026 aus 143 erfolgreichen automatisierten Tests.
 - Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures und führt keine Live-Imports aus.
 - Karte, Flaggen, Logo und Diagramme sind lokale Assets. Nur der ausdrücklich aktivierte Europa-Overload-Modus lädt Wikimedia-Commons-Bilder.
 - Der ältere K2-Auftrag `docs/K2_DATA_EXPANSION_UI_INTEGRATION.md` bleibt als archivierte Übergabedokumentation erhalten.
