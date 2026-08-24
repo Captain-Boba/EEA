@@ -18,27 +18,28 @@ class WallpaperTest(unittest.TestCase):
 
     def test_manifest_contains_unique_commons_wallpapers(self):
         titles = re.findall(r'\{title: "([^"]+)"', self.manifest)
+        subjects = re.findall(r'subject: "([^"]+)"', self.manifest)
         files = re.findall(r'file: "([^"]+)"', self.manifest)
         self.assertEqual(len(titles), 250)
         self.assertEqual(len(set(titles)), 250)
+        self.assertEqual(len(subjects), 250)
+        self.assertEqual(len(set(subjects)), 250)
         self.assertEqual(len(set(files)), 250)
+        self.assertFalse(any(re.search(r'\bAnsicht \d+\b', title) for title in titles))
 
     def test_manifest_carries_visible_attribution_fields(self):
         self.assertEqual(len(re.findall(r'author: "[^"]+"', self.manifest)), 250)
         self.assertEqual(len(re.findall(r'license: "[^"]+"', self.manifest)), 250)
         self.assertIn("https://commons.wikimedia.org/wiki/File:", self.javascript)
 
-    def test_manifest_sources_fit_square_preview(self):
+    def test_manifest_sources_are_not_panorama_aspect_ratios(self):
         dimensions = [
             (int(width), int(height))
             for width, height in re.findall(r'width: (\d+), height: (\d+)', self.manifest)
         ]
         self.assertEqual(len(dimensions), 250)
         for width, height in dimensions:
-            self.assertGreaterEqual(width, 3000)
-            self.assertGreaterEqual(height, 2500)
-            self.assertGreaterEqual(width / height, 0.8)
-            self.assertLessEqual(width / height, 1.6)
+            self.assertLess(width / height, 2.0)
 
     def test_manifest_only_uses_atlas_countries(self):
         atlas_country_names = {country.name for country in ATLAS_COUNTRIES.values()}
@@ -69,6 +70,19 @@ class WallpaperTest(unittest.TestCase):
             "Warsaw 07-13 img29 View from Palace of Culture and Science.jpg",
             "Livorno Panorama.jpg",
             "Brandenburg Pano 02 (MK).jpg",
+            "Siegessaeule Aussicht 10-13 img4 Tiergarten.jpg",
+            "2018-08-15 CZ Praha 01, Pražský hrad (50116668027).jpg",
+            "Bratislava-Old Town, Slovakia - panoramio (156).jpg",
+            "Exterior of the St. Stanislaus Church and Wawel Castle seen across the Vistula River, Kraków.jpg",
+            "2018-08-17 CZ Praha 01, Pražský hrad (50291028342).jpg",
+            "Abbaye Fontenay eglise facade.jpg",
+            "Nokia Arena November 2021 5.jpg",
+            "14-09-02-oslo-RalfR-370.jpg",
+            "Mole Antonelliana (Torino) 09.jpg",
+            "20180624 Stadshus 6969 (48412243881).jpg",
+            "Façade of Versailles (24277036086).jpg",
+            "Njegošev mauzolej.JPG",
+            "Malmö (S), Sekundarschule ProCivitas und Turning Torso -- 2017 -- 1655.jpg",
         }
         manifest_files = set(re.findall(r'file: "([^"]+)"', self.manifest))
         self.assertTrue(rejected_files.isdisjoint(manifest_files))

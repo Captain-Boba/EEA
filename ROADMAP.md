@@ -1,6 +1,6 @@
 # European Electricity Atlas – Roadmap
 
-Stand: 22. August 2026
+Stand: 24. August 2026
 
 Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktentscheidungen. Historische K2-Arbeitsaufträge sind als solche gekennzeichnet und gelten nicht als aktuelle Spezifikation.
 
@@ -138,7 +138,7 @@ Dieser Punkt ist vor der öffentlichen Beta verpflichtend.
 
 ### Qualitätssicherung
 
-- Der vollständige lokale Stand besteht am 22. August 2026 aus 124 erfolgreichen automatisierten Tests.
+- Der vollständige lokale Stand besteht am 24. August 2026 aus 124 erfolgreichen automatisierten Tests.
 - Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures und führt keine Live-Imports aus.
 - Karte, Flaggen, Logo und Diagramme sind lokale Assets. Nur der ausdrücklich aktivierte Europa-Overload-Modus lädt Wikimedia-Commons-Bilder.
 - Der ältere K2-Auftrag `docs/K2_DATA_EXPANSION_UI_INTEGRATION.md` bleibt als archivierte Übergabedokumentation erhalten.
