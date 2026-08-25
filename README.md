@@ -1,6 +1,10 @@
 # European Electricity Atlas
 
-A local, interactive atlas for comparing European electricity systems. The web interface combines a metric-driven map of Europe with sortable rankings, country comparisons, and transparent information about data status and sources.
+An open, interactive atlas for comparing European electricity systems. The web interface combines a metric-driven map of Europe with sortable rankings, country profiles, time-series comparisons, and transparent information about data status and sources.
+
+**[Open the Atlas](https://ee-atlas.eu)** · [Latest release](https://github.com/Captain-Boba/EEA/releases/latest) · [Project and contact](https://ee-atlas.eu/contact.html) · [Privacy and cookies](https://ee-atlas.eu/privacy.html)
+
+The public beta is desktop-first and covers 31 European countries from 2015 onwards. Missing, provisional, YTD, annual, monthly, and snapshot values remain visibly distinct instead of being silently filled or mixed.
 
 ## The interface
 
@@ -8,19 +12,19 @@ A local, interactive atlas for comparing European electricity systems. The web i
 
 The main country table compares all 31 Atlas countries using consistently formatted metrics. Every metric column has explicit ascending and descending controls and can be opened directly as a map layer, while rank numbers always follow the active sorting. Countries are added to the time-series comparison through their rank control, and the sticky control bar keeps the year, period, and comparison selection within reach while scrolling.
 
-[![Sortable country ranking in the European Electricity Atlas](docs/images/Energy%20Systems%20-%20Main%20Ranking%20V2.png)](docs/images/Energy%20Systems%20-%20Main%20Ranking%20V2.png)
+[![Sortable country ranking in the European Electricity Atlas](docs/images/Energy%20Systems%20-%20Main%20Ranking%20V3.png)](docs/images/Energy%20Systems%20-%20Main%20Ranking%20V3.png)
 
 ### Every metric on the map of Europe
 
 The fully local SVG map visualizes absolute, share, yearly per-capita, and cross-domain metrics with family-specific color scales and visible country values. Metric family and representation are selected independently through grouped Atlas menus. A country can be pinned without changing the comparison selection and cleared again by selecting the surrounding map background. The legend identifies the minimum and maximum countries together with the Atlas average. In fullscreen mode, the legend remains available beside the map. The current map state can be exported as SVG or PNG, including its title, period, unit, color scale, and legend.
 
-[![Fullscreen map showing low-carbon electricity generation across Europe](docs/images/Map%20Tool%20V2.png)](docs/images/Map%20Tool%20V2.png)
+[![Fullscreen map showing low-carbon electricity generation across Europe](docs/images/Map%20Tool%20V3.png)](docs/images/Map%20Tool%20V3.png)
 
 ### Time series for up to ten countries
 
 The time-series comparison combines monthly or annual values with an Atlas average and a live ranking. Grouped metric-family selection, a full-baseline or visible-data-range Y-axis, and preset ranges from YTD to the complete available history complement the custom date range. Relative changes use the first year of the selected range as their baseline; monthly values are compared with the same calendar month in that baseline year. Missing values remain visible as genuine gaps in the lines. The live ranking follows the pointer at a deliberately moderated rate and can be pinned with a click. The current comparison, including its Y-axis mode, can be shared through a direct link or exported locally as CSV, SVG, and PNG.
 
-[![Time-series comparison with country lines, Atlas average, and live ranking](docs/images/Comparison%20Tool%20V2.png)](docs/images/Comparison%20Tool%20V2.png)
+[![Time-series comparison with country lines, Atlas average, and live ranking](docs/images/Comparison%20Tool%20V3.png)](docs/images/Comparison%20Tool%20V3.png)
 
 ### Country profiles with transparent reporting periods
 
@@ -45,14 +49,13 @@ Select a country name in a ranking or use the focused-country action on the map 
 - an optional **Europa Overload** mode with 250 attributed European postcards, fullscreen gallery navigation, and public score-based voting
 - visible coverage gaps, provisional periods, and YTD values instead of fabricated zeroes
 
-## Quick start with a ready-made data snapshot
+## Run the Atlas locally
 
 ### Prerequisites
 
 - Windows with PowerShell
 - Git
 - Python 3.11 or newer
-- access to this private GitHub repository
 
 Clone the repository and create a local Python environment:
 
@@ -73,6 +76,8 @@ Start the server:
 ```
 
 Open [http://127.0.0.1:8765](http://127.0.0.1:8765). Press `Ctrl+C` to stop the server; it is stopped once the PowerShell prompt returns.
+
+The hosted beta runs at [ee-atlas.eu](https://ee-atlas.eu). Local operation remains useful for development, data review, and testing unreleased changes without affecting the public service.
 
 ## Data sources
 

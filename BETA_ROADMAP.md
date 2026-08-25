@@ -1,8 +1,8 @@
 # European Electricity Atlas – Fahrplan zur öffentlichen Beta
 
 Stand: 25. August 2026  
-Akzeptierte Git-Basis: `5955718` (`feat(deploy): add reproducible Railway beta configuration`)
-Aktueller Arbeitsstand: Railway-Testadresse online; öffentliche Kernpfade, Neustartpersistenz und ein heruntergeladenes Community-Backup sind nachgewiesen. Projekt- und Datenschutzhinweise werden für den nächsten Release Candidate ergänzt.
+Akzeptierte Release-Candidate-Basis: `fd9ed6e` (`feat(beta): add public project and privacy information`)
+Aktueller Arbeitsstand: Railway-Testadresse und persistente Datenbanken sind online, öffentliche Projekt-, Kontakt- und Datenschutzhinweise sind veröffentlicht und `ee-atlas.eu` ist per DNS mit dem Dienst verbunden. Die Zertifizierungsstelle validiert derzeit die HTTPS-Challenge; danach folgen Origin-Umschaltung, Domain-Smoke-Test und Veröffentlichung von `v0.4.0` mit dem Titel `Beta`.
 
 ## Zielzustand
 
@@ -90,7 +90,7 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 - [ ] Stimme mit zwei Browserprofilen ändern und entfernen.
 - [ ] Ausfall der Voting-API simulieren: Galerie bleibt bedienbar, erfundene Ergebnisse erscheinen nicht.
 - [ ] Kernpfade mindestens in Firefox und einem Chromium-basierten Browser prüfen.
-- [ ] Projekt-, Kontakt-, Datenschutz- und Cookieinformationen veröffentlichen; die technische Fassung ist vorbereitet, eine vom Betreiber gewählte öffentliche Kontaktmöglichkeit und eine fachliche Prüfung bleiben dessen Freigabeentscheidung.
+- [x] Projekt-, Kontakt-, Datenschutz- und Cookieinformationen mit öffentlicher Kontaktmöglichkeit veröffentlichen.
 
 **Gate Testadresse:** Es existiert eine unterschriebene beziehungsweise ausdrücklich bestätigte Abnahmeliste ohne offenen Fehler, der Daten verfälscht, Navigation blockiert, Stimmen verliert oder Exporte unbrauchbar macht.
 
@@ -98,26 +98,28 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 
 - [ ] Vollständige Testsuite, JavaScript-Syntaxprüfungen und `git diff --check` auf dem Release Candidate ausführen.
 - [ ] Sauberen Git-Status sowie Übereinstimmung von lokalem und Remote-Commit bestätigen.
-- [ ] Versionsnummer, Release Notes und aktuelle Vorschaubilder vorbereiten.
+- [x] Versionsnummer `v0.4.0` und Release-Titel `Beta` festlegen.
+- [ ] Finale Release Notes und aktuelle Vorschaubilder vorbereiten.
 - [ ] Geprüftes `atlas.sqlite3` mit SHA-256-Prüfsumme als Release-Artefakt bereitstellen.
 - [ ] Sicherstellen, dass `community.sqlite3`, WAL-Dateien, Schlüssel und lokale Logs nicht im Release enthalten sind.
 - [ ] Rollback auf die vorherige Anwendungsversion und den vorherigen Analysedatensatz dokumentieren.
 - [ ] Zunächst den finalen Release Candidate auf der Testadresse deployen.
-- [ ] Erst nach letzter Abnahme DNS für `ee-atlas.eu` verbinden.
-- [ ] Unmittelbar nach DNS-Umschaltung Healthcheck, Kernnavigation und eine Teststimme erneut prüfen.
+- [x] DNS für `ee-atlas.eu` nach Abnahme der Railway-Testadresse verbinden.
+- [ ] Railways Zertifikatsvalidierung abschließen und `EEA_PUBLIC_ORIGIN` exakt auf `https://ee-atlas.eu` umstellen.
+- [ ] Unmittelbar danach Healthcheck, Kernnavigation und eine Teststimme über `https://ee-atlas.eu` erneut prüfen.
 
 **Gate Beta:** Domain, HTTPS, Atlasdaten, Community-Datenbank und Kernfunktionen sind erreichbar; ein getesteter Rollbackweg steht bereit.
 
 ## Empfohlene Arbeitspakete
 
-1. **Öffentliche Hinweise abschließen**
-   Projekt-, Kontakt- und Datenschutzseiten veröffentlichen und die Betreiberangaben vor der Domainumschaltung freigeben.
-
-2. **Railway-Testadresse fertig abnehmen**
+1. **Railway-Testadresse fertig abnehmen**
    Exporte, Overload-Galerie, zwei Browserprofile und Firefox/Chromium kompakt prüfen; keine weitere Hostingarchitektur aufbauen.
 
+2. **Produktionsdomain freigeben**
+   Zertifikatsvalidierung abwarten, öffentliche Origin umstellen und Healthcheck, Kernnavigation sowie eine Teststimme über `ee-atlas.eu` prüfen.
+
 3. **K1 – Release-Candidate-Abnahme**
-   Dokumentation konsolidieren, CI prüfen, Version und Release Notes festlegen und anschließend die Domainumschaltung freigeben.
+   Dokumentation konsolidieren, CI prüfen, Release Notes und neue Vorschaubilder ergänzen und anschließend `v0.4.0` als `Beta` veröffentlichen.
 
 Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Künftige Komplett-Refreshes verwenden ausschließlich den dokumentierten `refresh-all`-Lebenszyklus; lose `pre-refresh`, `refresh-candidate`, `attempt2` oder Testdatenbanken gehören nicht zum unterstützten Zustand.
 
@@ -139,8 +141,7 @@ Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Kü
 ## Noch notwendige Produktentscheidungen
 
 - zuständige Person für Betrieb, Backups und Störungsreaktion
-- Inhalt und verantwortliche Angaben der öffentlichen Betreiber-, Kontakt- und Datenschutzhinweise
-- gewünschte Beta-Versionsnummer und Veröffentlichungsdatum
+- Veröffentlichungsdatum nach erfolgreichem Domain-Smoke-Test
 
 ## Definition of Done
 

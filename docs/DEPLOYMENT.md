@@ -61,8 +61,10 @@ The minimum Railway service setup is:
    exact `https://...up.railway.app` origin.
 7. Keep one replica while the writable community store remains SQLite.
 
-The accepted beta service uses `https://eea-production.up.railway.app`, the
-Railway healthcheck path `/api/health`, and this effective start command:
+The beta service uses `https://ee-atlas.eu` as its public origin. The generated
+`https://eea-production.up.railway.app` address remains a technical Railway
+fallback and is not the address advertised to users. The service uses the
+Railway healthcheck path `/api/health` and this effective start command:
 
 ```text
 PYTHONPATH=src python -m electricity_atlas.cli --db /data/atlas.sqlite3 serve --community-db /data/community.sqlite3 --host 0.0.0.0 --port $PORT --require-existing-db
@@ -70,8 +72,18 @@ PYTHONPATH=src python -m electricity_atlas.cli --db /data/atlas.sqlite3 serve --
 
 The start command uses `--require-existing-db`; a missing, empty, or invalid
 Atlas snapshot therefore fails closed instead of publishing an empty Atlas.
-After acceptance on the Railway domain, attach the production domain and
-replace `EEA_PUBLIC_ORIGIN` with its exact HTTPS origin.
+The production domain is attached in the service's **Settings → Networking →
+Public Networking** section. Railway supplies a routing target and a separate
+TXT ownership challenge. The root domain uses the DNS provider's dynamic
+ALIAS/CNAME-flattening record, while the TXT challenge is copied exactly from
+Railway. Any conflicting parking A record for the root domain must be removed;
+nameserver and SOA records remain untouched.
+
+Wait until Railway has accepted both DNS records and completed certificate
+authority validation before advertising the domain. Then set
+`EEA_PUBLIC_ORIGIN=https://ee-atlas.eu`, deploy the resulting configuration,
+and verify `/api/health`, core navigation, and a vote submission through the
+custom HTTPS domain. Do not add a trailing slash or path to the origin value.
 
 ## Data volumes and replacement
 

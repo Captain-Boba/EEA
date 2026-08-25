@@ -18,17 +18,17 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 **Abnahme:** Der neue Datenbankhash, die acht Quellenpfade, die aktualisierten Berichte und die dokumentierten Stichproben bilden denselben akzeptierten Datenstand ab.
 
-### 2. Öffentliche Beta vorbereiten
+### 2. Öffentliche Beta veröffentlichen
 
-- Den aktuellen SQLite- und Standardbibliothek-Ansatz beibehalten; keine neue Datenbanktechnik und keine unnötige Infrastruktur einführen.
-- Host und Port konfigurierbar machen, einen hostinggeeigneten Start und den vorhandenen Healthcheck absichern sowie feste Windows-Pfade ausschließen.
-- Den Datenbankpfad für einen persistenten, read-only Hostingbetrieb konfigurierbar machen. Die getrennte Community-Datenbank für öffentliche Stimmen benötigt einen konfigurierbaren persistenten Schreibpfad und ein dokumentiertes Backupverfahren. Datenupdates bleiben zunächst der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → neuer Deploy`.
-- Keine Importfunktion über die Weboberfläche und keinen automatischen Scheduler als Startvoraussetzung einführen.
-- Zuerst eine Hoster-Testadresse vollständig prüfen. DNS für `ee-atlas.eu` erst nach erfolgreicher Abnahme verbinden.
-- Deployment, Umgebungsvariablen, Datenbankaustausch und spätere Domainverbindung in einer verständlichen Schrittfolge dokumentieren.
-- Die GitHub-Actions-Pipeline auf jedem Release Candidate grün ausführen; die lokale Suite deckt zusätzlich Kennzahlenbeschriftung und den vollständigen Refresh-Lebenszyklus ab.
+- Railway Hobby betreibt den Atlas mit einem persistenten Volume unter `/data`, einer ausschließlich lesend geöffneten `atlas.sqlite3` und einer getrennten beschreibbaren `community.sqlite3`.
+- Host, Port und Datenbankpfade sind laufzeitkonfigurierbar. `/api/health` überwacht beide Datenbanken, und `--require-existing-db` verhindert den Start mit einem fehlenden oder ungültigen Analysedatensatz.
+- Die Hoster-Testadresse, Prozessneustart, Stimmenpersistenz, Datenbanktausch und ein extern gesichertes Community-Backup sind praktisch geprüft und in `docs/DEPLOYMENT.md` dokumentiert.
+- Projekt-, Kontakt-, Datenschutz- und Cookieinformationen sind öffentlich erreichbar.
+- `ee-atlas.eu` ist per DNS mit Railway verbunden. Nach Abschluss der Zertifikatsvalidierung wird `EEA_PUBLIC_ORIGIN` auf die endgültige HTTPS-Origin umgestellt und der Domain-Smoke-Test ausgeführt.
+- Danach werden die aktuelle README, Release Notes, Vorschaubilder und der geprüfte Datenbanksnapshot für `v0.4.0` mit dem Titel `Beta` veröffentlicht.
+- Datenupdates bleiben der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → Datenbanktausch`; der Webserver führt weder Importe noch automatische Hintergrundaktualisierungen aus.
 
-**Abnahme:** Lokaler Windowsbetrieb und hostingähnlicher Betrieb starten reproduzierbar; Atlas, API, Direktlinks, Vollbildansichten und Exporte sind an der Testadresse geprüft. Erst danach wird die Domain verbunden und die Beta veröffentlicht.
+**Abnahme:** `https://ee-atlas.eu`, Healthcheck, Kernnavigation, Exporte und öffentliche Abstimmung funktionieren über die endgültige Domain; CI ist auf dem finalen Release-Commit grün und der Release enthält ausschließlich die vorgesehenen Artefakte.
 
 ### 3. Haupttabelle fachlich erweitern
 
