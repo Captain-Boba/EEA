@@ -1,8 +1,8 @@
 # European Electricity Atlas – Fahrplan zur öffentlichen Beta
 
 Stand: 25. August 2026  
-Akzeptierte Git-Basis: `ec73169` (`fix: polish atlas interactions and document the beta path`)
-Aktueller Arbeitsstand: uncommitteter, gemeinsam geprüfter Beta-Kandidat mit CI-, Hosting-, UI-Abnahme- und Datenvalidierungsarbeiten
+Akzeptierte Git-Basis: `2fa4886` (`feat(storage): import JRC data through official dashboard exports`)
+Aktueller Arbeitsstand: uncommittierter Beta-Kandidat mit freigegebenem Datenstand, dreiteiliger Kennzahlenbeschriftung und bereinigtem Komplett-Refresh-Lebenszyklus
 
 ## Zielzustand
 
@@ -21,9 +21,11 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 - [x] Öffentliche Daumenstimmen werden mit Score und geteilten Rangplätzen serverseitig ausgewertet.
 - [x] Stimmen liegen getrennt vom austauschbaren Analysedatensatz in `community.sqlite3`.
 - [x] Browserkennungen werden nur gehasht gespeichert; Same-Origin-Prüfung, kleine Requestkörper und ein einfacher Rate-Limiter sind vorhanden.
-- [x] Die lokale Testsuite umfasst 155 erfolgreiche Tests; sie verwendet keine Live-Imports.
-- [x] Eine GitHub-Actions-Pipeline für Python 3.11, Node 22, JavaScript-Syntax und die vollständige Testsuite ist vorbereitet; der erste Lauf auf GitHub steht bis zum Push noch aus.
+- [x] Die lokale Testsuite verwendet ausschließlich lokale Fixtures und führt keine Live-Imports aus; Kennzahlenbeschriftung und Refresh-Lebenszyklus besitzen eigene Verträge.
+- [x] Eine GitHub-Actions-Pipeline für Python 3.11, Node 22, JavaScript-Syntax und die vollständige Testsuite ist eingerichtet; ein grüner Lauf des finalen Release Candidate bleibt Pflicht.
 - [x] Portable Laufzeitparameter, strikter Datenbankstart, komponentenbezogener Healthcheck und ein konsistenter Community-Backupbefehl sind lokal umgesetzt und dokumentiert.
+- [x] Alle sichtbaren Kennzahlen verwenden einen gemeinsamen Dreiklang aus Thema, Messgröße und Einheit beziehungsweise Bezugsgröße.
+- [x] Der vollständige Refresh arbeitet mit einem isolierten Kandidaten, schützt die Community-Datenbank und räumt temporäre Datenbanken nach Abschluss wieder auf.
 
 ## Kritischer Pfad
 
@@ -41,19 +43,19 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 
 ### 2. Datenstand für die Beta freigeben
 
-- [ ] Finales `atlas.sqlite3` aus dem kontrollierten Importablauf erzeugen.
-- [ ] Datenbankintegrität, 31-Länder-Katalog, Zeitabdeckung und fehlende Werte automatisiert prüfen.
-- [ ] Ember-Werte für eine repräsentative Auswahl manuell gegen die Quelle prüfen, mindestens DE, FR, UK, ES und NO. Die Türkei ist bewusst kein Atlasland.
-- [ ] Je Stichprobenland mindestens Erzeugung, Verbrauch, erneuerbare Erzeugung, erneuerbaren Anteil und eine Technologie prüfen.
-- [ ] Monats- und Jahreswerte sowie aktuelle YTD-/Vorläufigkeitskennzeichnung abdecken.
-- [ ] Die fünf verknüpften Jahreskennzahlen anhand ihrer Eingangsgrößen stichprobenartig nachrechnen.
-- [ ] Echte Nullwerte klar von fehlenden Werten unterscheiden.
-- [ ] `COVERAGE.generated.md` und `SUMMARY.generated.json` für den finalen Datenstand neu erzeugen.
-- [ ] Den historischen Energy-Charts-Validierungsbericht nicht als aktuelle Validierung ausliefern; aktuellen Bericht erzeugen oder den historischen Bericht eindeutig außerhalb des Beta-Artefakts halten.
+- [x] Finales `atlas.sqlite3` aus dem kontrollierten Importablauf erzeugen.
+- [x] Datenbankintegrität, 31-Länder-Katalog, Zeitabdeckung und fehlende Werte automatisiert prüfen.
+- [x] Ember-Werte für DE, FR, UK, ES und NO gegen die gespeicherten offiziellen Quellantworten prüfen. Die Türkei ist bewusst kein Atlasland.
+- [x] Je Stichprobenland Erzeugung, Verbrauch, erneuerbare Erzeugung, erneuerbaren Anteil und eine landestypische Technologie prüfen.
+- [x] Monats- und Jahreswerte sowie aktuelle YTD-/Vorläufigkeitskennzeichnung abdecken.
+- [x] Die fünf verknüpften Jahreskennzahlen anhand ihrer Eingangsgrößen stichprobenartig nachrechnen.
+- [x] Echte Nullwerte klar von fehlenden Werten unterscheiden.
+- [x] `COVERAGE.generated.md` und `SUMMARY.generated.json` für den finalen Datenstand neu erzeugen.
+- [x] Den historischen Energy-Charts-Bericht ausdrücklich von der aktuellen Ember-Validierung trennen.
 - [x] Der Projekteigentümer akzeptiert die vorläufige nichtkommerzielle Beta-Nutzung aggregierter Werte aus dem JRC European Energy Storage Inventory bei klarer Attribution sowie Schätzungs- und Unvollständigkeitshinweisen. Eine weitergehende Rechteklärung oder spätere Ablösung durch Ember ist Post-Beta-Arbeit; eine rechtliche Freigabe wird damit nicht behauptet.
 - [x] Der technische JRC-Refresh nutzt die offizielle Dashboard-Oberfläche mit sichtbaren Filtern für Operational, Electrochemical und Pumped Hydro Storage (PHS); die vier XLSX-Exporte werden nur nach vollständiger Validierung atomar übernommen.
 
-**Gate Daten:** K4 hat den bisherigen Kandidaten technisch erfolgreich geprüft; 140 von 140 durchführbaren Ember-Einzelvergleichen und die fünf Kreuznachrechnungen bestanden. Vor der Freigabe fehlen noch der einmalige kontrollierte Komplett-Refresh, ein neuer Datenbankhash sowie dazu passende Coverage-, Summary- und Validierungsberichte.
+**Gate Daten:** **READY FOR BETA – OWNER RISK ACCEPTED.** Der vollständige Refresh ist veröffentlicht; 140/140 Ember-Einzelprüfungen und 15/15 Kreuznachrechnungen bestanden. Datenbank, Coverage, Summary und Validierungsbericht beziehen sich auf SHA-256 `433CD46792264F366EC8DF51B52521B44034F7CAAE7C68DF289A704254A93B50`.
 
 ### 3. Hostingpaket herstellen
 
@@ -68,7 +70,7 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 - [x] `/api/health` meldet Atlas- und Community-Datenbankzustand ohne lokale Pfade; Aufnahme in den realen Hoster-Healthcheck steht aus.
 - [ ] Zugriffs- und Fehlerlogs mit begrenzter Aufbewahrung bereitstellen; keine API-Schlüssel oder Browserkennungen protokollieren.
 - [x] SQLite-konsistenten Backupbefehl für `community.sqlite3` lokal umsetzen und mit temporären Daten testen; realen Hoster-Backupplan später einrichten.
-- [ ] Austausch von `atlas.sqlite3` testen, ohne `community.sqlite3` oder Stimmen zu verlieren.
+- [x] Isolierten Austausch von `atlas.sqlite3` einschließlich Rollback und automatischer Bereinigung testen, ohne `community.sqlite3` oder Stimmen zu verändern.
 - [x] Deployment, Umgebungsvariablen, Datenbanktausch, Backup und Rollback in `docs/DEPLOYMENT.md` dokumentieren.
 
 **Gate Hosting:** Neustart, Healthcheck, Datenbanktausch, Voting-Persistenz, Backup und Restore wurden auf der Hoster-Testadresse nachgewiesen.
@@ -105,8 +107,8 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 
 ## Empfohlene Arbeitspakete
 
-1. **K4 – Kontrollierter Komplett-Refresh und finales Datengate**
-   Alle acht Datenpfade genau einmal schonend aktualisieren, einen validierten Kandidaten statt einer Teilaktualisierung veröffentlichen und Reports sowie Prüfsummen neu erzeugen.
+1. **K1 – Aktuellen Beta-Kandidaten konsolidieren**
+   Kennzahlenbeschriftung, Refresh-Lebenszyklus, aktualisierte Berichte und Dokumentation als einen nachvollziehbaren Commit abgrenzen; anschließend den CI-Lauf prüfen.
 
 2. **K2 – Reportvertrag bereinigen**
    CLI-Hilfe, tatsächlich erzeugte Coverage-/Summary-Artefakte und Dokumentation angleichen; keine Daten fachlich verändern.
@@ -117,7 +119,7 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 4. **K1 – Release-Candidate-Abnahme**  
    Nachweise zusammenführen, offene Punkte priorisieren, Releaseumfang festlegen und die Domainumschaltung erst nach bestandenem Gate freigeben.
 
-Der aktuelle gemeinsame Arbeitsbaum wird erst nach Abschluss der laufenden Einheiten dokumentiert geprüft und committed. Der Datenrefresh arbeitet auf einer gesicherten Kandidatenkopie und verändert keine fremde Code-Diff.
+Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Künftige Komplett-Refreshes verwenden ausschließlich den dokumentierten `refresh-all`-Lebenszyklus; lose `pre-refresh`, `refresh-candidate`, `attempt2` oder Testdatenbanken gehören nicht zum unterstützten Zustand.
 
 ## Kein Beta-Blocker
 

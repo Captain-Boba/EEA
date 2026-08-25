@@ -16,6 +16,7 @@ from .ember_importer import EmberImporter
 from .eurostat_importer import EurostatImporter
 from .eurostat_supplement import EurostatSupplementImporter
 from .eea_ghg_importer import EeaGhgImporter
+from .full_refresh import run_full_refresh
 from .hydro_importer import JrcHydroImporter
 from .price_importer import WholesalePriceImporter
 from .server import serve
@@ -108,6 +109,21 @@ def build_parser() -> argparse.ArgumentParser:
     report_parser.add_argument("--year", type=int, default=2025)
     report_parser.add_argument("--output", type=Path, default=Path("data/reports"))
 
+    refresh_parser = subparsers.add_parser(
+        "refresh-all",
+        help="Refresh every Atlas source through an isolated, rollback-safe lifecycle",
+    )
+    refresh_parser.add_argument("--from-year", type=int, default=2015)
+    refresh_parser.add_argument("--to-year", type=int)
+    refresh_parser.add_argument("--battery-energy-file", type=Path, required=True)
+    refresh_parser.add_argument("--battery-power-file", type=Path, required=True)
+    refresh_parser.add_argument("--eea-file", type=Path)
+    refresh_parser.add_argument(
+        "--refresh-report",
+        type=Path,
+        help="Compact lifecycle report; default data/reports/REFRESH.generated.json",
+    )
+
     subparsers.add_parser("reset-db", help="Delete the local SQLite database")
     return parser
 
@@ -151,6 +167,22 @@ def main(argv: list[str] | None = None) -> int:
     args.db = args.db or DEFAULT_DB
     if args.command == "reset-db":
         print("Database deleted." if reset(args.db) else "Database did not exist.")
+        return 0
+    if args.command == "refresh-all":
+        try:
+            result = run_full_refresh(
+                args.db,
+                from_year=args.from_year,
+                to_year=args.to_year,
+                battery_energy_file=args.battery_energy_file,
+                battery_power_file=args.battery_power_file,
+                eea_file=args.eea_file,
+                report_path=args.refresh_report,
+            )
+        except Exception as exc:
+            print(f"Full refresh aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
         return 0
     if args.command == "import-prices":
         try:

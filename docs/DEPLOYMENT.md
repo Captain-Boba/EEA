@@ -40,6 +40,8 @@ Do not let a reverse proxy’s client-supplied `Host` or `X-Forwarded-*` headers
 
 Treat `atlas.sqlite3` as a versioned, read-only release snapshot. Mount or copy it from persistent storage, start the server with `--require-existing-db`, and replace it only in a controlled maintenance step.
 
+For a complete source refresh, use the isolated [`refresh-all` lifecycle](DATA_REFRESH.md). It builds the candidate and rollback database under the Git-ignored `data/.refresh-work/<run-id>/`, checks Windows replacement locks before network access, publishes the validated candidate atomically where possible, and removes its temporary databases and sidecars after success. Persistent fallback copies do not remain in `data/` by default. The community vote database is never part of this lifecycle.
+
 Treat `community.sqlite3` as a separate persistent volume. It contains public vote state and must never be replaced by an Atlas dataset or included in a data release. Keep Ember keys and all other secrets outside both SQLite files and outside release assets.
 
 To update the Atlas snapshot safely:

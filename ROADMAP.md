@@ -8,12 +8,12 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 ## Aktuelle Arbeitsprioritäten
 
-### 1. Finalen Beta-Datenstand erzeugen und freigeben
+### 1. Finalen Beta-Datenstand pflegen – Datengate abgeschlossen
 
-- Alle vorhandenen Datenpfade genau einmal kontrolliert und sequenziell aktualisieren: Ember-Kernwerte, Ember-Preise, Eurostat-Kern und -Zusatzdaten, EEA-Inventaremissionen, JRC-Wasserkraft, Battery-Charts und JRC-Speicherinventar.
-- Vor dem Refresh eine konsistente Sicherung anlegen und alle Importe zunächst auf einer Kandidatenkopie ausführen. Nur einen vollständig geprüften Kandidaten veröffentlichen.
-- Datenbankintegrität, 31-Länder-Katalog, Zeitabdeckung, Null-/Fehlwerttrennung, Ember-Stichproben und Kreuzkennzahlen erneut prüfen.
-- `COVERAGE.generated.md`, `SUMMARY.generated.json` und `BETA_DATA_VALIDATION.md` an den finalen Datenbankhash binden.
+- Der vollständige Refresh vom 25. August 2026 hat alle acht Datenpfade sequenziell aktualisiert und den validierten Kandidaten als `data/atlas.sqlite3` veröffentlicht.
+- Datenbankintegrität, 31-Länder-Katalog, Zeitabdeckung, Null-/Fehlwerttrennung, 140 Ember-Einzelstichproben und 15 Kreuznachrechnungen sind im aktuellen Validierungsbericht dokumentiert.
+- `COVERAGE.generated.md`, `SUMMARY.generated.json` und `BETA_DATA_VALIDATION.md` beziehen sich auf denselben veröffentlichten Datenstand mit SHA-256 `433CD46792264F366EC8DF51B52521B44034F7CAAE7C68DF289A704254A93B50`.
+- Der neue `refresh-all`-Ablauf erstellt Kandidat und Rückfallkopie nur noch unter `data/.refresh-work/<run-id>/`, schützt `community.sqlite3` und räumt temporäre Datenbanken sowie Sidecars nach Erfolg oder kontrolliertem Fehler wieder auf.
 - Die Türkei bleibt bewusst außerhalb des Atlas und ist kein Prüf- oder Erweiterungsziel.
 
 **Abnahme:** Der neue Datenbankhash, die acht Quellenpfade, die aktualisierten Berichte und die dokumentierten Stichproben bilden denselben akzeptierten Datenstand ab.
@@ -26,7 +26,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - Keine Importfunktion über die Weboberfläche und keinen automatischen Scheduler als Startvoraussetzung einführen.
 - Zuerst eine Hoster-Testadresse vollständig prüfen. DNS für `ee-atlas.eu` erst nach erfolgreicher Abnahme verbinden.
 - Deployment, Umgebungsvariablen, Datenbankaustausch und spätere Domainverbindung in einer verständlichen Schrittfolge dokumentieren.
-- Die vorbereitete GitHub-Actions-Pipeline nach dem ersten Push tatsächlich grün ausführen; lokal bestehen derzeit 155 Tests.
+- Die GitHub-Actions-Pipeline auf jedem Release Candidate grün ausführen; die lokale Suite deckt zusätzlich Kennzahlenbeschriftung und den vollständigen Refresh-Lebenszyklus ab.
 
 **Abnahme:** Lokaler Windowsbetrieb und hostingähnlicher Betrieb starten reproduzierbar; Atlas, API, Direktlinks, Vollbildansichten und Exporte sind an der Testadresse geprüft. Erst danach wird die Domain verbunden und die Beta veröffentlicht.
 
@@ -91,6 +91,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - EEA-Inventaremissionen sowie das JRC-Wasserkraftinventar sind als eigenständige, klar beschriftete Datensätze integriert.
 - Batterien und Pumpspeicher sind in Speicherenergie, Entladeleistung und äquivalente Entladedauer getrennt. Deutschland-Batterien stammen aus Battery-Charts; andere Batterien und sämtliche Pumpspeicher aus JRC.
 - Netzwerkimporte sind validiert, zurückhaltend und atomar. Fehlerhafte Aktualisierungen verändern vorhandene Daten nicht.
+- Der vollständige `refresh-all`-Ablauf arbeitet in einem isolierten Verzeichnis auf demselben Datenträger, prüft Dateisperren vor dem ersten Abruf, veröffentlicht nur einen validierten Kandidaten und hinterlässt standardmäßig keine persistenten Kandidaten- oder Rückfallkopien.
 
 ### Europakarte und Midnight-Grid-Oberfläche
 
@@ -106,6 +107,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - Die Postkarten lassen sich per Maus und Tastatur in einer Vollbildgalerie öffnen. Titel, Land, Urheber, Lizenz und Commons-Link bleiben sichtbar; öffentliche Daumenstimmen, Score und geteilte Rangplätze werden getrennt in der Community-Datenbank gespeichert.
 - Lokales Atlas-Logo, kontextbezogene Info-Popovers, konsistente Interaktionszustände, reduzierte Bewegung bei `prefers-reduced-motion` sowie dezente Auswahl-, Sortier-, Fokus- und Exportanimationen sind umgesetzt.
 - Karten- und Zeitvergleich-Auswahl verwenden gruppierte Atlas-Menüs. Kennzahlenvarianten folgen, soweit vorhanden, der Reihenfolge absolut, Anteil und pro Kopf.
+- Karte, Zeitvergleich, Ländersteckbriefe und Exporte verwenden denselben dreiteiligen Beschriftungsvertrag aus Thema, Messgröße und Einheit beziehungsweise Bezugsgröße; technische Kennzahlen-IDs bleiben stabil.
 
 ### Tabellen
 
@@ -131,8 +133,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 ### Qualitätssicherung
 
-- Der vollständige lokale Beta-Kandidat besteht am 25. August 2026 aus 155 erfolgreichen automatisierten Tests.
-- Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures und führt keine Live-Imports aus.
+- Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures, führt keine Live-Imports aus und deckt inzwischen auch den Refresh-Lebenszyklus sowie den dreiteiligen Beschriftungsvertrag ab.
 - Eine GitHub-Actions-Pipeline führt dieselbe Suite mit Python 3.11 und Node 22 sowie JavaScript-Syntaxprüfungen aus; ihr erster echter GitHub-Lauf folgt nach Commit und Push.
 - Die Full-HD-/WQHD-Darstellung wurde durch den Projekteigentümer vorläufig abgenommen. Ein bei der eingeschränkten Agentenprüfung gefundener horizontaler Überlauf ist behoben.
 - Karte, Flaggen, Logo und Diagramme sind lokale Assets. Nur der ausdrücklich aktivierte Europa-Overload-Modus lädt Wikimedia-Commons-Bilder.

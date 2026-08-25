@@ -156,6 +156,20 @@ chromium`. This neither controls nor changes an installed Firefox profile.
 
 Germany uses only the national Battery-Charts total for batteries. Other countries use the project inventory recorded by JRC, while pumped storage comes from JRC for every country. Values from different sources are never added together. The existing `import-storage` command remains available as a deprecated offline fallback for reviewed JRC CSV/XLSX files. See [JRC_STORAGE_IMPORT.md](docs/JRC_STORAGE_IMPORT.md) for details.
 
+### Complete data refresh
+
+Use `refresh-all` for a controlled refresh of the complete analytical database. The command builds and validates an isolated candidate below the Git-ignored `data/.refresh-work/`, publishes it only after all source imports succeed, and removes temporary candidate, rollback, and SQLite sidecar files afterwards. It never replaces or writes to the separate community vote database.
+
+```powershell
+.\.venv\Scripts\eea.exe --db data\atlas.sqlite3 refresh-all `
+  --from-year 2015 `
+  --to-year 2026 `
+  --battery-energy-file .\battery-energy.json `
+  --battery-power-file .\battery-power.json
+```
+
+The server must be stopped before publication. On Windows, an active database handle causes the command to abort before any network importer runs. See [DATA_REFRESH.md](docs/DATA_REFRESH.md) for the complete success, rollback, cleanup, and reporting contract.
+
 ## Data model and quality rules
 
 `period_observation` is the canonical fact table. Month is the smallest unit for electricity and price data; validated annual values and separately dated storage inventories are stored independently. `api_cache` contains redacted Ember JSON responses. `source_cache` stores source responses or, for a multi-format EEA bundle, the selected gzip-compressed source CSV together with retrieval metadata and SHA-256 hashes.
@@ -175,6 +189,7 @@ Germany uses only the national Battery-Charts total for batteries. Other countri
 - estimated total generation emissions are explicitly derived from Ember intensity multiplied by Ember generation
 - theoretical EV battery capacity uses the flat fleet assumption `BEV stock × 60 kWh`; it is nominal traction-battery energy, not grid-accessible V2G storage
 - failed updates must not modify existing data
+- visible metric names use a shared three-part contract: topic, measured value, and unit or denominator; metric IDs and calculation semantics remain unchanged
 
 A missing analytical SQLite file is initialized automatically when the server starts. Analytical requests operate read-only afterwards. Public Europa Overload votes are the sole write API and use a separate community database; they never modify `atlas.sqlite3`.
 
@@ -198,7 +213,7 @@ The web interface never performs imports. The analytical interface, map, flags, 
 
 ## Development and tests
 
-There are no runtime dependencies outside the Python standard library.
+The local server and analytical API use the Python standard library. The explicitly triggered JRC dashboard refresh additionally requires the declared Playwright dependency and its isolated Chromium runtime.
 
 ```powershell
 $env:PYTHONPATH = "$PWD\src"
@@ -215,6 +230,8 @@ Tests use local fixtures exclusively and never perform live imports. Node.js is 
 - [Project roadmap](ROADMAP.md)
 - [Public beta roadmap](BETA_ROADMAP.md)
 - [Beta data validation](docs/BETA_DATA_VALIDATION.md)
+- [Complete data refresh lifecycle](docs/DATA_REFRESH.md)
+- [Metric labeling contract](docs/METRIC_LABELING.md)
 - [Deployment and operations](docs/DEPLOYMENT.md)
 - [Ember coverage](docs/EMBER_COVERAGE.md)
 - [JRC storage import](docs/JRC_STORAGE_IMPORT.md)
@@ -234,4 +251,4 @@ Tests use local fixtures exclusively and never perform live imports. Node.js is 
 - JRC storage values represent its recorded operational project inventory, not necessarily a complete national inventory and not the energy capacity of conventional hydropower reservoirs.
 - Time-series plots do not interpolate gaps. At each point, the Atlas average is the arithmetic mean of all available values across the complete country catalog.
 - Missing residential or commercial batteries outside Germany are not estimated. Missing JRC energy values remain empty and are not inferred from power or project metadata.
-- The public JRC project API is not formally versioned. Structural changes therefore cause a deliberate, state-preserving import failure.
+- The visible JRC dashboard export is not formally versioned. Structural changes therefore cause a deliberate, state-preserving import failure. The previously used `/api/projects` route was an undocumented JSON endpoint, not a supported public API contract.

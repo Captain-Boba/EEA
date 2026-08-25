@@ -87,6 +87,8 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
         self.assertIn("function appendExportBranding", app)
         self.assertIn('href: "/assets/eea-mark.svg"', app)
         self.assertIn('"European Electricity Atlas"', app)
+        self.assertIn("function exportCreationTimestamp(now = new Date())", app)
+        self.assertIn('exportText(root, width - 34, 54, exportCreationTimestamp()', app)
         self.assertIn('fill: "url(#eea-export-grid)"', app)
         self.assertIn("async function rasterizeExportSvg", app)
         self.assertIn("function exportSvgDimensions", app)
@@ -94,6 +96,12 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
         self.assertIn("canvas.height = Math.round(height * scale);", app)
         self.assertIn("return rasterizeExportSvg(await serializedMapSvg());", app)
         self.assertIn("return rasterizeExportSvg(await serializedComparisonExportSvg());", app)
+        self.assertIn(".chart-background{fill:transparent}", app)
+        self.assertIn(".chart-subtitle,.chart-period,.axis-label", app)
+        self.assertIn('}, labels.topic));', app)
+        self.assertIn('}, `${labels.metric} · ${labels.basis}`));', app)
+        self.assertIn("{includeMetricHeading: false}", app)
+        self.assertNotIn('exportText(root, 108, 86, labels.topic, {class: "export-subtitle"});', app)
 
     def test_live_ranking_units_are_centered_below_the_value(self):
         style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
@@ -110,7 +118,7 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn('const groups = new Map();', app)
         self.assertIn('<optgroup label="${escapeAttribute(group)}">', app)
-        self.assertIn('${escapeHtml(variants[0].family)}</option>', app)
+        self.assertIn('${escapeHtml(metricLabels(variants[0]).topic)}</option>', app)
         self.assertNotIn('const label = `${variants[0].group} · ${variants[0].family}', app)
 
     def test_comparison_family_picker_renders_a_grouped_menu_grid(self):

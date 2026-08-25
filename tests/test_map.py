@@ -193,6 +193,10 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("appendExportBranding(root, metric", app)
         self.assertIn("return rasterizeExportSvg(await serializedMapSvg());", app)
         self.assertIn("await inlineSvgImages(root);", app)
+        self.assertIn("function appendMapExportSummary", app)
+        self.assertIn('appendMapExportSummary(root, summaryX, summaryY, summaryWidth, "Minimum"', app)
+        self.assertIn('appendMapExportSummary(root, summaryX, summaryY + 52, summaryWidth, "Maximum"', app)
+        self.assertIn('appendMapExportSummary(root, summaryX, summaryY + 104, summaryWidth, "Atlas-Durchschnitt"', app)
 
         self.assertIn('"Legende"', app)
         self.assertNotIn('querySelector("#map-tooltip")', app)
@@ -356,7 +360,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertFalse(per_capita["temporal_availability"]["monthly"])
         self.assertTrue(per_capita["temporal_availability"]["yearly"])
         app = APP_PATH.read_text(encoding="utf-8")
-        self.assertIn('return `${metric.group}::${metric.family}`;', app)
+        self.assertIn('return `${metric.group}::${metricLabels(metric).topic}`;', app)
         self.assertIn("renderComparisonMetricOptions", app)
 
     def test_each_generation_source_family_has_per_capita_as_third_variant(self):

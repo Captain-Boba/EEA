@@ -39,6 +39,9 @@ def _metric(
     map_midpoint: float | None = None,
     map_decimals: int = 2,
     map_latest_available_year: bool = False,
+    display_topic: str | None = None,
+    display_metric: str | None = None,
+    display_basis: str | None = None,
 ) -> dict[str, Any]:
     views = [view for view, enabled in (("table", table), ("map", map_view), ("compare", compare)) if enabled]
     return {
@@ -56,6 +59,12 @@ def _metric(
         "missing_value": missing,
         "family": family or label,
         "representation": representation or label,
+        # These fields are the dedicated, presentation-only naming contract.
+        # The older fields above retain their established grouping and control
+        # semantics for tables and selectors.
+        "display_topic": display_topic or group,
+        "display_metric": display_metric or label,
+        "display_basis": display_basis or "",
         "map_config": {
             "scale": map_scale,
             "palette": map_palette,
@@ -155,6 +164,121 @@ METRICS: tuple[dict[str, Any], ...] = (
     _metric("pumped_storage_power_gw", "Pumpspeicher-Entladeleistung", "Kapazitäten und Speicher", "GW", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Entladeleistung in GW", map_palette="pumped-storage"),
     _metric("pumped_storage_energy_gwh", "Pumpspeicher-Speicherenergie", "Kapazitäten und Speicher", "GWh", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Speicherenergie in GWh", map_palette="pumped-storage"),
     _metric("pumped_storage_duration_hours", "Pumpspeicher-Entladedauer", "Kapazitäten und Speicher", "h", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Äquivalente Entladedauer in Stunden", map_palette="pumped-storage"),
+)
+
+
+def _default_display_basis(metric: dict[str, Any]) -> str:
+    """Make the third label line explicit without repeating a unit."""
+    representation = str(metric["representation"]).strip()
+    unit = str(metric["unit"]).strip()
+    if representation == "Einwohner":
+        return "Anzahl der Einwohner"
+    if representation in {"Bestand", "Neuzulassungen"} and unit == "Fahrzeuge":
+        return "Anzahl der Fahrzeuge"
+    if unit and unit in representation:
+        return representation
+    if "je Einwohner" in representation and unit.endswith("/Einwohner"):
+        return representation
+    if unit == "%" and representation.startswith("Anteil "):
+        return representation.replace("Anteil ", "Anteil in % ", 1)
+    if unit == "%" and "Verhältnis" in representation:
+        return f"{representation} in %"
+    return f"{representation} · in {unit}" if unit else representation
+
+
+# Explicit labels keep the visible contract consistently split into:
+# category -> what is measured -> unit or denominator.  The technical
+# ``family`` and ``representation`` fields remain untouched for controls and
+# backwards-compatible API behaviour.
+DISPLAY_LABEL_OVERRIDES: dict[str, tuple[str, str, str]] = {
+    "generation_twh": ("Stromerzeugung", "Erzeugung absolut", "in TWh"),
+    "consumption_twh": ("Stromverbrauch", "Verbrauch absolut", "in TWh"),
+    "generation_per_capita_mwh": ("Stromerzeugung", "Erzeugung pro Kopf", "in MWh je Einwohner"),
+    "consumption_per_capita_mwh": ("Stromverbrauch", "Verbrauch pro Kopf", "in MWh je Einwohner"),
+    "low_carbon_share_pct": (
+        "CO₂-arme Erzeugung", "Erneuerbare und Kernenergie",
+        "Anteil in % an der Gesamterzeugung",
+    ),
+    "self_sufficiency_pct": ("Stromsystem", "Eigenversorgung", "Erzeugung im Verhältnis zum Verbrauch in %"),
+    "net_imports_twh": ("Stromhandel", "Nettoimporte absolut", "in TWh"),
+    "net_import_share_pct": ("Stromhandel", "Nettoimporte", "Anteil in % am Stromverbrauch"),
+    "price_avg_eur_mwh": ("Großhandelsstrompreis", "Durchschnittlicher Day-Ahead-Preis", "in EUR/MWh"),
+    "carbon_intensity_gco2eq_kwh": (
+        "Emissionen der Stromerzeugung", "CO₂-Intensität", "in gCO₂eq/kWh",
+    ),
+    "decarbonization_rate_pct": (
+        "Emissionen der Stromerzeugung", "Dekarbonisierung",
+        "Veränderung in % gegenüber dem Vorjahr",
+    ),
+    "estimated_generation_emissions_mtco2eq": (
+        "Emissionen der Stromerzeugung", "Geschätzte Emissionen", "in Mt CO₂eq",
+    ),
+    "population": ("Sozioökonomie", "Bevölkerung", "in Einwohnern"),
+    "gdp_current_billion_eur": ("Sozioökonomie", "BIP", "in Mrd. EUR"),
+    "gdp_per_capita_pps": ("Sozioökonomie", "BIP pro Kopf", "in PPS je Einwohner"),
+    "generation_gdp_intensity_kwh_eur": ("Stromerzeugung", "Erzeugung je BIP", "in kWh/EUR"),
+    "consumption_gdp_intensity_kwh_eur": ("Stromverbrauch", "Verbrauch je BIP", "in kWh/EUR"),
+    "electricity_heat_emissions_gdp_t_million_eur": (
+        "Emissionen der Stromerzeugung", "Strom- und Wärmeemissionen je BIP", "in t CO₂eq/Mio. EUR",
+    ),
+    "capacity_total_gw": ("Installierte Leistung", "Gesamtleistung", "in GW"),
+    "capacity_wind_gw": ("Installierte Leistung", "Windleistung", "in GW"),
+    "capacity_solar_gw": ("Installierte Leistung", "Solarleistung", "in GW"),
+    "capacity_hydro_gw": ("Installierte Leistung", "Wasserkraftleistung", "in GW"),
+    "capacity_fossil_gw": ("Installierte Leistung", "Fossile Leistung", "in GW"),
+    "capacity_nuclear_gw": ("Installierte Leistung", "Kernenergieleistung", "in GW"),
+    "capacity_factor_wind_pct": ("Wind", "Kapazitätsfaktor", "in % der installierten Leistung"),
+    "capacity_factor_solar_pct": ("Solar", "Kapazitätsfaktor", "in % der installierten Leistung"),
+    "capacity_factor_hydro_pct": ("Wasserkraft", "Kapazitätsfaktor", "in % der installierten Leistung"),
+    "capacity_factor_fossil_pct": ("Fossile gesamt", "Kapazitätsfaktor", "in % der installierten Leistung"),
+    "capacity_factor_nuclear_pct": ("Kernenergie", "Kapazitätsfaktor", "in % der installierten Leistung"),
+    "gross_imports_twh": ("Stromhandel", "Bruttoimporte", "in TWh"),
+    "gross_exports_twh": ("Stromhandel", "Bruttoexporte", "in TWh"),
+    "bev_stock": ("Elektromobilität", "Batterieelektrische Pkw im Bestand", "in Fahrzeugen"),
+    "bev_new_registrations": ("Elektromobilität", "Neue batterieelektrische Pkw", "in Fahrzeugen"),
+    "ev_battery_nominal_capacity_est_gwh": (
+        "Elektromobilität", "Theoretische EV-Batteriekapazität", "in GWh",
+    ),
+    "hydro_plant_capacity_gw": ("Wasserkraftinventar", "Kraftwerksleistung", "in GW"),
+    "hydro_pumping_power_gw": ("Wasserkraftinventar", "Pumpleistung", "in GW"),
+    "hydro_reservoir_energy_gwh": ("Wasserkraftinventar", "Speicherenergie", "in GWh"),
+    "battery_energy_gwh": ("Batteriespeicher", "Installierte Speicherkapazität", "in GWh"),
+    "battery_power_gw": ("Batteriespeicher", "Installierte Entladeleistung", "in GW"),
+    "pumped_storage_energy_gwh": ("Pumpspeicher", "Installierte Speicherkapazität", "in GWh"),
+    "pumped_storage_power_gw": ("Pumpspeicher", "Installierte Entladeleistung", "in GW"),
+    "battery_duration_hours": ("Batteriespeicher", "Äquivalente Entladedauer", "in Stunden"),
+    "pumped_storage_duration_hours": ("Pumpspeicher", "Äquivalente Entladedauer", "in Stunden"),
+}
+
+
+def _display_labels(metric: dict[str, Any]) -> tuple[str, str, str]:
+    """Return the presentation-only category, measure and basis labels."""
+    override = DISPLAY_LABEL_OVERRIDES.get(metric["id"])
+    if override:
+        return override
+
+    # Generation technologies share a family (the category) but differ only
+    # by the measured form.  This avoids labels such as
+    # ``Kernenergie · Kernenergie · Erzeugung in TWh`` in every surface.
+    if metric["group"] in {"Erneuerbare", "Fossile", "Kernenergie"}:
+        if metric["id"].endswith("_twh"):
+            return metric["family"], "Erzeugung absolut", "in TWh"
+        if metric["id"].endswith("_share_pct"):
+            return metric["family"], "Anteil", "in % an der Gesamterzeugung"
+        if metric["id"].endswith("_per_capita_mwh"):
+            return metric["family"], "Erzeugung pro Kopf", "in MWh je Einwohner"
+
+    return metric["display_topic"], metric["display_metric"], _default_display_basis(metric)
+
+
+METRICS = tuple(
+    {
+        **metric,
+        "display_topic": _display_labels(metric)[0],
+        "display_metric": _display_labels(metric)[1],
+        "display_basis": _display_labels(metric)[2],
+    }
+    for metric in METRICS
 )
 
 METRICS_BY_ID = {metric["id"]: metric for metric in METRICS}

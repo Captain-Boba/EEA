@@ -313,9 +313,9 @@ class JrcStorageImporter:
         """Replace only JRC's resolved battery/pumped-storage observations.
 
         This deliberately leaves JRC hydro inventory observations alone.  It
-        also removes values from the retired projects API in the same short
-        transaction, so a failed dashboard refresh can never produce a mixed
-        old/new storage snapshot.
+        also removes values from the previously used undocumented JSON route
+        in the same short transaction, so a failed dashboard refresh can never
+        produce a mixed old/new storage snapshot.
         """
         metrics = (
             "battery_power_gw", "battery_energy_gwh", "battery_duration_hours",

@@ -179,7 +179,38 @@ function formatMetricValue(value, metric, compact = false) {
 }
 
 function metricDefinition(id) {
-  return metricCatalog.get(id) || {id, label_de: id, unit: "", map: false};
+  return metricCatalog.get(id) || {
+    id,
+    label_de: id,
+    group: "Kennzahl",
+    unit: "",
+    display_topic: "Kennzahl",
+    display_metric: id,
+    display_basis: "",
+    map: false,
+  };
+}
+
+function metricLabels(metric) {
+  return {
+    topic: metric.display_topic || metric.group || "Kennzahl",
+    metric: metric.display_metric || metric.label_de || metric.id,
+    basis: metric.display_basis || metric.representation || metric.unit || "",
+  };
+}
+
+function compactMetricLabel(metric) {
+  const labels = metricLabels(metric);
+  return labels.basis ? `${labels.metric} · ${labels.basis}` : labels.metric;
+}
+
+function metricLabelHtml(metric, className = "metric-labeling") {
+  const labels = metricLabels(metric);
+  return `<span class="${className}">
+    <span class="metric-label-topic">${escapeHtml(labels.topic)}</span>
+    <span class="metric-label-metric">${escapeHtml(labels.metric)}</span>
+    ${labels.basis ? `<span class="metric-label-basis">${escapeHtml(labels.basis)}</span>` : ""}
+  </span>`;
 }
 
 function escapeHtml(value) {
@@ -199,7 +230,7 @@ function metricHeader(id, activeKey, direction, allowMap = true) {
   const metric = metricDefinition(id);
   const activeSort = activeKey === id;
   const ariaSort = activeSort ? ` aria-sort="${direction > 0 ? "ascending" : "descending"}"` : "";
-  const label = tableHeaderText(metric.label_de);
+  const label = tableHeaderText(metricLabels(metric).metric);
   const unitLabel = tableHeaderText(metric.unit);
   const unit = unitLabel ? `<span class="unit">${escapeHtml(unitLabel)}</span>` : "";
   const mapAction = allowMap && metric.map
@@ -645,7 +676,10 @@ function metricVariantRank(metric) {
 }
 
 function familyKey(metric) {
-  return `${metric.group}::${metric.family}`;
+  // The first selector is the user-facing category.  Keep the technical
+  // family for internal grouping elsewhere, but never expose its abbreviated
+  // legacy wording (for example "Erzeugung") as the category label.
+  return `${metric.group}::${metricLabels(metric).topic}`;
 }
 
 function usesLatestAvailableMapYear(metric) {
@@ -668,15 +702,16 @@ function renderMapControls() {
   metrics.forEach(metric => {
     if (!groups.has(metric.group)) groups.set(metric.group, new Map());
     const families = groups.get(metric.group);
-    if (!families.has(metric.family)) families.set(metric.family, []);
-    families.get(metric.family).push(metric);
+    const key = familyKey(metric);
+    if (!families.has(key)) families.set(key, []);
+    families.get(key).push(metric);
   });
   $("map-family").innerHTML = [...groups.entries()].map(([group, families]) =>
-    `<optgroup label="${escapeAttribute(group)}">${[...families.entries()].map(([family, variants]) => {
+    `<optgroup label="${escapeAttribute(group)}">${[...families.entries()].map(([key, variants]) => {
       const selectable = variants.some(metric => metricAvailable(metric)
         || (isMonthView() && metric.temporal_availability.yearly));
       const disabled = selectable ? "" : " disabled";
-      return `<option value="${escapeAttribute(`${group}::${family}`)}"${disabled}>${escapeHtml(family)}</option>`;
+      return `<option value="${escapeAttribute(key)}"${disabled}>${escapeHtml(metricLabels(variants[0]).topic)}</option>`;
     }).join("")}</optgroup>`
   ).join("");
   $("map-family").value = familyKey(activeMetric);
@@ -685,8 +720,7 @@ function renderMapControls() {
   $("map-representation").innerHTML = variants.map(metric => {
     const selectable = metricAvailable(metric) || (isMonthView() && metric.temporal_availability.yearly);
     const disabled = selectable ? "" : " disabled";
-    const unit = metric.unit ? ` (${metric.unit})` : "";
-    return `<option value="${metric.id}"${disabled}>${escapeHtml(metric.representation)}${escapeHtml(unit)}</option>`;
+    return `<option value="${metric.id}"${disabled}>${escapeHtml(compactMetricLabel(metric))}</option>`;
   }).join("");
   $("map-representation").value = mapMetricId;
 
@@ -810,6 +844,7 @@ function statusLabel(row, metric) {
 
 function countryDetail(code, metric) {
   const row = mapRow(code, metric);
+  const labels = metricLabels(metric);
   const value = metricAvailable(metric) && row ? row[metric.id] : null;
   const formatted = formatMetricValue(value, metric);
   const unit = formatted === "—" ? "" : ` ${metric.unit}`;
@@ -818,14 +853,14 @@ function countryDetail(code, metric) {
   const coverage = provenance?.coverage_type ? `<span>Coverage: ${escapeHtml(provenance.coverage_type)}</span>` : "";
   return {
     html: `<strong>${escapeHtml(countryName(code))}</strong>
-      <span>${escapeHtml(metric.label_de)}</span>
+      ${metricLabelHtml(metric, "metric-labeling detail-metric-labeling")}
       <b>${escapeHtml(formatted + unit)}</b>
       <span>${escapeHtml(periodLabel(metric, row))}</span>
       <span>Datenstatus: ${escapeHtml(statusLabel(row, metric))}</span>
       ${coverage}
       <span>Quelle: ${escapeHtml(source)}</span>
       <button type="button" class="profile-open map-profile-open" data-country-profile="${escapeAttribute(code)}">Steckbrief öffnen</button>`,
-    label: `${countryName(code)}, ${metric.label_de}: ${formatted}${unit}, ${periodLabel(metric, row)}, Datenstatus ${statusLabel(row, metric)}, Quelle ${source}`,
+    label: `${countryName(code)}, ${labels.topic}: ${labels.metric}, ${labels.basis}; ${formatted}${unit}, ${periodLabel(metric, row)}, Datenstatus ${statusLabel(row, metric)}, Quelle ${source}`,
   };
 }
 
@@ -1059,7 +1094,7 @@ function renderMap() {
     path.classList.toggle("selected", path.dataset.countryCode === focusedMapCountry);
     path.setAttribute("aria-label", countryDetail(path.dataset.countryCode, metric).label);
   });
-  $("map-metric-title").textContent = `${metric.family}: ${metric.representation}`;
+  $("map-metric-title").innerHTML = metricLabelHtml(metric);
   $("map-period").textContent = periodLabel(metric, mapRow("DE", metric));
   renderLegend(metric, scale);
   renderMapLabels(metric);
@@ -1248,7 +1283,7 @@ function renderComparisonControls(metricId = null) {
   $("compare-family").innerHTML = [...groups].map(([group, families]) =>
     `<optgroup label="${escapeAttribute(group)}">${[...families].map(([key, variants]) => {
       const available = variants.some(metric => metric.temporal_availability.monthly || metric.temporal_availability.yearly);
-      return `<option value="${escapeAttribute(key)}"${available ? "" : " disabled"}>${escapeHtml(variants[0].family)}</option>`;
+      return `<option value="${escapeAttribute(key)}"${available ? "" : " disabled"}>${escapeHtml(metricLabels(variants[0]).topic)}</option>`;
     }).join("")}</optgroup>`
   ).join("");
   const activeFamily = familyKey(activeMetric);
@@ -1269,9 +1304,9 @@ function renderComparisonFamilyPicker(groups, activeFamily) {
       const available = variants.some(metric => metric.temporal_availability.monthly || metric.temporal_availability.yearly);
       if (key === activeFamily) {
         activeGroup = group;
-        activeLabel = variants[0].family;
+        activeLabel = metricLabels(variants[0]).topic;
       }
-      return `<button type="button" class="metric-family-option${key === activeFamily ? " active" : ""}" data-comparison-family="${escapeAttribute(key)}" data-comparison-group="${escapeAttribute(group)}" aria-pressed="${key === activeFamily}"${available ? "" : " disabled"}>${escapeHtml(variants[0].family)}</button>`;
+      return `<button type="button" class="metric-family-option${key === activeFamily ? " active" : ""}" data-comparison-family="${escapeAttribute(key)}" data-comparison-group="${escapeAttribute(group)}" aria-pressed="${key === activeFamily}"${available ? "" : " disabled"}>${escapeHtml(metricLabels(variants[0]).topic)}</button>`;
     }).join("");
     return `<section class="metric-family-group" aria-label="${escapeAttribute(group)}"><h3>${escapeHtml(group)}</h3><div class="metric-family-options">${options}</div></section>`;
   }).join("");
@@ -1423,8 +1458,8 @@ function renderComparisonMetricOptions(family, metricId = null) {
   $("compare-metric").innerHTML = variants.map(metric => {
     const availability = metric.temporal_availability;
     const available = availability.monthly || availability.yearly;
-    const suffix = available ? ` (${metric.unit})` : " · kein Zeitverlauf";
-    return `<option value="${metric.id}"${available ? "" : " disabled"}>${escapeHtml(metric.representation + suffix)}</option>`;
+    const suffix = available ? "" : " · kein Zeitverlauf";
+    return `<option value="${metric.id}"${available ? "" : " disabled"}>${escapeHtml(compactMetricLabel(metric) + suffix)}</option>`;
   }).join("");
   const next = variants.find(metric => metric.id === metricId && (metric.temporal_availability.monthly || metric.temporal_availability.yearly))
     || variants.find(metric => metric.temporal_availability.monthly || metric.temporal_availability.yearly);
@@ -1796,7 +1831,7 @@ function chartGeometry() {
   const right = width - 150;
   return {
     width, height, left, right,
-    top: 76,
+    top: 90,
     bottom: 535,
     legendY: 600,
     legendColumns: 6,
@@ -1908,11 +1943,13 @@ function renderTimeseriesChart() {
   svg.replaceChildren();
   svg.setAttribute("viewBox", `0 0 ${geometry.width} ${geometry.height}`);
   svg.appendChild(svgElement("rect", {class: "chart-background", x: 0, y: 0, width: geometry.width, height: geometry.height, rx: 12}));
-  svg.appendChild(svgElement("text", {class: "chart-title", x: geometry.left, y: 34}, metric.label_de));
+  const labels = metricLabels(metric);
+  svg.appendChild(svgElement("text", {class: "chart-title", x: geometry.left, y: 30}, labels.topic));
   const axisNote = $("compare-axis-mode")?.value === "data-range"
     ? ` · Y-Achse ${formatMetricValue(scale.minimum, metric)} bis ${formatMetricValue(scale.maximum, metric)}${metric.unit ? ` ${metric.unit}` : ""}`
     : "";
-  svg.appendChild(svgElement("text", {class: "chart-subtitle", x: geometry.left, y: 57}, `${metric.representation} · ${metric.unit} · ${payload.start} bis ${payload.end}${axisNote}`));
+  svg.appendChild(svgElement("text", {class: "chart-subtitle", x: geometry.left, y: 51}, `${labels.metric} · ${labels.basis}`));
+  svg.appendChild(svgElement("text", {class: "chart-period", x: geometry.left, y: 71}, `${payload.start} bis ${payload.end}${axisNote}`));
 
   for (let tick = 0; tick <= 5; tick += 1) {
     const value = scale.minimum + (scale.maximum - scale.minimum) * tick / 5;
@@ -2240,6 +2277,8 @@ if (typeof module !== "undefined" && module.exports) {
     comparisonBaselineYear,
     latestCompleteComparisonIndex,
     latestCompleteComparisonPeriod,
+    metricLabels,
+    compactMetricLabel,
     parseComparisonUrl,
     comparisonBaselinePoint,
     rankingFallbackDetails,
@@ -2295,6 +2334,13 @@ function appendExportCard(root, x, y, width, height, attributes = {}) {
   }));
 }
 
+function exportCreationTimestamp(now = new Date()) {
+  const formatted = new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(now);
+  return `Erstellt am ${formatted} Uhr`;
+}
+
 function createMidnightExportRoot(width, height, ariaLabel) {
   const root = svgElement("svg", {
     xmlns: "http://www.w3.org/2000/svg",
@@ -2325,12 +2371,17 @@ function createMidnightExportRoot(width, height, ariaLabel) {
   return root;
 }
 
-function appendExportBranding(root, metric, period, width) {
+function appendExportBranding(root, metric, period, width, {includeMetricHeading = true} = {}) {
+  const labels = metricLabels(metric);
   root.appendChild(svgElement("image", {href: "/assets/eea-mark.svg", x: 34, y: 28, width: 58, height: 58}));
-  exportText(root, 108, 54, "European Electricity Atlas", {class: "export-brand"});
-  exportText(root, 108, 78, metric.label_de, {class: "export-label"});
-  exportText(root, 108, 99, `${metric.representation} · ${metric.unit || "ohne Einheit"} · ${period}`, {class: "export-subtitle"});
-  root.appendChild(svgElement("line", {class: "export-rule", x1: 34, x2: width - 34, y1: 118, y2: 118}));
+  exportText(root, 108, 68, "European Electricity Atlas", {class: "export-brand"});
+  if (includeMetricHeading) {
+    exportText(root, 108, 94, labels.topic, {class: "export-label"});
+    exportText(root, 108, 115, `${labels.metric} · ${labels.basis || "ohne Einheit"} · ${period}`, {class: "export-subtitle"});
+  }
+  exportText(root, width - 34, 54, exportCreationTimestamp(), {class: "export-small", "font-weight": 700, "text-anchor": "end"});
+  const ruleY = includeMetricHeading ? 132 : 118;
+  root.appendChild(svgElement("line", {class: "export-rule", x1: 34, x2: width - 34, y1: ruleY, y2: ruleY}));
 }
 
 function exportSvgDimensions(source) {
@@ -2370,8 +2421,8 @@ async function serializedChartSvg() {
   clone.setAttribute("height", String(viewBox[3]));
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
   style.textContent = `
-    .chart-background{fill:${EXPORT_THEME.panel}}.chart-title{fill:${EXPORT_THEME.text};font:750 24px Calibri,"Segoe UI",sans-serif}
-    .chart-subtitle,.axis-label,.legend-label,.average-endpoint-tag{fill:${EXPORT_THEME.muted};font:13px Calibri,"Segoe UI",sans-serif}
+    .chart-background{fill:transparent}.chart-title{fill:${EXPORT_THEME.text};font:750 24px Calibri,"Segoe UI",sans-serif}
+    .chart-subtitle,.chart-period,.axis-label,.legend-label,.average-endpoint-tag{fill:${EXPORT_THEME.muted};font:13px Calibri,"Segoe UI",sans-serif}
     .chart-grid{stroke:#34495f;stroke-width:1}.chart-grid.vertical{stroke-opacity:.45}
     .chart-zero{stroke:#b89a5a;stroke-width:1.5}.chart-line{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
     .atlas-average-line{stroke:${EXPORT_THEME.text};stroke-width:1.7;stroke-dasharray:10 7;opacity:.85}
@@ -2425,8 +2476,8 @@ async function serializedComparisonExportSvg() {
   const rootHeight = headerHeight + panelHeight + padding;
   const panelX = padding + chartCardWidth + gap;
   const contentY = headerHeight;
-  const root = createMidnightExportRoot(rootWidth, rootHeight, `Zeitvergleich: ${timeseriesData.metric.label_de}, ${timeseriesData.start} bis ${timeseriesData.end}`);
-  appendExportBranding(root, timeseriesData.metric, `${timeseriesData.start} bis ${timeseriesData.end}`, rootWidth);
+  const root = createMidnightExportRoot(rootWidth, rootHeight, `Zeitvergleich: ${compactMetricLabel(timeseriesData.metric)}, ${timeseriesData.start} bis ${timeseriesData.end}`);
+  appendExportBranding(root, timeseriesData.metric, `${timeseriesData.start} bis ${timeseriesData.end}`, rootWidth, {includeMetricHeading: false});
   appendExportCard(root, padding, contentY, chartCardWidth, panelHeight);
   appendExportCard(root, panelX, contentY, panelWidth, panelHeight);
   const chartCopy = document.importNode(chart, true);
@@ -2553,10 +2604,12 @@ function profileMetricCard(metric) {
   const catalogMetric = metricDefinition(metric.id);
   const displayed = formatMetricValue(metric.value, catalogMetric);
   const unit = displayed === "—" ? "" : ` ${metric.unit}`;
+  const labels = metricLabels(metric);
   const source = [metric.source, profileSourceYear(metric)].filter(Boolean).join(" · ");
   return `<article class="profile-metric${metric.value === null ? " is-missing" : ""}">
-    <h4>${escapeHtml(metric.family)}</h4>
-    <p class="profile-representation">${escapeHtml(metric.representation)}</p>
+    <p class="profile-topic">${escapeHtml(labels.topic)}</p>
+    <h4>${escapeHtml(labels.metric)}</h4>
+    <p class="profile-representation">${escapeHtml(labels.basis)}</p>
     <p class="profile-value">${escapeHtml(displayed)}<small>${escapeHtml(unit)}</small></p>
     <p class="profile-source">${escapeHtml(source)}</p>
   </article>`;
@@ -2772,6 +2825,16 @@ function mapFilename(extension) {
   return `eea-map-${mapMetricId}-${periodLabel(metricDefinition(mapMetricId)).replace(/[^0-9a-z-]+/gi, "-").toLowerCase()}.${extension}`;
 }
 
+function appendMapExportSummary(root, x, y, width, label, value, metric, country = null) {
+  root.appendChild(svgElement("rect", {class: "export-ranking-row", x, y, width, height: 44, rx: 8}));
+  exportText(root, x + 14, y + 16, label, {class: "export-small", "font-size": 10, "font-weight": 700});
+  if (country) {
+    root.appendChild(svgElement("image", {href: `/assets/flags/${flagCode(country.country_code)}.svg`, x: x + 14, y: y + 22, width: 22, height: 16}));
+    exportText(root, x + 45, y + 35, country.country_name || countryName(country.country_code), {class: "export-small", "font-size": 10});
+  }
+  exportText(root, x + width - 14, y + 35, formatMetricValue(value, metric), {fill: EXPORT_THEME.text, "font-size": 13, "font-weight": 800, "text-anchor": "end"});
+}
+
 async function serializedMapSvg() {
   if (!mapSvg) throw new Error("Karte ist noch nicht geladen.");
   const metric = metricDefinition(mapMetricId);
@@ -2788,7 +2851,7 @@ async function serializedMapSvg() {
   const panelX = 1170;
   const panelWidth = 400;
   const panelHeight = 830;
-  const root = createMidnightExportRoot(width, height, `Europakarte: ${metric.label_de}, ${periodLabel(metric)}`);
+  const root = createMidnightExportRoot(width, height, `Europakarte: ${compactMetricLabel(metric)}, ${periodLabel(metric)}`);
   root.appendChild(svgElement("style", {}, `
     .map-country{vector-effect:non-scaling-stroke;stroke:#52657a;stroke-width:1}.background-country{fill:#182638;opacity:.84}
     .background-country[data-clipped=true]{stroke:transparent}.atlas-country{stroke:#94b0c9;stroke-width:1.35}
@@ -2808,7 +2871,8 @@ async function serializedMapSvg() {
   mapClone.querySelectorAll("[tabindex]").forEach(element => element.removeAttribute("tabindex"));
   root.appendChild(mapClone);
   exportText(root, panelX + 28, contentY + 42, "Legende", {class: "export-title"});
-  exportText(root, panelX + 28, contentY + 67, `${metric.label_de} · ${metric.unit || "ohne Einheit"}`, {class: "export-small"});
+  exportText(root, panelX + 28, contentY + 67, compactMetricLabel(metric), {class: "export-small"});
+  let detailY = contentY + 210;
   if (scale) {
     const legendX = panelX + 30;
     const legendY = contentY + 95;
@@ -2820,11 +2884,21 @@ async function serializedMapSvg() {
     if (scale.midpoint !== null && scale.midpoint !== undefined) exportText(root, legendX + legendWidth / 2, legendY + 42, formatMetricValue(scale.midpoint, metric), {class: "export-small", "text-anchor": "middle"});
     exportText(root, legendX + legendWidth, legendY + 42, formatMetricValue(scale.max, metric), {class: "export-small", "text-anchor": "end"});
     exportText(root, legendX, legendY + 68, `${metric.unit || "ohne Einheit"} · Grau = kein Wert`, {class: "export-small"});
+    const summaries = mapLegendSummaries(metric);
+    if (summaries) {
+      const summaryX = panelX + 28;
+      const summaryWidth = panelWidth - 56;
+      const summaryY = legendY + 92;
+      appendMapExportSummary(root, summaryX, summaryY, summaryWidth, "Minimum", summaries.minimum.value, metric, summaries.minimum);
+      appendMapExportSummary(root, summaryX, summaryY + 52, summaryWidth, "Maximum", summaries.maximum.value, metric, summaries.maximum);
+      appendMapExportSummary(root, summaryX, summaryY + 104, summaryWidth, "Atlas-Durchschnitt", summaries.average, metric);
+      detailY = summaryY + 164;
+    }
   } else {
     exportText(root, panelX + 28, contentY + 118, "Keine Werte für den ausgewählten Datenstand verfügbar.", {class: "export-small"});
   }
   if (focusedMapCountry) {
-    const focusY = contentY + 210;
+    const focusY = detailY;
     root.appendChild(svgElement("rect", {class: "export-ranking-average", x: panelX + 24, y: focusY, width: panelWidth - 48, height: 124, rx: 12}));
     exportText(root, panelX + 42, focusY + 30, "Länderfokus", {class: "export-label"});
     exportText(root, panelX + 42, focusY + 61, countryName(focusedMapCountry), {class: "export-title", "font-size": 20});

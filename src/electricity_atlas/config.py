@@ -108,7 +108,7 @@ EUROSTAT_ROAD_SOURCE_LABEL = "Eurostat – Straßenverkehrsbestand und Neuzulass
 
 JRC_SOURCE_NAME = "jrc"
 # Historical identifiers retained only for reading/recovery of prior local
-# snapshots.  `update-storage` no longer requests this retired projects API.
+# snapshots. `update-storage` no longer requests this undocumented JSON route.
 JRC_STORAGE_ENDPOINT = "european-energy-storage-inventory/manual-export"
 JRC_STORAGE_API_ENDPOINT = "european-energy-storage-inventory/api/projects"
 JRC_STORAGE_API_URL = "https://ses.jrc.ec.europa.eu/storage-inventory-tool/api/projects"
