@@ -457,14 +457,15 @@ class EmberCliTests(unittest.TestCase):
         with patch("electricity_atlas.cli.load_ember_api_key"), patch(
             "electricity_atlas.cli.database"
         ), patch(
-            "electricity_atlas.cli.EmberImporter.import_range", return_value=result
-        ) as import_range, patch("sys.stdout", new=io.StringIO()):
+            "electricity_atlas.cli.EmberImporter"
+        ) as importer_class, patch("sys.stdout", new=io.StringIO()):
+            importer_class.return_value.import_range.return_value = result
             exit_code = main([
                 "import", "--from-year", "2015", "--countries", "DE"
             ])
 
         self.assertEqual(exit_code, 0)
-        import_range.assert_called_once_with("DE", 2015, None)
+        importer_class.return_value.import_range.assert_called_once_with("DE", 2015, None)
 
     def test_missing_key_aborts_before_database_creation(self):
         with tempfile.TemporaryDirectory() as directory:
