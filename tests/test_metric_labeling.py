@@ -109,6 +109,9 @@ class MetricLabelingTests(unittest.TestCase):
         self.assertNotIn("text-transform: uppercase;", map_label_styles)
         self.assertIn(".metric-label-metric,\n.metric-label-basis", STYLE)
 
+    def test_table_headers_keep_their_unique_domain_labels(self):
+        self.assertIn("const label = tableHeaderText(metric.label_de);", APP)
+
     def test_document_matrix_covers_the_entire_catalog(self):
         documented = {}
         for line in LABELING_DOC.splitlines():

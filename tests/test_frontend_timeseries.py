@@ -243,19 +243,25 @@ const absolute = chartScale({
   atlas_average: {values: [{value: 19.6}, {value: 31.2}]},
 }, geometry);
 axisMode.value = "full";
+const absoluteFull = chartScale({
+  metric: {unit: "TWh", map_config: {scale: "sequential"}},
+  countries: [{values: [{value: 12.4}, {value: 48.7}]}],
+  atlas_average: {values: [{value: 19.6}, {value: 31.2}]},
+}, geometry);
 const selfSufficiency = chartScale({
   metric: {id: "self_sufficiency_pct", unit: "%", map_config: {scale: "sequential"}},
   countries: [{values: [{value: 84.8}, {value: 125.3}]}],
   atlas_average: {values: [{value: 91.5}, {value: 100.2}]},
 }, geometry);
-process.stdout.write(JSON.stringify({cropped: [cropped.minimum, cropped.maximum], full: [full.minimum, full.maximum], absolute: [absolute.minimum, absolute.maximum], selfSufficiency: [selfSufficiency.minimum, selfSufficiency.maximum]}));
+process.stdout.write(JSON.stringify({cropped: [cropped.minimum, cropped.maximum], full: [full.minimum, full.maximum], absolute: [absolute.minimum, absolute.maximum], absoluteFull: [absoluteFull.minimum, absoluteFull.maximum], selfSufficiency: [selfSufficiency.minimum, selfSufficiency.maximum]}));
 '''
         result = self.run_node(script)
-        self.assertEqual(result["cropped"], [34.2, 100])
+        self.assertEqual(result["cropped"], [34.2, 65.1])
         self.assertEqual(result["full"], [0, 100])
         self.assertEqual(result["absolute"], [12.4, 48.7])
+        self.assertEqual(result["absoluteFull"], [0, 48.7])
         self.assertEqual(result["selfSufficiency"][0], 0)
-        self.assertAlmostEqual(result["selfSufficiency"][1], 132.818, places=9)
+        self.assertEqual(result["selfSufficiency"][1], 125.3)
 
     def test_metric_variants_use_absolute_share_then_per_capita_order(self):
         script = r'''

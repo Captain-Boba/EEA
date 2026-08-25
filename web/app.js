@@ -230,7 +230,10 @@ function metricHeader(id, activeKey, direction, allowMap = true) {
   const metric = metricDefinition(id);
   const activeSort = activeKey === id;
   const ariaSort = activeSort ? ` aria-sort="${direction > 0 ? "ascending" : "descending"}"` : "";
-  const label = tableHeaderText(metricLabels(metric).metric);
+  // Table columns need a concise, unique domain label.  The three-level
+  // presentation labels belong to selectors and detail views; using only
+  // their middle line here would turn several columns into just "Anteil".
+  const label = tableHeaderText(metric.label_de);
   const unitLabel = tableHeaderText(metric.unit);
   const unit = unitLabel ? `<span class="unit">${escapeHtml(unitLabel)}</span>` : "";
   const mapAction = allowMap && metric.map
@@ -1491,7 +1494,7 @@ function configureComparisonAxisMode(metric) {
       ? "Symmetrisch um 0"
       : "0 bis Maximum";
   options.find(option => option.value === "data-range").textContent = boundedPercentage
-    ? "Minimum bis 100 %"
+    ? "Minimum bis Maximum"
     : "Minimum bis Maximum";
 }
 
@@ -1855,8 +1858,11 @@ function chartScale(payload, geometry) {
   const useDataRange = $("compare-axis-mode")?.value === "data-range";
   const boundedPercentage = isBoundedPercentagePlotMetric(metric);
   if (boundedPercentage) {
-    minimum = useDataRange ? Math.min(Math.max(0, minimum), 99) : 0;
-    maximum = 100;
+    // The explicit data-range mode must use both observed bounds.  Keeping
+    // 100 % as the upper bound here would make a narrow range needlessly
+    // flat and contradict the selector label.
+    minimum = useDataRange ? Math.max(0, minimum) : 0;
+    maximum = useDataRange ? maximum : 100;
   } else if (diverging) {
     if (!useDataRange) {
       const extent = Math.max(Math.abs(minimum), Math.abs(maximum), 1);
@@ -1870,8 +1876,9 @@ function chartScale(payload, geometry) {
     }
   }
   if (minimum === maximum) maximum = minimum + 1;
-  const padding = useDataRange || diverging || boundedPercentage ? 0 : (maximum - minimum) * 0.06;
-  maximum += padding;
+  // Both explicit range modes are literal: no visual headroom above the
+  // reported maximum.  Bounded percentage shares already use their intended
+  // fixed 0–100 % scale above; all other metrics end at their actual maximum.
   const x = index => geometry.left + index / Math.max(1, payload.atlas_average.values.length - 1) * (geometry.right - geometry.left);
   const y = value => geometry.bottom - (value - minimum) / (maximum - minimum) * (geometry.bottom - geometry.top);
   return {minimum, maximum, x, y};
