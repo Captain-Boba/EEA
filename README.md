@@ -82,7 +82,7 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765). Press `Ctrl+C` to stop the 
 | [Ember Wholesale Electricity Price Data](https://ember-energy.org/data/european-wholesale-electricity-price-data/) | national wholesale electricity prices | month and weighted annual value |
 | [Eurostat](https://ec.europa.eu/eurostat/) | population, GDP, installed capacity, retail-price components, gross electricity trade, and battery-electric passenger cars | year |
 | [Battery-Charts](https://battery-charts.de/) | complete German stationary battery fleet from the cleaned MaStR | monthly inventory value |
-| [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory) | operational battery projects outside Germany and pumped storage in all countries | API snapshot |
+| [JRC European Energy Storage Inventory](https://ses.jrc.ec.europa.eu/storage-inventory) | operational battery projects outside Germany and pumped storage in all countries | dashboard snapshot |
 | [JRC Hydro-power database](https://data.jrc.ec.europa.eu/dataset/52b00441-d3e0-44e0-8281-fda86a63546d) | reported plant, pumping, and reservoir-energy inventory | release snapshot |
 | [EEA GHG inventory](https://www.eea.europa.eu/en/datahub/datahubitem-view/3b7fe76c-524a-439a-bfd2-a6e4046302a2) | CRT 1.A.1.a emissions from public electricity and heat production | year |
 | [Natural Earth](https://www.naturalearthdata.com/) | local country geometries for the map of Europe | version 5.1.1 |
@@ -148,7 +148,11 @@ JRC has a separate, explicitly triggered online update command:
 .\.venv\Scripts\eea.exe update-storage
 ```
 
-A fresh monthly cache prevents a JRC network request. `--refresh` deliberately bypasses the monthly cache check but remains limited to one JRC request. HTTP 403 and 429 responses are never retried; timeouts and 5xx responses receive at most one retry after at least ten seconds. The command cannot access Battery-Charts.
+A fresh monthly cache prevents the JRC browser session. `--refresh` deliberately bypasses the monthly cache check. The command opens an isolated Chromium window, selects `Operational`, then exports the official dashboard's filtered Electrochemical and Pumped Hydro Storage (PHS) power and capacity XLSX files. It requires four downloads in one dashboard session, retains their raw payloads and SHA-256 values, and cannot access Battery-Charts.
+
+The project dependency installs the Playwright library; once per machine, also
+install its isolated browser runtime with `python -m playwright install
+chromium`. This neither controls nor changes an installed Firefox profile.
 
 Germany uses only the national Battery-Charts total for batteries. Other countries use the project inventory recorded by JRC, while pumped storage comes from JRC for every country. Values from different sources are never added together. The existing `import-storage` command remains available as a deprecated offline fallback for reviewed JRC CSV/XLSX files. See [JRC_STORAGE_IMPORT.md](docs/JRC_STORAGE_IMPORT.md) for details.
 

@@ -51,6 +51,7 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 - [ ] `COVERAGE.generated.md` und `SUMMARY.generated.json` für den finalen Datenstand neu erzeugen.
 - [ ] Den historischen Energy-Charts-Validierungsbericht nicht als aktuelle Validierung ausliefern; aktuellen Bericht erzeugen oder den historischen Bericht eindeutig außerhalb des Beta-Artefakts halten.
 - [x] Der Projekteigentümer akzeptiert die vorläufige nichtkommerzielle Beta-Nutzung aggregierter Werte aus dem JRC European Energy Storage Inventory bei klarer Attribution sowie Schätzungs- und Unvollständigkeitshinweisen. Eine weitergehende Rechteklärung oder spätere Ablösung durch Ember ist Post-Beta-Arbeit; eine rechtliche Freigabe wird damit nicht behauptet.
+- [x] Der technische JRC-Refresh nutzt die offizielle Dashboard-Oberfläche mit sichtbaren Filtern für Operational, Electrochemical und Pumped Hydro Storage (PHS); die vier XLSX-Exporte werden nur nach vollständiger Validierung atomar übernommen.
 
 **Gate Daten:** K4 hat den bisherigen Kandidaten technisch erfolgreich geprüft; 140 von 140 durchführbaren Ember-Einzelvergleichen und die fünf Kreuznachrechnungen bestanden. Vor der Freigabe fehlen noch der einmalige kontrollierte Komplett-Refresh, ein neuer Datenbankhash sowie dazu passende Coverage-, Summary- und Validierungsberichte.
 

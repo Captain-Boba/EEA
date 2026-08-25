@@ -52,23 +52,35 @@ Battery-Charts describes these data as the cleaned German MaStR stock. The
 Atlas labels them `Battery-Charts – bereinigter MaStR-Gesamtbestand, CC BY 4.0`.
 Vehicle batteries are outside this scope.
 
-## JRC project API
+## JRC dashboard export
 
-The importer requests at most once per update:
+`eea update-storage` opens the official public dashboard at
+`https://ses.jrc.ec.europa.eu/storage-inventory` in an isolated Chromium
+window. It uses only visible dashboard controls and no session-bound endpoint:
 
-`https://ses.jrc.ec.europa.eu/storage-inventory-tool/api/projects`
+The one-time machine setup is `python -m playwright install chromium` after
+installing the project dependencies. The isolated runtime does not access or
+modify a user's Firefox profile.
 
-Only projects with `status.name == Operational` are considered. Batteries
-require `technology.parentName == Electrochemical` (case-insensitive). Pumped
-storage requires the exact technology name `Pumped Hydro Storage (PHS)`;
-flywheels, CAES, thermal, and chemical storage are not reclassified as pumped
-storage. Missing energy remains missing, never zero. `estimated_capacity` is
-preserved in metric quality and provenance.
+1. clear selections, select `Project status → Operational`,
+2. select `Technology → Electrochemical`, export `Power (GW)` and
+   `Capacity (GWh)`,
+3. clear selections, select `Project status → Operational`,
+   `Technology → Mechanical`, and exact `Subtechnology → Pumped Hydro Storage
+   (PHS)`, then export both dimensions.
 
-The public project API is not formally versioned. An unexpected schema aborts
-the JRC source transaction and preserves the previous snapshot. JRC values are
-an inventory of tracked projects, not a guaranteed complete national stock and
-not the total energy content of conventional hydropower reservoirs.
+This is one dashboard session with four XLSX downloads. Mechanical storage as a
+whole is never accepted: flywheels, CAES, thermal, and chemical storage are not
+reclassified as pumped storage. Germany's JRC battery export is parsed but not
+stored; the German national Battery-Charts total remains exclusive. Missing
+power or energy remains missing, never zero.
+
+The dashboard's visible `Last update` date is stored as the inventory date. An
+unexpected XLSX schema, status, country, or value aborts the complete JRC
+transaction and preserves the previous snapshot. Raw XLSX files, stable
+dashboard URL, retrieval time, content type, and SHA-256 are retained in
+`source_cache`; temporary Qlik download URLs, cookies, and session identifiers
+are never stored.
 
 The JRC inventory states that it uses mainly public and Wood Mackenzie data and
 that some MWh capacities are estimated. Confirm redistribution rights before a
@@ -81,12 +93,13 @@ stored in `source_cache`. No API key or request URL is stored or required.
 
 ## JRC request and transaction limits
 
-- A regular JRC update is skipped when its response was already fetched in the
-  current calendar month.
+- A regular JRC update is skipped when all four filtered exports were fetched
+  in the current calendar month.
 - `--refresh` bypasses that freshness check but keeps all request limits.
-- Maximum per update: one JRC request. Battery-Charts is not contacted.
-- HTTP 403 and 429 abort without a retry. `Retry-After` is reported/respected.
-- Timeout and HTTP 5xx receive at most one retry after at least ten seconds.
+- Maximum per update: one dashboard session and four XLSX downloads.
+  Battery-Charts is not contacted.
+- The dashboard automation makes no retry loop. A failed browser session or
+  download aborts before any SQLite data are replaced.
 - Raw payload, retrieval time, HTTP metadata, and SHA-256 are stored in
   `source_cache` only after validation.
 - JRC is replaced in a SQLite savepoint only after full validation.

@@ -7,6 +7,7 @@ import unittest
 from contextlib import redirect_stdout
 from datetime import UTC, date, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
@@ -27,6 +28,7 @@ from electricity_atlas.storage_online import (
     StorageOnlineError,
     latest_storage,
 )
+from electricity_atlas.storage_importer import JRC_DASHBOARD_EXPORTS
 
 
 FIXTURES = Path(__file__).parent / "fixtures" / "storage"
@@ -274,10 +276,11 @@ class StorageUpdaterTests(unittest.TestCase):
         )
 
     def test_fresh_monthly_cache_prevents_all_network_calls(self):
-        self._cache("jrc", JRC_STORAGE_API_ENDPOINT, self.jrc.payload_text)
+        for endpoint in JRC_DASHBOARD_EXPORTS.values():
+            self._cache("jrc", endpoint, "base64:fixture")
 
         class NeverJrc:
-            def fetch(self, **_kwargs):
+            def fetch_exports(self):
                 raise AssertionError("JRC network call")
 
         result = OnlineStorageUpdater(
@@ -292,20 +295,22 @@ class StorageUpdaterTests(unittest.TestCase):
         class FakeJrc:
             calls = 0
 
-            def fetch(self, **_kwargs):
+            def fetch_exports(self):
                 self.calls += 1
-                return self_download
+                return SimpleNamespace(exports={}, snapshot_date="2026-08-25")
 
-        self_download = self.jrc
         jrc_client = FakeJrc()
-        result = OnlineStorageUpdater(
-            self.connection,
-            refresh=True,
-            today=date(2026, 8, 20),
-            jrc_client=jrc_client,
-        ).update()
+        with patch("electricity_atlas.storage_online.JrcStorageImporter") as importer_mock:
+            importer_mock.return_value.import_dashboard_categories.return_value = {"rows": 12}
+            result = OnlineStorageUpdater(
+                self.connection,
+                refresh=True,
+                today=date(2026, 8, 20),
+                jrc_client=jrc_client,
+            ).update()
         self.assertEqual(jrc_client.calls, 1)
         self.assertEqual(result["jrc"]["network_requests"], 1)
+        self.assertEqual(result["jrc"]["download_requests"], 0)
         self.assertEqual(set(result), {"jrc"})
 
     def test_manual_import_never_persists_a_battery_key_field(self):

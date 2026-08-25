@@ -5,11 +5,12 @@ import sqlite3
 import tempfile
 import unittest
 import zipfile
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
 from electricity_atlas.aggregation import aggregate_country
-from electricity_atlas.config import EUROSTAT_GEO, EUROSTAT_GEO_TO_ATLAS
+from electricity_atlas.config import EUROSTAT_GEO, EUROSTAT_GEO_TO_ATLAS, JRC_STORAGE_DASHBOARD_URL
 from electricity_atlas.db import initialize
 from electricity_atlas.eurostat_importer import (
     DATASETS,
@@ -18,7 +19,13 @@ from electricity_atlas.eurostat_importer import (
     EurostatImporter,
 )
 from electricity_atlas.metrics import metric_catalog
-from electricity_atlas.storage_importer import JrcStorageImporter, StorageImportError, latest_storage
+from electricity_atlas.storage_importer import (
+    JRC_DASHBOARD_EXPORTS,
+    JrcStorageImporter,
+    StorageCachePayload,
+    StorageImportError,
+    latest_storage,
+)
 
 
 def json_stat(values):
@@ -256,6 +263,69 @@ class JrcStorageImportTests(unittest.TestCase):
             "SELECT metric,value FROM period_observation WHERE source='jrc' ORDER BY metric"
         )]
         self.assertEqual(after, before)
+
+    def test_filtered_dashboard_categories_keep_battery_and_pumped_storage_separate(self):
+        def export(kind, dimension, rows):
+            label = "Power (GW)" if dimension == "power" else "Capacity (GWh)"
+            return StorageCachePayload(
+                endpoint=JRC_DASHBOARD_EXPORTS[(kind, dimension)],
+                path=Path(f"{kind}-{dimension}.xlsx"),
+                payload_bytes=xlsx_bytes([["Country", "Project status", label], *rows]),
+                request_url=JRC_STORAGE_DASHBOARD_URL,
+                fetched_at="2026-08-25T12:00:00+00:00",
+            )
+
+        exports = {
+            ("battery", "power"): export("battery", "power", [
+                ["Germany", "Operational", 20.0], ["France", "Operational", 0.6],
+            ]),
+            ("battery", "capacity"): export("battery", "capacity", [
+                ["Germany", "Operational", 30.0], ["France", "Operational", 1.2],
+            ]),
+            ("pumped_storage", "power"): export("pumped_storage", "power", [
+                ["Germany", "Operational", 6.0], ["Norway", "Operational", 1.0],
+            ]),
+            ("pumped_storage", "capacity"): export("pumped_storage", "capacity", [
+                ["Germany", "Operational", 49.41], ["Norway", "Operational", 862.0],
+            ]),
+        }
+
+        result = JrcStorageImporter(self.connection).import_dashboard_categories(exports, "2026-08-25")
+        values = {
+            (row["country_code"], row["metric"]): row["value"]
+            for row in self.connection.execute(
+                "SELECT country_code,metric,value FROM period_observation WHERE source='jrc'"
+            )
+        }
+        self.assertEqual(result["exports"], 4)
+        self.assertNotIn(("DE", "battery_power_gw"), values)
+        self.assertEqual(values[("FR", "battery_energy_gwh")], 1.2)
+        self.assertEqual(values[("DE", "pumped_storage_power_gw")], 6.0)
+        self.assertEqual(values[("NO", "pumped_storage_energy_gwh")], 862.0)
+        self.assertAlmostEqual(values[("NO", "pumped_storage_duration_hours")], 862.0)
+        cache = self.connection.execute(
+            "SELECT request_url,content_type FROM source_cache WHERE source='jrc' ORDER BY endpoint"
+        ).fetchall()
+        self.assertEqual(len(cache), 4)
+        self.assertTrue(all(row["request_url"] == JRC_STORAGE_DASHBOARD_URL for row in cache))
+        self.assertTrue(all("spreadsheetml" in row["content_type"] for row in cache))
+
+        before = list(self.connection.execute(
+            "SELECT country_code,metric,value FROM period_observation WHERE source='jrc' ORDER BY 1,2"
+        ))
+        damaged = dict(exports)
+        damaged[("pumped_storage", "capacity")] = replace(
+            exports[("pumped_storage", "capacity")],
+            payload_bytes=xlsx_bytes([
+                ["Country", "Project status", "Broken"], ["Norway", "Operational", 999],
+            ]),
+        )
+        with self.assertRaises(StorageImportError):
+            JrcStorageImporter(self.connection).import_dashboard_categories(damaged, "2026-08-26")
+        after = list(self.connection.execute(
+            "SELECT country_code,metric,value FROM period_observation WHERE source='jrc' ORDER BY 1,2"
+        ))
+        self.assertEqual([tuple(row) for row in after], [tuple(row) for row in before])
 
 
 class MetricCatalogTests(unittest.TestCase):

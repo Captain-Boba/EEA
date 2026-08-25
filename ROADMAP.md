@@ -61,15 +61,15 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 ### 6. Speicherpflege und internationale Coverage stabilisieren
 
-- Den bewussten JRC-CLI-Abruf höchstens einmal pro Kalendermonat betreiben und die reale Abdeckung beobachten.
+- Den bewussten JRC-Dashboard-Refresh höchstens einmal pro Kalendermonat betreiben und die reale Abdeckung beobachten. Ein Lauf besteht aus einer sichtbaren, isolierten Browser-Sitzung mit vier gefilterten XLSX-Downloads (Operational Electrochemical sowie Operational Pumped Hydro Storage, jeweils Leistung und Energie).
 - Battery-Charts ausschließlich über den manuellen, atomaren Import der beiden JSON-Dateien aktualisieren. Der Atlas führt keinen automatischen Battery-Charts-Netzwerkzugriff aus.
 - Nach mehreren realen Aktualisierungen entscheiden, ob ein externer monatlicher Scheduler sinnvoll ist. Der Atlas-Server selbst startet weiterhin keine Hintergrundimporte.
-- Änderungen der nicht formal versionierten JRC-Projekt-API und der Battery-Charts-Antworten sichtbar dokumentieren, statt die Validierung stillschweigend zu lockern.
+- Änderungen des nicht formal versionierten JRC-Dashboard-Exports und der Battery-Charts-Antworten sichtbar dokumentieren, statt die Validierung stillschweigend zu lockern.
 - Für Länder außerhalb Deutschlands transparent prüfen, welche stationären Batterieklassen im JRC-Projektbestand fehlen. Fehlende Heim- oder Gewerbespeicher nicht schätzen.
 - Mittelfristig bei Ember nach einem CC-BY-4.0-Datensatz für Batterie- und Pumpspeicherenergie sowie Entladeleistung fragen und bei Verfügbarkeit die Übergangsquellen ablösen.
 - Die weitergehende Rechteklärung des JRC-Projektbestands bleibt Post-Beta-Arbeit. Für die vorläufige nichtkommerzielle Beta hat der Projekteigentümer die Nutzung aggregierter Werte mit Attribution sowie Schätzungs- und Unvollständigkeitshinweisen akzeptiert; eine rechtliche Freigabe wird nicht behauptet.
 
-**Abnahme:** Mehrere reale Monatsaktualisierungen laufen mit maximal einem JRC-Request, ohne Battery-Charts-Netzwerkzugriff, ohne Duplikate und ohne Verlust des vorherigen Datenstands bei Fehlern.
+**Abnahme:** Mehrere reale Monatsaktualisierungen laufen mit genau einer JRC-Dashboard-Sitzung und vier gefilterten Downloads, ohne Battery-Charts-Netzwerkzugriff, ohne Duplikate und ohne Verlust des vorherigen Datenstands bei Fehlern.
 
 ### 7. Zusätzliche Leistungs- und Wasserkraftkennzahlen evaluieren
 

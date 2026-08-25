@@ -107,9 +107,15 @@ EUROSTAT_BALANCE_SOURCE_LABEL = "Eurostat – Strombilanz"
 EUROSTAT_ROAD_SOURCE_LABEL = "Eurostat – Straßenverkehrsbestand und Neuzulassungen"
 
 JRC_SOURCE_NAME = "jrc"
+# Historical identifiers retained only for reading/recovery of prior local
+# snapshots.  `update-storage` no longer requests this retired projects API.
 JRC_STORAGE_ENDPOINT = "european-energy-storage-inventory/manual-export"
 JRC_STORAGE_API_ENDPOINT = "european-energy-storage-inventory/api/projects"
 JRC_STORAGE_API_URL = "https://ses.jrc.ec.europa.eu/storage-inventory-tool/api/projects"
+# Current controlled source: the public dashboard's visible, filtered XLSX
+# exports.  No Qlik session URL is persisted.
+JRC_STORAGE_DASHBOARD_URL = "https://ses.jrc.ec.europa.eu/storage-inventory"
+JRC_STORAGE_DASHBOARD_ENDPOINT = "european-energy-storage-inventory/dashboard-export"
 JRC_STORAGE_SOURCE_LABEL = "European Commission JRC – European Energy Storage Inventory"
 
 JRC_HYDRO_ENDPOINT = "jrc-hydro-power-database/release-01"

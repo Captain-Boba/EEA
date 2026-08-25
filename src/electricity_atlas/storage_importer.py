@@ -18,6 +18,7 @@ from .config import (
     ATLAS_COUNTRIES,
     COUNTRIES,
     JRC_SOURCE_NAME,
+    JRC_STORAGE_DASHBOARD_ENDPOINT,
     JRC_STORAGE_ENDPOINT,
     JRC_STORAGE_SOURCE_LABEL,
 )
@@ -47,6 +48,13 @@ KNOWN_NON_ATLAS_EXPORT_COUNTRIES = frozenset(
     {"Albania", "Bosnia and Herzegovina", "Turkey", "Ukraine"}
 )
 XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+JRC_INVENTORY_SERIES = "tracked_project_inventory"
+JRC_DASHBOARD_EXPORTS = {
+    ("battery", "power"): f"{JRC_STORAGE_DASHBOARD_ENDPOINT}/electrochemical-power-xlsx",
+    ("battery", "capacity"): f"{JRC_STORAGE_DASHBOARD_ENDPOINT}/electrochemical-capacity-xlsx",
+    ("pumped_storage", "power"): f"{JRC_STORAGE_DASHBOARD_ENDPOINT}/pumped-hydro-power-xlsx",
+    ("pumped_storage", "capacity"): f"{JRC_STORAGE_DASHBOARD_ENDPOINT}/pumped-hydro-capacity-xlsx",
+}
 
 
 class StorageImportError(RuntimeError):
@@ -66,6 +74,12 @@ class StorageCachePayload:
     endpoint: str
     path: Path
     payload_bytes: bytes
+    request_url: str | None = None
+    fetched_at: str | None = None
+    status_code: int = 200
+    content_type: str | None = None
+    etag: str | None = None
+    last_modified: str | None = None
 
 
 class JrcStorageImporter:
@@ -154,6 +168,88 @@ class JrcStorageImporter:
             "capacity_sha256": hashlib.sha256(capacity_bytes).hexdigest(),
         }
 
+    def import_dashboard_categories(
+        self,
+        exports: dict[tuple[str, str], StorageCachePayload],
+        snapshot_date: str,
+    ) -> dict[str, Any]:
+        """Atomically import the four filtered official-dashboard exports.
+
+        The dashboard is used only for aggregation and download.  The four raw
+        XLSX responses are retained verbatim so a later refresh remains
+        traceable without keeping short-lived Qlik download URLs.
+        """
+        try:
+            snapshot = date.fromisoformat(snapshot_date).isoformat()
+        except ValueError as exc:
+            raise StorageImportError("JRC snapshot date must use YYYY-MM-DD") from exc
+        expected = set(JRC_DASHBOARD_EXPORTS)
+        if set(exports) != expected:
+            missing = sorted("/".join(item) for item in expected - set(exports))
+            extra = sorted("/".join(item) for item in set(exports) - expected)
+            raise StorageImportError(
+                "JRC dashboard exports must contain exactly battery/pumped_storage power/capacity"
+                + (f"; missing: {', '.join(missing)}" if missing else "")
+                + (f"; unexpected: {', '.join(extra)}" if extra else "")
+            )
+
+        parsed: dict[tuple[str, str], dict[str, float]] = {}
+        for key, cache in exports.items():
+            kind, dimension = key
+            expected_endpoint = JRC_DASHBOARD_EXPORTS[key]
+            if cache.endpoint != expected_endpoint:
+                raise StorageImportError(f"JRC dashboard export endpoint is invalid for {kind}/{dimension}")
+            header = "Power (GW)" if dimension == "power" else "Capacity (GWh)"
+            parsed[key] = self._read_dashboard_export(cache.payload_bytes, header)
+
+        normalized: list[tuple[Any, ...]] = []
+        coverage: dict[str, dict[str, list[str]]] = {}
+        for kind in ("battery", "pumped_storage"):
+            power = parsed[(kind, "power")]
+            capacity = parsed[(kind, "capacity")]
+            codes = sorted(set(power) | set(capacity))
+            coverage[kind] = {
+                "countries_with_values": codes,
+                "countries_missing": sorted(set(ATLAS_COUNTRIES) - set(codes)),
+            }
+            for code in codes:
+                # Germany uses the national Battery-Charts total exclusively.
+                if kind == "battery" and code == "DE":
+                    continue
+                series = f"{JRC_INVENTORY_SERIES}:{kind}"
+                if code in power:
+                    normalized.append((
+                        code, snapshot, snapshot, "snapshot", JRC_SOURCE_NAME,
+                        JRC_STORAGE_DASHBOARD_ENDPOINT, series, f"{kind}_power_gw",
+                        power[code], "GW", "source_reported_including_estimates",
+                    ))
+                if code in capacity:
+                    normalized.append((
+                        code, snapshot, snapshot, "snapshot", JRC_SOURCE_NAME,
+                        JRC_STORAGE_DASHBOARD_ENDPOINT, series, f"{kind}_energy_gwh",
+                        capacity[code], "GWh", "source_reported_including_estimates",
+                    ))
+                if code in power and code in capacity and power[code] > 0:
+                    normalized.append((
+                        code, snapshot, snapshot, "snapshot", JRC_SOURCE_NAME,
+                        JRC_STORAGE_DASHBOARD_ENDPOINT, series, f"{kind}_duration_hours",
+                        capacity[code] / power[code], "h", "derived_from_jrc_power_and_energy",
+                    ))
+        if not normalized:
+            raise StorageImportError("JRC dashboard exports contain no operational Atlas storage values")
+
+        replaced = self._replace_dashboard_categories(normalized, list(exports.values()))
+        return {
+            "source": JRC_SOURCE_NAME,
+            "endpoint": JRC_STORAGE_DASHBOARD_ENDPOINT,
+            "snapshot_date": snapshot,
+            "rows": len(normalized),
+            "replaced_rows": replaced,
+            "exports": len(exports),
+            "battery": coverage["battery"],
+            "pumped_storage": coverage["pumped_storage"],
+        }
+
     def _replace(
         self,
         normalized: list[tuple[Any, ...]],
@@ -208,6 +304,84 @@ class JrcStorageImporter:
             self.connection.execute("RELEASE SAVEPOINT jrc_storage_import")
             raise
         return replaced
+
+    def _replace_dashboard_categories(
+        self,
+        normalized: list[tuple[Any, ...]],
+        cache_payloads: list[StorageCachePayload],
+    ) -> int:
+        """Replace only JRC's resolved battery/pumped-storage observations.
+
+        This deliberately leaves JRC hydro inventory observations alone.  It
+        also removes values from the retired projects API in the same short
+        transaction, so a failed dashboard refresh can never produce a mixed
+        old/new storage snapshot.
+        """
+        metrics = (
+            "battery_power_gw", "battery_energy_gwh", "battery_duration_hours",
+            "pumped_storage_power_gw", "pumped_storage_energy_gwh", "pumped_storage_duration_hours",
+        )
+        placeholders = ",".join("?" for _ in metrics)
+        self.connection.execute("SAVEPOINT jrc_dashboard_import")
+        try:
+            replaced = self.connection.execute(
+                f"SELECT COUNT(*) FROM period_observation WHERE source=? AND metric IN ({placeholders})",
+                (JRC_SOURCE_NAME, *metrics),
+            ).fetchone()[0]
+            self.connection.execute(
+                f"DELETE FROM period_observation WHERE source=? AND metric IN ({placeholders})",
+                (JRC_SOURCE_NAME, *metrics),
+            )
+            self.connection.execute(
+                "DELETE FROM source_cache WHERE source=? AND endpoint LIKE ?",
+                (JRC_SOURCE_NAME, "european-energy-storage-inventory/%"),
+            )
+            self.connection.executemany(
+                """INSERT INTO period_observation
+                   (country_code,period_start,period_end,granularity,source,source_endpoint,
+                    source_series,metric,value,unit,quality_status)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                normalized,
+            )
+            self._write_cache_payloads(cache_payloads)
+            self.connection.execute("RELEASE SAVEPOINT jrc_dashboard_import")
+        except Exception:
+            self.connection.execute("ROLLBACK TO SAVEPOINT jrc_dashboard_import")
+            self.connection.execute("RELEASE SAVEPOINT jrc_dashboard_import")
+            raise
+        return replaced
+
+    def _write_cache_payloads(
+        self,
+        cache_payloads: list[StorageCachePayload],
+        *,
+        text_payloads: dict[str, str] | None = None,
+    ) -> None:
+        default_fetched_at = datetime.now(UTC).isoformat()
+        for cache in cache_payloads:
+            is_text = text_payloads is not None and cache.endpoint in text_payloads
+            payload_text = (
+                text_payloads[cache.endpoint]
+                if is_text
+                else "base64:" + base64.b64encode(cache.payload_bytes).decode("ascii")
+            )
+            content_type = cache.content_type or ("text/csv" if is_text else XLSX_CONTENT_TYPE)
+            request_url = cache.request_url or f"manual-file:{cache.path.name}"
+            self.connection.execute(
+                """INSERT INTO source_cache
+                   (source,endpoint,request_url,fetched_at,status_code,content_type,etag,last_modified,sha256,payload_text)
+                   VALUES (?,?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(source,endpoint) DO UPDATE SET
+                     request_url=excluded.request_url,fetched_at=excluded.fetched_at,
+                     status_code=excluded.status_code,content_type=excluded.content_type,
+                     etag=excluded.etag,last_modified=excluded.last_modified,
+                     sha256=excluded.sha256,payload_text=excluded.payload_text""",
+                (
+                    JRC_SOURCE_NAME, cache.endpoint, request_url,
+                    cache.fetched_at or default_fetched_at, cache.status_code, content_type,
+                    cache.etag, cache.last_modified, hashlib.sha256(cache.payload_bytes).hexdigest(), payload_text,
+                ),
+            )
 
     def _read_dashboard_export(self, payload_bytes: bytes, value_header: str) -> dict[str, float]:
         rows = self._xlsx_rows(payload_bytes)

@@ -32,7 +32,14 @@ from .config import (
     JRC_HYDRO_SOURCE_LABEL,
     JRC_SOURCE_NAME,
 )
-from .storage_importer import JRC_EXPORT_COUNTRIES, KNOWN_NON_ATLAS_EXPORT_COUNTRIES
+from .storage_dashboard import JrcDashboardClient
+from .storage_importer import (
+    JRC_DASHBOARD_EXPORTS,
+    JRC_EXPORT_COUNTRIES,
+    JrcStorageImporter,
+    KNOWN_NON_ATLAS_EXPORT_COUNTRIES,
+)
+from .storage_errors import StorageOnlineError
 
 
 STORAGE_METRICS = (
@@ -53,10 +60,6 @@ BATTERY_SEGMENTS = ("home", "industrial", "grossspeicher")
 BATTERY_TOTAL_SERIES = "national_registry_total"
 JRC_INVENTORY_SERIES = "tracked_project_inventory"
 BATTERY_CHARTS_ONLINE_ACCESS_ENABLED = False
-
-
-class StorageOnlineError(RuntimeError):
-    pass
 
 
 class BatteryChartsKeyError(StorageOnlineError):
@@ -608,29 +611,27 @@ class OnlineStorageUpdater:
         *,
         refresh: bool = False,
         today: date | None = None,
-        jrc_client: JrcStorageClient | None = None,
+        jrc_client: JrcDashboardClient | None = None,
     ):
         self.connection = connection
         self.refresh = refresh
         self.today = today or date.today()
-        self.jrc_client = jrc_client or JrcStorageClient()
+        self.jrc_client = jrc_client or JrcDashboardClient()
 
     def update(self) -> dict[str, Any]:
         return {"jrc": self._update_jrc()}
 
     def _update_jrc(self) -> dict[str, Any]:
-        cached = self._cache_rows(JRC_SOURCE_NAME, (JRC_STORAGE_API_ENDPOINT,))
-        if not self.refresh and self._fresh(cached, (JRC_STORAGE_API_ENDPOINT,)):
+        endpoints = tuple(JRC_DASHBOARD_EXPORTS.values())
+        cached = self._cache_rows(JRC_SOURCE_NAME, endpoints)
+        if not self.refresh and self._fresh(cached, endpoints):
             return {"source": JRC_SOURCE_NAME, "cached": True, "network_requests": 0}
-        row = cached.get(JRC_STORAGE_API_ENDPOINT)
-        download = self.jrc_client.fetch(
-            etag=row["etag"] if row and self.refresh else None,
-            last_modified=row["last_modified"] if row and self.refresh else None,
+        downloads = self.jrc_client.fetch_exports()
+        result = JrcStorageImporter(self.connection).import_dashboard_categories(
+            downloads.exports, downloads.snapshot_date
         )
-        if download.status_code == 304:
-            download = self._with_cached_payload(download, row)
-        result = JrcOnlineImporter(self.connection).import_download(download)
         result["network_requests"] = 1
+        result["download_requests"] = len(downloads.exports)
         return result
 
     def _cache_rows(self, source: str, endpoints: tuple[str, ...]) -> dict[str, sqlite3.Row]:
