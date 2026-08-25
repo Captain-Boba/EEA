@@ -36,6 +36,36 @@ eea --db 'D:\eea-data\atlas.sqlite3' serve --community-db 'D:\eea-community\comm
 
 Do not let a reverse proxy’s client-supplied `Host` or `X-Forwarded-*` headers define the public origin. The application uses only the configured `EEA_PUBLIC_ORIGIN`; the proxy should preserve the browser `Origin` header and restrict access to same-origin traffic. Terminate HTTPS at the proxy and forward ordinary requests to the local Atlas process.
 
+## Railway beta deployment
+
+The repository contains `railpack.json` as the reproducible Railway/Railpack
+entry point. It pins Python 3.11 and starts the source-layout application on
+Railway's injected `PORT`. Browser binaries are deliberately not installed:
+the public service reads a prepared Atlas snapshot and never runs importers.
+
+Use one service instance and attach one persistent volume at `/data`. Before
+the first healthy deployment, upload the reviewed release snapshot as
+`/data/atlas.sqlite3`. The service creates `/data/community.sqlite3` on first
+start and keeps public vote state separate from the analytical snapshot.
+
+The minimum Railway service setup is:
+
+1. Connect the GitHub repository to the service.
+2. Attach a persistent volume with mount path `/data`.
+3. Register a local SSH public key with Railway; volume file commands require
+   an active deployment and a registered key.
+4. Upload `data/atlas.sqlite3` to `/atlas.sqlite3` on that volume, for example
+   with `railway volume files upload ./data/atlas.sqlite3 /atlas.sqlite3`.
+5. Configure `/api/health` as the deployment healthcheck path.
+6. Generate the temporary Railway domain and set `EEA_PUBLIC_ORIGIN` to its
+   exact `https://...up.railway.app` origin.
+7. Keep one replica while the writable community store remains SQLite.
+
+The start command uses `--require-existing-db`; a missing, empty, or invalid
+Atlas snapshot therefore fails closed instead of publishing an empty Atlas.
+After acceptance on the Railway domain, attach the production domain and
+replace `EEA_PUBLIC_ORIGIN` with its exact HTTPS origin.
+
 ## Data volumes and replacement
 
 Treat `atlas.sqlite3` as a versioned, read-only release snapshot. Mount or copy it from persistent storage, start the server with `--require-existing-db`, and replace it only in a controlled maintenance step.
