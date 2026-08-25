@@ -26,6 +26,9 @@ class ServerSmokeTests(unittest.TestCase):
                     contact_html = response.read().decode("utf-8")
                 with urlopen(base + "/privacy.html", timeout=5) as response:
                     privacy_html = response.read().decode("utf-8")
+                with urlopen(base + "/llms.txt", timeout=5) as response:
+                    llms_text = response.read().decode("utf-8")
+                    llms_content_type = response.headers.get_content_type()
                 with urlopen(base + "/assets/europe.svg", timeout=5) as response:
                     map_svg = response.read().decode("utf-8")
                 with urlopen(base + "/api/countries", timeout=5) as response:
@@ -51,6 +54,10 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertIn("Datenquellen und Herkunft", html)
                 self.assertIn('href="/contact.html"', html)
                 self.assertIn('href="/privacy.html"', html)
+                self.assertIn('rel="help" href="/llms.txt"', html)
+                self.assertIn('href="/llms.txt" type="text/plain">Datenzugriff für LLMs</a>', html)
+                self.assertEqual(llms_content_type, "text/plain")
+                self.assertIn("Machine-readable guidance for language models", llms_text)
                 self.assertIn("Projekt &amp; Kontakt", contact_html)
                 self.assertIn("GitHub Issues", contact_html)
                 self.assertIn("Datenschutz &amp; Cookies", privacy_html)
