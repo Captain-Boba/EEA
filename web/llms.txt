@@ -1,0 +1,190 @@
+# European Electricity Atlas
+
+> Machine-readable guidance for language models and automated clients using the public European Electricity Atlas data API.
+
+Canonical site: https://ee-atlas.eu/
+API base URL: https://ee-atlas.eu/api/
+Source repository: https://github.com/Captain-Boba/EEA
+Project contact: https://ee-atlas.eu/contact.html
+
+## Purpose
+
+The European Electricity Atlas (EEA) is an independent, open analytical interface for comparing electricity systems in 31 European countries. It provides JSON data for electricity generation, demand, generation mix, net imports, carbon intensity, prices, installed capacity, socioeconomic relations, electric mobility, emissions, and electricity-storage inventories.
+
+The Atlas is not an institution of the European Union and is not an official EU publication. Responses should describe it as the "European Electricity Atlas" or "EEA Atlas", not as the European Environment Agency.
+
+## General API rules
+
+- Public analytical endpoints use HTTP GET and return UTF-8 JSON.
+- No API key or authentication is required for analytical GET requests.
+- Always use an explicit year and, when needed, an explicit month or date range.
+- Discover valid country codes with `/api/countries` and valid metric IDs with `/api/metrics` before constructing broader requests.
+- The Atlas country code for the United Kingdom is `UK`, not `GB`.
+- The Atlas contains exactly the countries returned by `/api/countries`. Do not silently add other countries, including Turkey.
+- A JSON `null` means unavailable or inapplicable data. Never convert `null` to zero.
+- Missing countries are excluded from the Atlas average; they are not assigned a value of zero.
+- Preserve returned units, temporal bases, reporting periods, data-status fields, quality fields, warnings, and source labels.
+- Do not describe a requested year as the actual reporting year when `data_year` or `actual_period` reports an older value.
+- Current-year annual values may be year-to-date (`ytd`). The current month may be provisional (`provisional_current_month`).
+- Snapshot storage values have their own observation dates and must not be presented as monthly or annual electricity-flow values.
+- Installed electrical capacity is reported in GW. It is not automatically equivalent to solar module nameplate capacity in GWp.
+- Positive net imports indicate an import surplus; negative net imports indicate an export surplus.
+- Percentage changes are percentages. Do not relabel them as percentage points unless the API explicitly provides a percentage-point metric.
+- On HTTP 400, read the returned `error` field and correct the request instead of guessing a result.
+- Prefer a small number of targeted calls and reuse responses within one analysis.
+
+## Recommended discovery sequence
+
+1. `GET /api/countries`
+2. `GET /api/metrics`
+3. Select the narrowest endpoint matching the question.
+4. Inspect availability, periods, units, status, quality, and source metadata before interpreting values.
+5. Cite the exact API URL used when presenting derived conclusions.
+
+## Endpoints
+
+### Countries
+
+`GET /api/countries`
+
+Returns all supported countries as objects containing `code` and German `name`.
+
+Example:
+
+https://ee-atlas.eu/api/countries
+
+### Metric catalog
+
+`GET /api/metrics`
+
+Returns the authoritative metric catalog. Use its `id` values in other requests. The catalog includes units, German labels, display labels, metric groups, representations, sources, map availability, and temporal availability (`monthly`, `yearly`, or `snapshot`).
+
+Example:
+
+https://ee-atlas.eu/api/metrics
+
+Do not invent metric IDs from visible labels. Snapshot-only metrics cannot be requested as time series and use `/api/storage` instead.
+
+### Complete country ranking for one period
+
+`GET /api/summary?year=YYYY[&month=M]`
+
+Returns one analytical row for every Atlas country. Omit `month` for an annual or YTD view. Add `month=1` through `month=12` for a monthly view.
+
+Examples:
+
+https://ee-atlas.eu/api/summary?year=2025
+
+https://ee-atlas.eu/api/summary?year=2025&month=7
+
+Use this endpoint for full rankings or calculations involving all Atlas countries. Inspect each row's `data_status` and `period_status`.
+
+### Country profile
+
+`GET /api/country-profile?country=CC&year=YYYY[&month=M]`
+
+Returns one bundled profile grouped into sections. Each metric contains its value, unit, display labels, source, requested period, actual period, temporal basis, data status, quality status, and warnings.
+
+Examples:
+
+https://ee-atlas.eu/api/country-profile?country=DE&year=2025
+
+https://ee-atlas.eu/api/country-profile?country=DE&year=2025&month=7
+
+Prefer this endpoint when answering a broad question about one country. Some metrics remain annual or snapshot-based even when a month is requested; use `temporal_basis` and `actual_period` to state that accurately.
+
+### Time series
+
+`GET /api/timeseries?metric=METRIC_ID&countries=CC1,CC2&start=START&end=END`
+
+Returns a time series for one to ten unique Atlas countries, plus the Atlas average. The metric catalog determines whether the range uses monthly `YYYY-MM` or yearly `YYYY` tokens.
+
+Examples:
+
+https://ee-atlas.eu/api/timeseries?metric=renewable_share_pct&countries=DE,FR,ES&start=2015-01&end=2025-12
+
+https://ee-atlas.eu/api/timeseries?metric=capacity_total_gw&countries=DE,FR&start=2015&end=2025
+
+The response contains `granularity`, `comparison_baseline`, country `values`, country `baseline_values`, and `atlas_average`. Monthly relative comparisons use the same calendar month in the first selected year, not January for every month. Gaps represented by `null` must remain gaps.
+
+### Direct comparison
+
+`GET /api/compare?year=YYYY&countries=CC1,CC2[,CC3,CC4][&month=M]`
+
+Returns analytical rows for two to four Atlas countries.
+
+Examples:
+
+https://ee-atlas.eu/api/compare?year=2025&countries=DE,FR
+
+https://ee-atlas.eu/api/compare?year=2025&month=7&countries=DE,FR,ES,PL
+
+Use `/api/timeseries` instead when the question concerns change over time.
+
+### Map dataset
+
+`GET /api/map-data?metric=METRIC_ID&year=YYYY`
+
+Returns values for one map-compatible, non-snapshot metric. The response distinguishes `requested_year` from `data_year`. An empty `rows` array with `data_year: null` means that no usable reporting year was found.
+
+Example:
+
+https://ee-atlas.eu/api/map-data?metric=capacity_total_gw&year=2025
+
+### Data coverage
+
+`GET /api/coverage?year=YYYY`
+
+Returns per-country availability for generation, demand, carbon intensity, and wholesale prices, including the earliest imported year.
+
+Example:
+
+https://ee-atlas.eu/api/coverage?year=2025
+
+Use this endpoint before claiming that a country or period is comprehensively covered.
+
+### Storage inventory
+
+`GET /api/storage`
+
+Returns the latest separately dated battery, pumped-storage, and hydro-inventory observations, with per-metric provenance. Coverage definitions differ by source: Germany's battery figures use a national registry total, while other battery and pumped-storage figures may represent tracked project inventories.
+
+Example:
+
+https://ee-atlas.eu/api/storage
+
+Do not add values from different source definitions together unless the response or metric definition explicitly defines such an aggregation. Do not confuse power in GW with energy capacity in GWh.
+
+### Service health
+
+`GET /api/health`
+
+Reports whether the analytical and community databases are available. It is an operational endpoint, not a data source.
+
+Example:
+
+https://ee-atlas.eu/api/health
+
+## Community endpoints
+
+`GET /api/wallpaper-votes` and `POST /api/wallpaper-votes` belong to the optional Europa Overload image gallery. They are not analytical electricity-data endpoints. Automated clients should not submit votes. Voting is intended for direct human interaction on the website and the POST endpoint enforces same-origin and rate-limit rules.
+
+## Interpretation and citation guidance
+
+- Prefer exact numerical statements with the API-provided unit and period.
+- State whether a result is monthly, annual, YTD, provisional, or a dated snapshot.
+- When comparing countries, distinguish absolute values, shares, and per-capita values.
+- When calculating a new statistic, explain the calculation and exclude missing values unless a different documented rule applies.
+- Cite the exact EEA API request used. If source attribution matters, also report the returned source label and consult the source information on the Atlas homepage.
+- Clearly label conclusions, rankings, and trends computed by the model as derived analysis rather than direct API fields.
+
+## Example workflow
+
+Question: "How did the renewable share of Germany, France, and Spain develop from 2015 to 2025?"
+
+1. Confirm `renewable_share_pct` and its temporal availability with `/api/metrics`.
+2. Request `/api/timeseries?metric=renewable_share_pct&countries=DE,FR,ES&start=2015-01&end=2025-12`.
+3. Retain missing months as gaps.
+4. Use the returned unit `%`, period statuses, and same-calendar-month baseline rule.
+5. Separate direct observations from any trend calculation performed by the model.
+6. Cite both API URLs used.

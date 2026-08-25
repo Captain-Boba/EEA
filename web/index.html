@@ -2,13 +2,21 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta id="viewport-meta" name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070d18">
   <title>EEA</title>
   <link rel="icon" href="/assets/eea-mark.svg" type="image/svg+xml">
+  <script src="/mobile-viewport.js?v=desktop-workspace-v1"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <aside id="mobile-desktop-notice" class="mobile-desktop-notice" aria-label="Hinweis zur mobilen Bedienung" hidden>
+    <div>
+      <strong>Desktopansicht aktiviert</strong>
+      <span>Der Atlas verwendet auf Smartphones bewusst die vollständige Desktopbreite. Für die beste Bedienung das Gerät quer halten, mit zwei Fingern zoomen und die Ansicht horizontal verschieben.</span>
+    </div>
+    <button id="mobile-desktop-notice-close" type="button">Atlas öffnen</button>
+  </aside>
   <div id="wallpaper-stream" class="wallpaper-stream" aria-hidden="true"></div>
   <main>
     <header class="site-header">

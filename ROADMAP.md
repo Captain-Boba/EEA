@@ -1,6 +1,6 @@
 # European Electricity Atlas – Roadmap
 
-Stand: 25. August 2026
+Stand: 26. August 2026
 
 Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktentscheidungen. Historische K2-Arbeitsaufträge sind als solche gekennzeichnet und gelten nicht als aktuelle Spezifikation.
 
@@ -18,14 +18,15 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 **Abnahme:** Der neue Datenbankhash, die acht Quellenpfade, die aktualisierten Berichte und die dokumentierten Stichproben bilden denselben akzeptierten Datenstand ab.
 
-### 2. Öffentliche Beta veröffentlichen
+### 2. Öffentliche Beta betreiben und als Patch fortschreiben
 
 - Railway Hobby betreibt den Atlas mit einem persistenten Volume unter `/data`, einer ausschließlich lesend geöffneten `atlas.sqlite3` und einer getrennten beschreibbaren `community.sqlite3`.
 - Host, Port und Datenbankpfade sind laufzeitkonfigurierbar. `/api/health` überwacht beide Datenbanken, und `--require-existing-db` verhindert den Start mit einem fehlenden oder ungültigen Analysedatensatz.
 - Die Hoster-Testadresse, Prozessneustart, Stimmenpersistenz, Datenbanktausch und ein extern gesichertes Community-Backup sind praktisch geprüft und in `docs/DEPLOYMENT.md` dokumentiert.
 - Projekt-, Kontakt-, Datenschutz- und Cookieinformationen sind öffentlich erreichbar.
-- `ee-atlas.eu` ist per DNS mit Railway verbunden. Nach Abschluss der Zertifikatsvalidierung wird `EEA_PUBLIC_ORIGIN` auf die endgültige HTTPS-Origin umgestellt und der Domain-Smoke-Test ausgeführt.
-- Danach werden die aktuelle README, Release Notes, Vorschaubilder und der geprüfte Datenbanksnapshot für `v0.4.0` mit dem Titel `Beta` veröffentlicht.
+- `ee-atlas.eu` ist per DNS und gültigem Railway-Zertifikat erreichbar. Die endgültige HTTPS-Origin ist aktiv; Startseite und `/api/health` antworten öffentlich erfolgreich.
+- `v0.4.0` mit dem Titel `Beta`, aktueller README, Vorschaubildern und geprüftem Datenbanksnapshot ist veröffentlicht.
+- Der nächste Patch erzwingt auf Mobilgeräten die vollständige 1920-Pixel-Desktoparbeitsfläche mit Pinch-Zoom und horizontaler Navigation und veröffentlicht unter `/llms.txt` einen maschinenlesbaren Leitfaden für die analytische API.
 - Datenupdates bleiben der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → Datenbanktausch`; der Webserver führt weder Importe noch automatische Hintergrundaktualisierungen aus.
 
 **Abnahme:** `https://ee-atlas.eu`, Healthcheck, Kernnavigation, Exporte und öffentliche Abstimmung funktionieren über die endgültige Domain; CI ist auf dem finalen Release-Commit grün und der Release enthält ausschließlich die vorgesehenen Artefakte.
@@ -108,6 +109,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - Lokales Atlas-Logo, kontextbezogene Info-Popovers, konsistente Interaktionszustände, reduzierte Bewegung bei `prefers-reduced-motion` sowie dezente Auswahl-, Sortier-, Fokus- und Exportanimationen sind umgesetzt.
 - Karten- und Zeitvergleich-Auswahl verwenden gruppierte Atlas-Menüs. Kennzahlenvarianten folgen, soweit vorhanden, der Reihenfolge absolut, Anteil und pro Kopf.
 - Karte, Zeitvergleich, Ländersteckbriefe und Exporte verwenden denselben dreiteiligen Beschriftungsvertrag aus Thema, Messgröße und Einheit beziehungsweise Bezugsgröße; technische Kennzahlen-IDs bleiben stabil.
+- Auf Mobilgeräten bleibt bewusst die vollständige 1920-Pixel-Desktoparbeitsfläche erhalten. Sie wird initial auf die Gerätebreite skaliert; Zoom und horizontale Navigation bleiben verfügbar.
 
 ### Tabellen
 
@@ -134,14 +136,14 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 ### Qualitätssicherung
 
 - Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures, führt keine Live-Imports aus und deckt inzwischen auch den Refresh-Lebenszyklus sowie den dreiteiligen Beschriftungsvertrag ab.
-- Eine GitHub-Actions-Pipeline führt dieselbe Suite mit Python 3.11 und Node 22 sowie JavaScript-Syntaxprüfungen aus; ihr erster echter GitHub-Lauf folgt nach Commit und Push.
+- Eine GitHub-Actions-Pipeline führt dieselbe Suite mit Python 3.11 und Node 22 sowie JavaScript-Syntaxprüfungen auf Pushes, Pull Requests und manuellen Läufen aus.
 - Die Full-HD-/WQHD-Darstellung wurde durch den Projekteigentümer vorläufig abgenommen. Ein bei der eingeschränkten Agentenprüfung gefundener horizontaler Überlauf ist behoben.
 - Karte, Flaggen, Logo und Diagramme sind lokale Assets. Nur der ausdrücklich aktivierte Europa-Overload-Modus lädt Wikimedia-Commons-Bilder.
 - Der ältere K2-Auftrag `docs/K2_DATA_EXPANSION_UI_INTEGRATION.md` bleibt als archivierte Übergabedokumentation erhalten.
 
 ## Leitplanken
 
-- Der Atlas ist desktop-first. Mobile Ansichten müssen die Kerninhalte erreichbar halten, benötigen aber keine erzwungene Funktions- oder Layoutparität mit der großflächigen Desktopanalyse.
+- Der Atlas ist desktop-first. Mobile Browser erhalten die vollständige 1920-Pixel-Desktoparbeitsfläche initial skaliert; eine separate native Mobile-Oberfläche ist derzeit kein Produktziel.
 - Monat ist die kleinste Einheit für Strom- und Preisdaten.
 - Fehlende Werte bleiben fehlend und werden niemals als erfundene Nullwerte dargestellt.
 - Fachlich unterschiedliche Quellen und Definitionen dürfen nicht automatisch addiert oder vermischt werden.

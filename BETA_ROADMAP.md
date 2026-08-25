@@ -1,14 +1,14 @@
 # European Electricity Atlas – Fahrplan zur öffentlichen Beta
 
-Stand: 25. August 2026  
-Akzeptierte Release-Candidate-Basis: `fd9ed6e` (`feat(beta): add public project and privacy information`)
-Aktueller Arbeitsstand: Railway-Testadresse und persistente Datenbanken sind online, öffentliche Projekt-, Kontakt- und Datenschutzhinweise sind veröffentlicht und `ee-atlas.eu` ist per DNS mit dem Dienst verbunden. Die Zertifizierungsstelle validiert derzeit die HTTPS-Challenge; danach folgen Origin-Umschaltung, Domain-Smoke-Test und Veröffentlichung von `v0.4.0` mit dem Titel `Beta`.
+Stand: 26. August 2026
+Veröffentlichte Beta-Basis: `v0.4.0` auf `cc40d86` (`docs(beta): prepare public launch documentation and previews`)
+Aktueller Arbeitsstand: Die öffentliche Beta ist unter `https://ee-atlas.eu` erreichbar. Railway liefert Domain und Zertifikat aus; `/api/health` meldet Analyse- und Community-Datenbank als betriebsbereit. `v0.4.0` mit dem Titel `Beta` ist veröffentlicht. Für den nächsten Patch ist zusätzlich eine absichtlich skalierte 1920-Pixel-Desktoparbeitsfläche auf Mobilgeräten vorbereitet, damit keine Kernfunktion durch ein unvollständiges Mobile-Layout entfällt.
 
 ## Zielzustand
 
 Die öffentliche Beta ist erreicht, wenn der Atlas unter einer Hoster-Testadresse und anschließend unter `ee-atlas.eu` reproduzierbar läuft, der veröffentlichte Datenstand nachvollziehbar geprüft ist und alle zentralen Nutzerwege ohne lokale Entwicklungsumgebung funktionieren.
 
-Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, der Quartettvergleich und zusätzliche Forschungsdatensätze sind keine Veröffentlichungsvoraussetzung.
+Die Beta ist ausdrücklich desktop-first. Smartphones erhalten deshalb dieselbe 1920-Pixel-Arbeitsfläche zunächst passend herunterskaliert und können per Pinch-Zoom und horizontaler Navigation arbeiten. Eine eigenständige native Mobile-Oberfläche, der Quartettvergleich und zusätzliche Forschungsdatensätze sind keine Veröffentlichungsvoraussetzung.
 
 ## Bereits erreicht
 
@@ -26,6 +26,7 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 - [x] Portable Laufzeitparameter, strikter Datenbankstart, komponentenbezogener Healthcheck und ein konsistenter Community-Backupbefehl sind lokal umgesetzt und dokumentiert.
 - [x] Alle sichtbaren Kennzahlen verwenden einen gemeinsamen Dreiklang aus Thema, Messgröße und Einheit beziehungsweise Bezugsgröße.
 - [x] Der vollständige Refresh arbeitet mit einem isolierten Kandidaten, schützt die Community-Datenbank und räumt temporäre Datenbanken nach Abschluss wieder auf.
+- [x] Mobile Browser erhalten die vollständige Desktoparbeitsfläche mit aktiviertem Zoom statt eines funktional reduzierten responsiven Layouts.
 
 ## Kritischer Pfad
 
@@ -96,30 +97,30 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 
 ### 5. Release Candidate und Veröffentlichung
 
-- [ ] Vollständige Testsuite, JavaScript-Syntaxprüfungen und `git diff --check` auf dem Release Candidate ausführen.
-- [ ] Sauberen Git-Status sowie Übereinstimmung von lokalem und Remote-Commit bestätigen.
+- [x] Vollständige Testsuite, JavaScript-Syntaxprüfungen und `git diff --check` auf dem Release Candidate ausführen.
+- [x] Sauberen Git-Status sowie Übereinstimmung von lokalem und Remote-Commit vor der Veröffentlichung bestätigen.
 - [x] Versionsnummer `v0.4.0` und Release-Titel `Beta` festlegen.
-- [ ] Finale Release Notes und aktuelle Vorschaubilder vorbereiten.
-- [ ] Geprüftes `atlas.sqlite3` mit SHA-256-Prüfsumme als Release-Artefakt bereitstellen.
-- [ ] Sicherstellen, dass `community.sqlite3`, WAL-Dateien, Schlüssel und lokale Logs nicht im Release enthalten sind.
-- [ ] Rollback auf die vorherige Anwendungsversion und den vorherigen Analysedatensatz dokumentieren.
-- [ ] Zunächst den finalen Release Candidate auf der Testadresse deployen.
+- [x] Finale Release Notes und aktuelle Vorschaubilder vorbereiten.
+- [x] Geprüftes `atlas.sqlite3` als Release-Artefakt bereitstellen.
+- [x] Sicherstellen, dass `community.sqlite3`, WAL-Dateien, Schlüssel und lokale Logs nicht im Release enthalten sind.
+- [x] Rollback auf die vorherige Anwendungsversion und den vorherigen Analysedatensatz dokumentieren.
+- [x] Finalen Release Candidate deployen.
 - [x] DNS für `ee-atlas.eu` nach Abnahme der Railway-Testadresse verbinden.
-- [ ] Railways Zertifikatsvalidierung abschließen und `EEA_PUBLIC_ORIGIN` exakt auf `https://ee-atlas.eu` umstellen.
-- [ ] Unmittelbar danach Healthcheck, Kernnavigation und eine Teststimme über `https://ee-atlas.eu` erneut prüfen.
+- [x] Railways Zertifikatsvalidierung abschließen und `EEA_PUBLIC_ORIGIN` exakt auf `https://ee-atlas.eu` umstellen.
+- [x] Domain und `/api/health` über `https://ee-atlas.eu` erfolgreich aufrufen; Analyse- und Community-Datenbank melden `ok`.
 
-**Gate Beta:** Domain, HTTPS, Atlasdaten, Community-Datenbank und Kernfunktionen sind erreichbar; ein getesteter Rollbackweg steht bereit.
+**Gate Beta:** **ERREICHT MIT `v0.4.0`.** Domain, HTTPS, Atlasdaten, Community-Datenbank und Kernfunktionen sind erreichbar; der Rollbackweg ist dokumentiert. Noch offene manuelle Browser- und Exportvarianten bleiben als gezielte Beta-Nachprüfung sichtbar.
 
 ## Empfohlene Arbeitspakete
 
-1. **Railway-Testadresse fertig abnehmen**
-   Exporte, Overload-Galerie, zwei Browserprofile und Firefox/Chromium kompakt prüfen; keine weitere Hostingarchitektur aufbauen.
+1. **Patch `v0.4.1` veröffentlichen**
+   Die erzwungene Desktoparbeitsfläche auf Mobilgeräten, den maschinenlesbaren LLM-Leitfaden und die aktualisierte Dokumentation committen, deployen und über die Produktionsdomain kurz prüfen.
 
-2. **Produktionsdomain freigeben**
-   Zertifikatsvalidierung abwarten, öffentliche Origin umstellen und Healthcheck, Kernnavigation sowie eine Teststimme über `ee-atlas.eu` prüfen.
+2. **Verbliebene manuelle Beta-Abnahme kompakt nachholen**
+   Exporte, Overload-Galerie, zwei Browserprofile und Firefox/Chromium bei Gelegenheit prüfen; keine weitere Hostingarchitektur aufbauen.
 
-3. **K1 – Release-Candidate-Abnahme**
-   Dokumentation konsolidieren, CI prüfen, Release Notes und neue Vorschaubilder ergänzen und anschließend `v0.4.0` als `Beta` veröffentlichen.
+3. **Post-Beta-Betrieb stabilisieren**
+   Monatliche Datenpflege, externe Sicherung und Störungsreaktion als kleinen, nachvollziehbaren Betriebsablauf festhalten.
 
 Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Künftige Komplett-Refreshes verwenden ausschließlich den dokumentierten `refresh-all`-Lebenszyklus; lose `pre-refresh`, `refresh-candidate`, `attempt2` oder Testdatenbanken gehören nicht zum unterstützten Zustand.
 
@@ -127,7 +128,7 @@ Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Kü
 
 - zusätzliche Spalten in der Haupttabelle
 - Quartettvergleich auf Basis der Ländersteckbriefe
-- vollständige Mobile-Parität
+- eigenständige native Mobile-Oberfläche; die vollständige Desktoparbeitsfläche bleibt auf Mobilgeräten erreichbar
 - Benutzerkonten oder ein manipulationssicheres Wahlsystem
 - automatische Datenimporte oder ein Scheduler im Atlas-Server
 - weitere nationale Batteriequellen
@@ -141,8 +142,8 @@ Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Kü
 ## Noch notwendige Produktentscheidungen
 
 - zuständige Person für Betrieb, Backups und Störungsreaktion
-- Veröffentlichungsdatum nach erfolgreichem Domain-Smoke-Test
+- Termin und Umfang des nächsten Daten-Refreshs
 
 ## Definition of Done
 
-Die Beta ist nicht allein durch einen erfolgreichen Commit erreicht. Sie gilt als freigegeben, wenn alle fünf Gates – UI, Daten, Hosting, Testadresse und Release – dokumentiert bestanden sind und K1 die Veröffentlichung ausdrücklich freigibt.
+Die öffentliche Beta wurde mit `v0.4.0` durch den Projekteigentümer freigegeben. Weitere Releases setzen einen geprüften Commit, grüne CI, ein erfolgreiches Deployment und einen kurzen Smoke-Test über `https://ee-atlas.eu` voraus; offene manuelle Browser- und Exportvarianten bleiben nachvollziehbare Nachprüfungen statt stillschweigend als erledigt zu gelten.

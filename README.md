@@ -4,7 +4,7 @@ An open, interactive atlas for comparing European electricity systems. The web i
 
 **[Open the Atlas](https://ee-atlas.eu)** · [Latest release](https://github.com/Captain-Boba/EEA/releases/latest) · [Project and contact](https://ee-atlas.eu/contact.html) · [Privacy and cookies](https://ee-atlas.eu/privacy.html)
 
-The public beta is desktop-first and covers 31 European countries from 2015 onwards. Missing, provisional, YTD, annual, monthly, and snapshot values remain visibly distinct instead of being silently filled or mixed.
+The public beta is desktop-first and covers 31 European countries from 2015 onwards. On smartphones, the complete 1920-pixel desktop workspace is intentionally preserved and initially scaled to fit instead of collapsing the analytical tools into an incomplete mobile layout; pinch zoom and horizontal navigation remain available. Missing, provisional, YTD, annual, monthly, and snapshot values remain visibly distinct instead of being silently filled or mixed.
 
 ## The interface
 
@@ -213,6 +213,8 @@ A missing analytical SQLite file is initialized automatically when the server st
 - `/api/storage`
 - `GET /api/wallpaper-votes`
 - `POST /api/wallpaper-votes`
+
+[`/llms.txt`](https://ee-atlas.eu/llms.txt) provides a machine-readable entry point for LLM sessions, including endpoint examples, metric semantics, interpretation constraints, and safe citation guidance.
 
 The web interface never performs imports. The analytical interface, map, flags, logo, and exports use local assets and no external map service. Only the optional Europa Overload mode requests attributed postcard images from Wikimedia Commons, and only after the user enables it. Its public votes are stored separately from `atlas.sqlite3` in `data/community.sqlite3` by default; set `EEA_COMMUNITY_DB` to use a persistent hosting volume.
 
