@@ -8,14 +8,15 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 ## Aktuelle Arbeitsprioritäten
 
-### 1. Europa Overload responsiv abschließen
+### 1. Finalen Beta-Datenstand erzeugen und freigeben
 
-- Die Postkartenbreite nicht länger auf beiden Referenzmonitoren nahezu identisch deckeln, sondern an die tatsächlich verfügbare Seitenfläche koppeln.
-- 1920×1080 und 2560×1440 jeweils bei 100 % Browserzoom abnehmen: keine problematische Überdeckung des Atlas, keine horizontale Scrollleiste, vollständige Captions und sichtbar bessere Nutzung der WQHD-Fläche.
-- Das globale `body { zoom: 1.1; }` prüfen und nicht durch weitere Zoom- oder Transform-Tricks kompensieren.
-- Die bereits vorhandene Vollbildgalerie mit Stern-Schließen, zyklischer Tastaturbedienung und öffentlichen Daumenstimmen bewahren.
+- Alle vorhandenen Datenpfade genau einmal kontrolliert und sequenziell aktualisieren: Ember-Kernwerte, Ember-Preise, Eurostat-Kern und -Zusatzdaten, EEA-Inventaremissionen, JRC-Wasserkraft, Battery-Charts und JRC-Speicherinventar.
+- Vor dem Refresh eine konsistente Sicherung anlegen und alle Importe zunächst auf einer Kandidatenkopie ausführen. Nur einen vollständig geprüften Kandidaten veröffentlichen.
+- Datenbankintegrität, 31-Länder-Katalog, Zeitabdeckung, Null-/Fehlwerttrennung, Ember-Stichproben und Kreuzkennzahlen erneut prüfen.
+- `COVERAGE.generated.md`, `SUMMARY.generated.json` und `BETA_DATA_VALIDATION.md` an den finalen Datenbankhash binden.
+- Die Türkei bleibt bewusst außerhalb des Atlas und ist kein Prüf- oder Erweiterungsziel.
 
-**Abnahme:** Die Postkarten sind auf Full HD kompakt und auf WQHD sichtbar größer; beide Ansichten funktionieren zusammen mit der Vollbildgalerie ohne Überdeckung oder Scrollsprünge.
+**Abnahme:** Der neue Datenbankhash, die acht Quellenpfade, die aktualisierten Berichte und die dokumentierten Stichproben bilden denselben akzeptierten Datenstand ab.
 
 ### 2. Öffentliche Beta vorbereiten
 
@@ -25,6 +26,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - Keine Importfunktion über die Weboberfläche und keinen automatischen Scheduler als Startvoraussetzung einführen.
 - Zuerst eine Hoster-Testadresse vollständig prüfen. DNS für `ee-atlas.eu` erst nach erfolgreicher Abnahme verbinden.
 - Deployment, Umgebungsvariablen, Datenbankaustausch und spätere Domainverbindung in einer verständlichen Schrittfolge dokumentieren.
+- Die vorbereitete GitHub-Actions-Pipeline nach dem ersten Push tatsächlich grün ausführen; lokal bestehen derzeit 155 Tests.
 
 **Abnahme:** Lokaler Windowsbetrieb und hostingähnlicher Betrieb starten reproduzierbar; Atlas, API, Direktlinks, Vollbildansichten und Exporte sind an der Testadresse geprüft. Erst danach wird die Domain verbunden und die Beta veröffentlicht.
 
@@ -47,11 +49,11 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 **Abnahme:** Ausgewählte Länder lassen sich übersichtlich als Quartett vergleichen; jede Hervorhebung folgt einer dokumentierten Kennzahlenregel.
 
-### 5. Datenprüfung und Berichte modernisieren
+### 5. Berichtskette nach dem Refresh konsolidieren
 
 - Die als historisch gekennzeichnete `data/reports/VALIDATION.generated.md` durch einen reproduzierbaren Validierungsbericht des aktuellen Ember-Datenkerns ablösen.
 - Den Vertrag des CLI-Befehls `report` bereinigen: Hilfe, tatsächlich erzeugte Dateien und Dokumentation müssen übereinstimmen.
-- Für eine repräsentative Auswahl großer und kleiner Länder monatliche und jährliche Ember-Werte manuell gegen die Quelldaten prüfen. Mindestens Erzeugung, Nachfrage, eine absolute Erzeugungsart und deren Anteil dokumentieren.
+- Die bereits erfolgreiche Stichprobe für DE, FR, UK, ES und NO nach dem finalen Refresh erneut gegen die gespeicherten Ember-Quellen ausführen.
 - Coverage, YTD-/Vorläufigkeitsstatus, Quellen und fehlende Werte in Bericht, API und Oberfläche konsistent halten.
 - Datenlücken weiterhin als `null` behandeln; echte Nullwerte bleiben davon unterscheidbar.
 
@@ -64,7 +66,8 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - Nach mehreren realen Aktualisierungen entscheiden, ob ein externer monatlicher Scheduler sinnvoll ist. Der Atlas-Server selbst startet weiterhin keine Hintergrundimporte.
 - Änderungen der nicht formal versionierten JRC-Projekt-API und der Battery-Charts-Antworten sichtbar dokumentieren, statt die Validierung stillschweigend zu lockern.
 - Für Länder außerhalb Deutschlands transparent prüfen, welche stationären Batterieklassen im JRC-Projektbestand fehlen. Fehlende Heim- oder Gewerbespeicher nicht schätzen.
-- Die Lizenz- und Weitergabesituation des JRC-Projektbestands vor einer öffentlichen oder kommerziellen Datenveröffentlichung abschließend klären.
+- Mittelfristig bei Ember nach einem CC-BY-4.0-Datensatz für Batterie- und Pumpspeicherenergie sowie Entladeleistung fragen und bei Verfügbarkeit die Übergangsquellen ablösen.
+- Die weitergehende Rechteklärung des JRC-Projektbestands bleibt Post-Beta-Arbeit. Für die vorläufige nichtkommerzielle Beta hat der Projekteigentümer die Nutzung aggregierter Werte mit Attribution sowie Schätzungs- und Unvollständigkeitshinweisen akzeptiert; eine rechtliche Freigabe wird nicht behauptet.
 
 **Abnahme:** Mehrere reale Monatsaktualisierungen laufen mit maximal einem JRC-Request, ohne Battery-Charts-Netzwerkzugriff, ohne Duplikate und ohne Verlust des vorherigen Datenstands bei Fehlern.
 
@@ -128,8 +131,10 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 ### Qualitätssicherung
 
-- Der vollständige lokale Stand besteht am 25. August 2026 aus 143 erfolgreichen automatisierten Tests.
+- Der vollständige lokale Beta-Kandidat besteht am 25. August 2026 aus 155 erfolgreichen automatisierten Tests.
 - Die automatisierte Testsuite verwendet ausschließlich lokale Fixtures und führt keine Live-Imports aus.
+- Eine GitHub-Actions-Pipeline führt dieselbe Suite mit Python 3.11 und Node 22 sowie JavaScript-Syntaxprüfungen aus; ihr erster echter GitHub-Lauf folgt nach Commit und Push.
+- Die Full-HD-/WQHD-Darstellung wurde durch den Projekteigentümer vorläufig abgenommen. Ein bei der eingeschränkten Agentenprüfung gefundener horizontaler Überlauf ist behoben.
 - Karte, Flaggen, Logo und Diagramme sind lokale Assets. Nur der ausdrücklich aktivierte Europa-Overload-Modus lädt Wikimedia-Commons-Bilder.
 - Der ältere K2-Auftrag `docs/K2_DATA_EXPANSION_UI_INTEGRATION.md` bleibt als archivierte Übergabedokumentation erhalten.
 

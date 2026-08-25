@@ -1,7 +1,7 @@
 import json
 import os
-import shutil
 import re
+import shutil
 import subprocess
 import unittest
 from pathlib import Path
@@ -13,13 +13,28 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_PATH = ROOT / "web" / "app.js"
 INDEX_PATH = ROOT / "web" / "index.html"
 STYLE_PATH = ROOT / "web" / "style.css"
-NODE = Path(os.environ.get("EEA_NODE") or shutil.which("node") or "")
+
+
+def resolve_node() -> Path | None:
+    explicit = os.environ.get("EEA_NODE")
+    if explicit:
+        candidate = Path(explicit)
+        if candidate.is_file():
+            return candidate
+        raise RuntimeError(f"EEA_NODE does not point to a file: {candidate}")
+    from_path = shutil.which("node")
+    if from_path:
+        return Path(from_path)
+    return None
+
+
+NODE = resolve_node()
 
 
 class DataExpansionUiTests(unittest.TestCase):
     def run_node(self, script):
-        if not NODE.is_file():
-            self.skipTest("Bundled Node runtime is unavailable")
+        if NODE is None:
+            self.fail("Node.js is required for JavaScript tests; set EEA_NODE or add node to PATH.")
         encoded = script.encode("utf-8").hex()
         bootstrap = f'eval(Buffer.from("{encoded}", "hex").toString("utf8"))'
         result = subprocess.run(

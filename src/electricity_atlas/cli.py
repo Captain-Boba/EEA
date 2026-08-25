@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
 from .aggregation import aggregate_all
+from .community_backup import backup_community_database
 from .config import DEFAULT_DB, EMBER_COUNTRIES
 from .coverage import coverage_markdown
 from .db import database, migrate_atlas_catalog, read_database, reset
@@ -17,13 +19,14 @@ from .eea_ghg_importer import EeaGhgImporter
 from .hydro_importer import JrcHydroImporter
 from .price_importer import WholesalePriceImporter
 from .server import serve
+from .runtime import resolve_community_db, resolve_server_config
 from .storage_importer import JrcStorageImporter
 from .storage_online import BatteryChartsImporter, OnlineStorageUpdater
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="eea", description="European Electricity Atlas data core")
-    parser.add_argument("--db", type=Path, default=DEFAULT_DB, help="SQLite database path")
+    parser.add_argument("--db", type=Path, help="SQLite database path")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     import_parser = subparsers.add_parser("import", help="Download and normalize Ember electricity data")
@@ -90,8 +93,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     serve_parser = subparsers.add_parser("serve", help="Run local debug UI")
-    serve_parser.add_argument("--host", default="127.0.0.1")
-    serve_parser.add_argument("--port", type=int, default=8000)
+    serve_parser.add_argument("--host", help="Bind host; overrides EEA_HOST")
+    serve_parser.add_argument("--port", help="Bind port; overrides EEA_PORT")
+    serve_parser.add_argument("--community-db", type=Path, help="Community SQLite path; overrides EEA_COMMUNITY_DB")
+    serve_parser.add_argument("--public-origin", help="Public http(s) origin; overrides EEA_PUBLIC_ORIGIN")
+    serve_parser.add_argument("--require-existing-db", action="store_true", help="Refuse to initialize a missing Atlas database")
+
+    backup_parser = subparsers.add_parser("backup-community", help="Atomically back up the community vote database")
+    backup_parser.add_argument("--output", type=Path, required=True, help="New SQLite backup file")
+    backup_parser.add_argument("--community-db", type=Path, help="Community SQLite source; overrides EEA_COMMUNITY_DB")
+    backup_parser.add_argument("--force", action="store_true", help="Replace an existing backup file")
 
     report_parser = subparsers.add_parser("report", help="Generate coverage, summary and validation reports")
     report_parser.add_argument("--year", type=int, default=2025)
@@ -102,12 +113,44 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.command == "serve":
+        try:
+            runtime = resolve_server_config(
+                atlas_db=args.db,
+                community_db=args.community_db,
+                host=args.host,
+                port=args.port,
+                public_origin=args.public_origin,
+                require_existing_db=args.require_existing_db,
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        try:
+            serve(
+                runtime.atlas_db,
+                runtime.host,
+                runtime.port,
+                community_path=runtime.community_db,
+                public_origin=runtime.public_origin,
+                require_existing_db=runtime.require_existing_db,
+            )
+        except (OSError, ValueError) as exc:
+            print(f"Server start aborted: {exc}", file=sys.stderr)
+            return 1
+        return 0
+    if args.command == "backup-community":
+        try:
+            backup = backup_community_database(resolve_community_db(args.community_db), args.output, force=args.force)
+        except (OSError, ValueError, sqlite3.Error) as exc:
+            print(f"Community backup aborted: {exc}", file=sys.stderr)
+            return 1
+        print(f"Community backup created: {backup}")
+        return 0
+    args.db = args.db or DEFAULT_DB
     if args.command == "reset-db":
         print("Database deleted." if reset(args.db) else "Database did not exist.")
-        return 0
-    if args.command == "serve":
-        serve(args.db, args.host, args.port)
         return 0
     if args.command == "import-prices":
         try:

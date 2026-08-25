@@ -375,6 +375,11 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
   background: color-mix(in srgb, var(--surface) 92%, transparent);
 }
 .comparison-controls select, .comparison-controls input { width: 100%; min-width: 0; }
+.comparison-controls select.sr-only {
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+}
 .field-label { display: block; margin-bottom: .25rem; }
 .metric-family-picker { min-width: 0; }
 .metric-family-trigger {

@@ -55,6 +55,20 @@ class CommunityStore:
             connection.executescript(COMMUNITY_SCHEMA)
             connection.commit()
 
+    def healthcheck(self) -> bool:
+        """Check the already-initialized community store without creating anything."""
+        if not self.path.is_file():
+            return False
+        try:
+            connection = sqlite3.connect(f"file:{self.path.resolve().as_posix()}?mode=ro", uri=True)
+            try:
+                connection.execute("SELECT 1 FROM wallpaper_vote LIMIT 1").fetchone()
+            finally:
+                connection.close()
+        except sqlite3.Error:
+            return False
+        return True
+
     @staticmethod
     def _states(connection: sqlite3.Connection, own_hash: str | None) -> list[dict[str, int | str | None | bool]]:
         aggregates = {

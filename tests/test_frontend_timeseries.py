@@ -8,13 +8,28 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_PATH = ROOT / "web" / "app.js"
-NODE = Path(os.environ.get("EEA_NODE") or shutil.which("node") or "")
+
+
+def resolve_node() -> Path | None:
+    explicit = os.environ.get("EEA_NODE")
+    if explicit:
+        candidate = Path(explicit)
+        if candidate.is_file():
+            return candidate
+        raise RuntimeError(f"EEA_NODE does not point to a file: {candidate}")
+    from_path = shutil.which("node")
+    if from_path:
+        return Path(from_path)
+    return None
+
+
+NODE = resolve_node()
 
 
 class FrontendTimeseriesTests(unittest.TestCase):
     def run_node(self, script):
-        if not NODE.is_file():
-            self.skipTest("Bundled Node runtime is unavailable")
+        if NODE is None:
+            self.fail("Node.js is required for JavaScript tests; set EEA_NODE or add node to PATH.")
         encoded = script.encode("utf-8").hex()
         bootstrap = f'eval(Buffer.from("{encoded}", "hex").toString("utf8"))'
         result = subprocess.run(
@@ -105,6 +120,11 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
         self.assertIn(".enhanced-select-groups", style)
         self.assertIn(".enhanced-select-menu.has-groups", style)
         self.assertIn("overflow-wrap: anywhere", style)
+
+    def test_visually_hidden_comparison_selects_cannot_create_horizontal_overflow(self):
+        style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
+        self.assertIn(".comparison-controls select.sr-only", style)
+        self.assertIn("width: 1px;", style[style.index(".comparison-controls select.sr-only"):])
 
     def test_table_formatter_keeps_two_decimal_places_by_default(self):
         script = r'''

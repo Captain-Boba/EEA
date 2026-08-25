@@ -19,6 +19,7 @@ from .community import CommunityStore, browser_hash
 from .country_profile import build_country_profile
 from .db import database, read_database
 from .metrics import metric_catalog
+from .runtime import DEFAULT_COMMUNITY_DB, parse_public_origin, validate_existing_atlas_database
 from .storage_online import latest_storage
 from .timeseries import build_timeseries
 
@@ -51,6 +52,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
     db_path: Path
     community_store: CommunityStore
     vote_rate_limiter: VoteRateLimiter
+    public_origin: str | None
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler API
         parsed = urlparse(self.path)
@@ -79,6 +81,9 @@ class AtlasHandler(BaseHTTPRequestHandler):
             return
         try:
             self._require_same_origin()
+            content_type = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+            if content_type != "application/json":
+                raise ValueError("vote request must use application/json")
             length = int(self.headers.get("Content-Length", "0"))
             if length <= 0 or length > MAX_VOTE_BODY_BYTES:
                 raise ValueError("vote request must contain a small JSON body")
@@ -107,6 +112,9 @@ class AtlasHandler(BaseHTTPRequestHandler):
                 payload = {"wallpapers": self.community_store.list_votes(browser_hash(browser_id) if browser_id else None)}
                 self._json(payload)
                 return
+            if path == "/api/health":
+                self._health()
+                return
             year = int(query.get("year", ["2025"])[0])
             month_value = query.get("month", [""])[0]
             month = int(month_value) if month_value else None
@@ -114,9 +122,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
             if source != "ember":
                 raise ValueError("source must be 'ember'")
             with read_database(self.db_path) as connection:
-                if path == "/api/health":
-                    payload = {"status": "ok", "database": str(self.db_path)}
-                elif path == "/api/countries":
+                if path == "/api/countries":
                     payload = [country.__dict__ for country in COUNTRIES.values()]
                 elif path == "/api/metrics":
                     payload = metric_catalog()
@@ -155,6 +161,25 @@ class AtlasHandler(BaseHTTPRequestHandler):
         except (ValueError, TypeError) as exc:
             self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
 
+    def _health(self) -> None:
+        atlas_ok = False
+        try:
+            with read_database(self.db_path) as connection:
+                connection.execute("SELECT 1 FROM period_observation LIMIT 1").fetchone()
+            atlas_ok = True
+        except Exception:
+            atlas_ok = False
+        community_ok = self.community_store.healthcheck()
+        healthy = atlas_ok and community_ok
+        self._json(
+            {
+                "status": "ok" if healthy else "unavailable",
+                "atlas_database": "ok" if atlas_ok else "unavailable",
+                "community_database": "ok" if community_ok else "unavailable",
+            },
+            HTTPStatus.OK if healthy else HTTPStatus.SERVICE_UNAVAILABLE,
+        )
+
     def _browser_id(self, create: bool) -> tuple[str | None, bool]:
         cookie = SimpleCookie(self.headers.get("Cookie", ""))
         value = cookie.get(COMMUNITY_COOKIE)
@@ -169,15 +194,19 @@ class AtlasHandler(BaseHTTPRequestHandler):
         morsel["path"] = "/"
         morsel["httponly"] = True
         morsel["samesite"] = "Lax"
-        if self.headers.get("X-Forwarded-Proto", "").lower() == "https":
+        if self.public_origin and self.public_origin.startswith("https://"):
             morsel["secure"] = True
         return morsel.OutputString()
 
     def _require_same_origin(self) -> None:
         origin = self.headers.get("Origin")
+        if self.public_origin:
+            if origin != self.public_origin:
+                raise ValueError("vote requests must use the configured public origin")
+            return
         if not origin:
             return
-        expected = f"{self.headers.get('X-Forwarded-Proto', 'http')}://{self.headers.get('Host', '')}"
+        expected = f"http://{self.headers.get('Host', '')}"
         if origin != expected:
             raise ValueError("cross-origin vote requests are not allowed")
 
@@ -195,24 +224,52 @@ class AtlasHandler(BaseHTTPRequestHandler):
         print(f"[http] {format % args}")
 
 
-def create_server(db_path: Path, host: str = "127.0.0.1", port: int = 8000) -> ThreadingHTTPServer:
+def create_server(
+    db_path: Path,
+    host: str = "127.0.0.1",
+    port: int = 8000,
+    *,
+    community_path: Path | None = None,
+    public_origin: str | None = None,
+    require_existing_db: bool = False,
+) -> ThreadingHTTPServer:
     db_path = Path(db_path)
-    if not db_path.exists():
+    if require_existing_db:
+        validate_existing_atlas_database(db_path)
+    elif not db_path.exists():
         with database(db_path):
             pass
-    community_path = Path(os.environ.get("EEA_COMMUNITY_DB", "data/community.sqlite3"))
-    community_store = CommunityStore(community_path)
+    resolved_community_path = Path(community_path) if community_path is not None else Path(
+        os.environ.get("EEA_COMMUNITY_DB", DEFAULT_COMMUNITY_DB)
+    )
+    community_store = CommunityStore(resolved_community_path)
     community_store.initialize()
     handler = type("ConfiguredAtlasHandler", (AtlasHandler,), {
         "db_path": db_path,
         "community_store": community_store,
         "vote_rate_limiter": VoteRateLimiter(),
+        "public_origin": parse_public_origin(public_origin),
     })
     return ThreadingHTTPServer((host, port), handler)
 
 
-def serve(db_path: Path, host: str = "127.0.0.1", port: int = 8000) -> None:
-    server = create_server(db_path, host, port)
+def serve(
+    db_path: Path,
+    host: str = "127.0.0.1",
+    port: int = 8000,
+    *,
+    community_path: Path | None = None,
+    public_origin: str | None = None,
+    require_existing_db: bool = False,
+) -> None:
+    server = create_server(
+        db_path,
+        host,
+        port,
+        community_path=community_path,
+        public_origin=public_origin,
+        require_existing_db=require_existing_db,
+    )
     print(f"European Electricity Atlas: http://{host}:{port}")
     print(f"SQLite: {db_path}")
     try:

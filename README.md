@@ -88,7 +88,7 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765). Press `Ctrl+C` to stop the 
 | [Natural Earth](https://www.naturalearthdata.com/) | local country geometries for the map of Europe | version 5.1.1 |
 | [flag-icons](https://github.com/lipis/flag-icons) | local SVG country flags in the time-series comparison | version 7.4.0, MIT |
 
-Ember, Battery-Charts, the JRC Hydro-power database, and the EEA GHG inventory are identified as `CC BY 4.0`. Natural Earth geometries are in the public domain. Eurostat data are subject to Eurostat's reuse policy and exceptions. JRC storage-inventory data may include estimates and third-party data; redistribution must be reviewed separately before any public or commercial data release.
+Ember, Battery-Charts, the JRC Hydro-power database, and the EEA GHG inventory are identified as `CC BY 4.0`. Natural Earth geometries are in the public domain. Eurostat data are subject to Eurostat's reuse policy and exceptions. JRC storage-inventory data may include estimates and third-party data. The project owner has accepted attributed national aggregates as a provisional risk for the non-commercial beta; this is not presented as a legal clearance, and further clarification or a later Ember replacement remains post-beta work.
 
 ## Updating the data yourself
 
@@ -199,14 +199,19 @@ There are no runtime dependencies outside the Python standard library.
 ```powershell
 $env:PYTHONPATH = "$PWD\src"
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+node --check web\app.js
+node --check web\wallpapers.js
 git diff --check
 ```
 
-Tests use local fixtures exclusively and never perform live imports.
+Tests use local fixtures exclusively and never perform live imports. Node.js is required for the JavaScript tests; set `EEA_NODE` to an explicit executable path when `node` is not available through `PATH`. The prepared GitHub Actions workflow runs the same suite with Python 3.11 and Node 22 on pushes, pull requests, and manual dispatches.
 
 ## Further documentation
 
 - [Project roadmap](ROADMAP.md)
+- [Public beta roadmap](BETA_ROADMAP.md)
+- [Beta data validation](docs/BETA_DATA_VALIDATION.md)
+- [Deployment and operations](docs/DEPLOYMENT.md)
 - [Ember coverage](docs/EMBER_COVERAGE.md)
 - [JRC storage import](docs/JRC_STORAGE_IMPORT.md)
 - [Local map of Europe and Natural Earth provenance](docs/MAP_ASSET.md)
