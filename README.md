@@ -239,6 +239,7 @@ Tests use local fixtures exclusively and never perform live imports. Node.js is 
 - [Time-series comparison behavior](docs/TIMESERIES_COMPARISON.md)
 - [Country profiles](docs/COUNTRY_PROFILES.md)
 - [Europa Overload behavior and privacy](docs/EUROPA_OVERLOAD.md)
+- The running interface links directly to its public project/contact and privacy/cookie notices.
 
 ## Known limitations
 

@@ -54,9 +54,19 @@ class DeploymentHttpTests(unittest.TestCase):
     def test_health_is_healthy_and_does_not_expose_database_paths(self):
         with urlopen(self.base + "/api/health", timeout=5) as response:
             payload = json.load(response)
+            headers = response.headers
         self.assertEqual(payload, {"status": "ok", "atlas_database": "ok", "community_database": "ok"})
         self.assertNotIn(str(self.atlas), json.dumps(payload))
         self.assertNotIn(str(self.community), json.dumps(payload))
+        self.assertEqual(headers["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(headers["X-Frame-Options"], "DENY")
+        self.assertEqual(headers["Referrer-Policy"], "strict-origin-when-cross-origin")
+        self.assertEqual(headers["Permissions-Policy"], "camera=(), geolocation=(), microphone=()")
+
+    def test_static_pages_receive_security_headers(self):
+        with urlopen(self.base + "/privacy.html", timeout=5) as response:
+            self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
+            self.assertEqual(response.headers["X-Frame-Options"], "DENY")
 
     def test_health_returns_non_success_when_a_database_is_unavailable(self):
         self.community.unlink()

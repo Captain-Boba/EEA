@@ -1,8 +1,8 @@
 # European Electricity Atlas – Fahrplan zur öffentlichen Beta
 
 Stand: 25. August 2026  
-Akzeptierte Git-Basis: `2fa4886` (`feat(storage): import JRC data through official dashboard exports`)
-Aktueller Arbeitsstand: uncommittierter Beta-Kandidat mit freigegebenem Datenstand, dreiteiliger Kennzahlenbeschriftung und bereinigtem Komplett-Refresh-Lebenszyklus
+Akzeptierte Git-Basis: `5955718` (`feat(deploy): add reproducible Railway beta configuration`)
+Aktueller Arbeitsstand: Railway-Testadresse online; öffentliche Kernpfade, Neustartpersistenz und ein heruntergeladenes Community-Backup sind nachgewiesen. Projekt- und Datenschutzhinweise werden für den nächsten Release Candidate ergänzt.
 
 ## Zielzustand
 
@@ -59,35 +59,38 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 
 ### 3. Hostingpaket herstellen
 
-- [ ] Hoster und persistente Speicherorte festlegen.
-- [ ] `atlas.sqlite3` auf einem persistenten, für den Webprozess nur lesbaren Pfad bereitstellen.
-- [ ] `EEA_COMMUNITY_DB` auf einen getrennten persistenten Schreibpfad setzen.
+- [x] Railway Hobby als Beta-Hoster und ein persistentes Volume unter `/data` festlegen.
+- [x] Das geprüfte `atlas.sqlite3` als `/data/atlas.sqlite3` bereitstellen und im Webprozess ausschließlich lesend öffnen.
+- [x] Die Community-Datenbank getrennt als `/data/community.sqlite3` auf demselben persistenten Volume betreiben.
 - [x] Anwendung lokal mit explizitem beziehungsweise umgebungsbasiertem Host, Port und getrennten Datenbankpfaden starten; keine festen Windows-Pfade verwenden.
-- [ ] Python-Prozess nicht unmittelbar dem Internet aussetzen, sondern hinter einem HTTPS-Reverse-Proxy betreiben.
-- [ ] Reverse Proxy so konfigurieren, dass `Host` und `X-Forwarded-Proto` kontrolliert gesetzt und nicht ungeprüft vom Client übernommen werden.
-- [ ] TLS, Requestgrößen, sinnvolle Zeitlimits und grundlegende Sicherheitsheader am Proxy konfigurieren.
-- [ ] Dienststart, automatischen Neustart und Verhalten nach einem Serverreboot einrichten.
-- [x] `/api/health` meldet Atlas- und Community-Datenbankzustand ohne lokale Pfade; Aufnahme in den realen Hoster-Healthcheck steht aus.
-- [ ] Zugriffs- und Fehlerlogs mit begrenzter Aufbewahrung bereitstellen; keine API-Schlüssel oder Browserkennungen protokollieren.
-- [x] SQLite-konsistenten Backupbefehl für `community.sqlite3` lokal umsetzen und mit temporären Daten testen; realen Hoster-Backupplan später einrichten.
+- [x] Python-Prozess hinter Railways verwaltetem HTTPS-Endpunkt betreiben.
+- [x] Die Abstimmungs-API gegen die explizit konfigurierte öffentliche HTTPS-Origin absichern und nicht aus weitergereichten Host-Headern ableiten.
+- [x] Grundlegende HTTP-Sicherheitsheader für statische Dateien und API-Antworten ergänzen.
+- [x] Dienststart und manuellen Prozessneustart auf Railway praktisch prüfen; Stimmen bleiben dabei erhalten.
+- [x] `/api/health` meldet Atlas- und Community-Datenbankzustand ohne lokale Pfade und ist als Railway-Healthcheck eingerichtet.
+- [x] Railway-Laufzeitlogs verwenden; Anwendung protokolliert weder API-Schlüssel noch Community-Cookie oder Browserhash.
+- [x] SQLite-konsistentes Community-Backup im laufenden Railway-Container erzeugen und als lokale Sicherung herunterladen.
 - [x] Isolierten Austausch von `atlas.sqlite3` einschließlich Rollback und automatischer Bereinigung testen, ohne `community.sqlite3` oder Stimmen zu verändern.
 - [x] Deployment, Umgebungsvariablen, Datenbanktausch, Backup und Rollback in `docs/DEPLOYMENT.md` dokumentieren.
 
-**Gate Hosting:** Neustart, Healthcheck, Datenbanktausch, Voting-Persistenz, Backup und Restore wurden auf der Hoster-Testadresse nachgewiesen.
+**Gate Hosting:** **BETA READY.** Railway-Dienst, persistentes Volume, HTTPS, Healthcheck, Neustartpersistenz und eine extern gespeicherte konsistente Community-Sicherung sind nachgewiesen. Railway-eigene Backups/PITR und ein vollständiger Restore-Drill benötigen den Pro-Tarif und sind für das nichtkritische Overload-Easter-Egg ausdrücklich Post-Beta.
 
 ### 4. Hoster-Testadresse vollständig abnehmen
 
-- [ ] Startseite und alle lokalen Assets laden ohne Konsolenfehler.
-- [ ] Tabelle sortieren, ein- und ausklappen sowie Länder auswählen.
-- [ ] Karte fokussieren, Kennzahl wechseln, Vollbild öffnen und SVG/PNG exportieren.
-- [ ] Zeitreihe mit mehreren Ländern, Atlas-Durchschnitt, Zeitpreset, Direktlink und CSV/SVG/PNG prüfen.
-- [ ] Ländersteckbriefe aus Tabelle und Karte öffnen; Browser-Zurück/Vorwärts testen.
+- [x] Startseite und alle lokalen Kernassets laden auf der Railway-Adresse ohne festgestellten Konsolenfehler.
+- [x] Tabellen ein- und ausklappen sowie Länder aus der Oberfläche auswählen.
+- [ ] Kartensortierung sowie Tabellen-, SVG- und PNG-Exporte auf der Railway-Adresse manuell abnehmen.
+- [x] Karte fokussieren, Kennzahlzustand erhalten und Vollbild öffnen und schließen.
+- [x] Zeitreihe mit mehreren Ländern, Atlas-Durchschnitt, Zeitpreset und Direktlink prüfen.
+- [ ] Vergleichs-CSV/SVG/PNG auf der Railway-Adresse manuell herunterladen und öffnen.
+- [x] Ländersteckbrief aus der Karte öffnen; Browser-Zurück/Vorwärts erhält den verlinkten Zustand.
 - [ ] Europa Overload aktivieren und bestätigen, dass Wikimedia-Bilder erst nach Aktivierung angefordert werden.
 - [ ] Galerie und öffentliche Abstimmung mit zwei getrennten Browserprofilen testen.
-- [ ] Stimme ändern, entfernen und nach Prozessneustart erneut abrufen.
+- [x] Öffentliche Scores nach einem manuellen Railway-Prozessneustart erneut abrufen.
+- [ ] Stimme mit zwei Browserprofilen ändern und entfernen.
 - [ ] Ausfall der Voting-API simulieren: Galerie bleibt bedienbar, erfundene Ergebnisse erscheinen nicht.
 - [ ] Kernpfade mindestens in Firefox und einem Chromium-basierten Browser prüfen.
-- [ ] Operator-, Kontakt-, Datenschutz- und Cookieinformationen vor Veröffentlichung bereitstellen und fachlich prüfen lassen; technische Tests ersetzen keine rechtliche Freigabe.
+- [ ] Projekt-, Kontakt-, Datenschutz- und Cookieinformationen veröffentlichen; die technische Fassung ist vorbereitet, eine vom Betreiber gewählte öffentliche Kontaktmöglichkeit und eine fachliche Prüfung bleiben dessen Freigabeentscheidung.
 
 **Gate Testadresse:** Es existiert eine unterschriebene beziehungsweise ausdrücklich bestätigte Abnahmeliste ohne offenen Fehler, der Daten verfälscht, Navigation blockiert, Stimmen verliert oder Exporte unbrauchbar macht.
 
@@ -107,17 +110,14 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 
 ## Empfohlene Arbeitspakete
 
-1. **K1 – Aktuellen Beta-Kandidaten konsolidieren**
-   Kennzahlenbeschriftung, Refresh-Lebenszyklus, aktualisierte Berichte und Dokumentation als einen nachvollziehbaren Commit abgrenzen; anschließend den CI-Lauf prüfen.
+1. **Öffentliche Hinweise abschließen**
+   Projekt-, Kontakt- und Datenschutzseiten veröffentlichen und die Betreiberangaben vor der Domainumschaltung freigeben.
 
-2. **K2 – Reportvertrag bereinigen**
-   CLI-Hilfe, tatsächlich erzeugte Coverage-/Summary-Artefakte und Dokumentation angleichen; keine Daten fachlich verändern.
+2. **Railway-Testadresse fertig abnehmen**
+   Exporte, Overload-Galerie, zwei Browserprofile und Firefox/Chromium kompakt prüfen; keine weitere Hostingarchitektur aufbauen.
 
-3. **Hosting-Testadresse herstellen**
-   Bereits vorbereitete Laufzeitkonfiguration, persistente Pfade, Reverse Proxy, HTTPS, Healthcheck und Community-Backup beim gewählten Hoster praktisch einrichten.
-
-4. **K1 – Release-Candidate-Abnahme**  
-   Nachweise zusammenführen, offene Punkte priorisieren, Releaseumfang festlegen und die Domainumschaltung erst nach bestandenem Gate freigeben.
+3. **K1 – Release-Candidate-Abnahme**
+   Dokumentation konsolidieren, CI prüfen, Version und Release Notes festlegen und anschließend die Domainumschaltung freigeben.
 
 Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Künftige Komplett-Refreshes verwenden ausschließlich den dokumentierten `refresh-all`-Lebenszyklus; lose `pre-refresh`, `refresh-candidate`, `attempt2` oder Testdatenbanken gehören nicht zum unterstützten Zustand.
 
@@ -134,10 +134,10 @@ Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Kü
 - vollständiger Umbau aller historischen Berichte, sofern kein veralteter Bericht als aktuell veröffentlicht wird
 - Ablösung von JRC und Battery-Charts durch einen künftigen Ember-Speicherdatensatz
 - abschließende Rechteklärung des JRC European Energy Storage Inventory über die für die vorläufige nichtkommerzielle Beta akzeptierte Risikoposition hinaus
+- Railway Pro, automatische Volume-Backups, PITR und ein vollständiger Restore-Drill für die nichtkritische Overload-Abstimmung
 
 ## Noch notwendige Produktentscheidungen
 
-- Hoster und Betriebsmodell
 - zuständige Person für Betrieb, Backups und Störungsreaktion
 - Inhalt und verantwortliche Angaben der öffentlichen Betreiber-, Kontakt- und Datenschutzhinweise
 - gewünschte Beta-Versionsnummer und Veröffentlichungsdatum

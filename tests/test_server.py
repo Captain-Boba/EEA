@@ -22,6 +22,10 @@ class ServerSmokeTests(unittest.TestCase):
                 base = f"http://127.0.0.1:{server.server_port}"
                 with urlopen(base + "/", timeout=5) as response:
                     html = response.read().decode("utf-8")
+                with urlopen(base + "/contact.html", timeout=5) as response:
+                    contact_html = response.read().decode("utf-8")
+                with urlopen(base + "/privacy.html", timeout=5) as response:
+                    privacy_html = response.read().decode("utf-8")
                 with urlopen(base + "/assets/europe.svg", timeout=5) as response:
                     map_svg = response.read().decode("utf-8")
                 with urlopen(base + "/api/countries", timeout=5) as response:
@@ -45,6 +49,13 @@ class ServerSmokeTests(unittest.TestCase):
                     timeseries = json.load(response)
                 self.assertIn("European Electricity Atlas", html)
                 self.assertIn("Datenquellen und Herkunft", html)
+                self.assertIn('href="/contact.html"', html)
+                self.assertIn('href="/privacy.html"', html)
+                self.assertIn("Projekt &amp; Kontakt", contact_html)
+                self.assertIn("GitHub Issues", contact_html)
+                self.assertIn("Datenschutz &amp; Cookies", privacy_html)
+                self.assertIn("eea_community", privacy_html)
+                self.assertIn("eea-europa-overload", privacy_html)
                 self.assertIn('id="atlas-map-section"', html)
                 self.assertNotIn("Energy-Charts", html)
                 self.assertIn('id="year" type="number" min="2015"', html)

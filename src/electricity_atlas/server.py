@@ -71,6 +71,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", mimetypes.guess_type(candidate.name)[0] or "application/octet-stream")
         self.send_header("Content-Length", str(len(content)))
+        self._security_headers()
         self.end_headers()
         self.wfile.write(content)
 
@@ -215,10 +216,17 @@ class AtlasHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self._security_headers()
         for key, value in (headers or {}).items():
             self.send_header(key, value)
         self.end_headers()
         self.wfile.write(body)
+
+    def _security_headers(self) -> None:
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.send_header("Permissions-Policy", "camera=(), geolocation=(), microphone=()")
 
     def log_message(self, format: str, *args: object) -> None:
         print(f"[http] {format % args}")

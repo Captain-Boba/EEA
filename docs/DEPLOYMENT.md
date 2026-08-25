@@ -61,6 +61,13 @@ The minimum Railway service setup is:
    exact `https://...up.railway.app` origin.
 7. Keep one replica while the writable community store remains SQLite.
 
+The accepted beta service uses `https://eea-production.up.railway.app`, the
+Railway healthcheck path `/api/health`, and this effective start command:
+
+```text
+PYTHONPATH=src python -m electricity_atlas.cli --db /data/atlas.sqlite3 serve --community-db /data/community.sqlite3 --host 0.0.0.0 --port $PORT --require-existing-db
+```
+
 The start command uses `--require-existing-db`; a missing, empty, or invalid
 Atlas snapshot therefore fails closed instead of publishing an empty Atlas.
 After acceptance on the Railway domain, attach the production domain and
@@ -103,6 +110,24 @@ eea backup-community --output 'D:\eea-backups\community-2026-08-25.sqlite3'
 ```
 
 The command uses `EEA_COMMUNITY_DB` unless `--community-db` is supplied. It creates the output parent directory, refuses to overwrite an existing target unless `--force` is specified, writes through a temporary file, and publishes the completed backup atomically. Vote contents are never printed.
+
+On the Railway Hobby beta service, create the consistent copy inside the
+running container and then download it from the volume:
+
+```sh
+cd /app
+PYTHONPATH=src python -m electricity_atlas.cli backup-community --community-db /data/community.sqlite3 --output /data/backups/community-2026-08-25.sqlite3
+```
+
+```powershell
+railway volume files --volume eea-volume download /backups/community-2026-08-25.sqlite3 E:\EEA-Backups\community-2026-08-25.sqlite3
+```
+
+Railway-managed volume backups and point-in-time recovery require the Pro
+plan. They are not part of the Hobby beta operating model. A consistent manual
+backup has been downloaded outside the repository; the full restore rehearsal
+is post-beta because the community score belongs only to the optional Europa
+Overload feature and is not an analytical Atlas dataset.
 
 For a manual restore, stop the server first, retain the current community database as a rollback copy, then replace only the community database with the selected backup. Start the server and check `/api/health`. Never restore a community backup over `atlas.sqlite3`, and never replace `community.sqlite3` with an Atlas release snapshot.
 
