@@ -114,6 +114,14 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertNotIn("Vergleichbare Stromdaten", markup)
         self.assertNotIn("Data core online", markup)
 
+    def test_successful_summary_status_keeps_its_layout_space_without_copy(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        style = STYLE_PATH.read_text(encoding="utf-8")
+        self.assertIn('const hasSummaryValues = data.some(', app)
+        self.assertIn('$("status").textContent = hasSummaryValues ? "" : `Noch keine Daten importiert.${periodNote}`;', app)
+        self.assertNotIn('`Atlas-Daten geladen.${periodNote}`', app)
+        self.assertIn("#status:empty { min-height: 1lh; }", style)
+
     def test_header_adds_the_opt_in_overload_toggle_and_short_dynamic_title(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
@@ -121,7 +129,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('id="europe-overload"', html)
         self.assertIn('aria-pressed="false"', html)
         self.assertIn("const TITLE_BY_SECTION", app)
-        for title in ("EEA · Karte", "EEA · Plottool", "EEA · Stromsysteme", "EEA · E-Mobilität", "EEA · Speicher", "EEA · Quellen"):
+        for title in ("EEA · Karte", "EEA · Zeitvergleich", "EEA · Stromsysteme", "EEA · E-Mobilität", "EEA · Speicher", "EEA · Quellen"):
             self.assertIn(title, app)
         self.assertIn("new IntersectionObserver", app)
         self.assertIn('window.addEventListener("scroll", scheduleDynamicDocumentTitle, {passive: true});', app)
@@ -154,7 +162,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("syncStickyHeaderOffset", app)
         self.assertIn("function tableHeaderText(value)", app)
         self.assertNotIn('<th scope="col">Auswahl</th>', app)
-        self.assertIn("Länder für den Zeitreihenvergleich auswählen", app)
+        self.assertIn("Länder für den Zeitvergleich auswählen", app)
         self.assertIn('class="sr-only"', app)
         self.assertIn('aria-label="Zeitraum"', html)
 
@@ -162,7 +170,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         html = INDEX_PATH.read_text(encoding="utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
-        for element_id in ("map-stage", "map-fullscreen", "map-export-svg", "map-export-png"):
+        for element_id in ("map-stage", "map-fullscreen", "map-export-svg", "map-export-png", "map-copy-link"):
             self.assertIn(f'id="{element_id}"', html)
         self.assertLess(html.index('id="map-stage"'), html.index('id="map-family"'))
         self.assertLess(html.index('id="map-family"'), html.index('class="map-layout"'))
@@ -171,7 +179,10 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertLess(html.index('class="tool-card-header"'), html.index('id="map-stage"'))
         self.assertLess(html.index('id="comparison-title"'), html.index('id="comparison-stage"'))
         self.assertIn('Länder vergleichen (<span id="selected-count">0</span>)', html)
-        self.assertIn('<h2 id="comparison-title">Plottool</h2>', html)
+        self.assertIn('<h2 id="comparison-title">Zeitvergleich</h2>', html)
+        self.assertIn('aria-label="Zeitvergleich steuern"', html)
+        self.assertIn("Im Zeitvergleich öffnen", app)
+        self.assertIn("Maximal zehn Länder können gleichzeitig im Zeitvergleich ausgewählt werden.", app)
         self.assertIn('border-radius: .9rem;', style)
         self.assertIn("#map-fullscreen", style)
         self.assertIn("#comparison-fullscreen", style)
@@ -179,6 +190,9 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("requestFullscreen", app)
         self.assertIn("serializedMapSvg", app)
         self.assertIn("buildMapPngBlob", app)
+        self.assertIn("appendExportBranding(root, metric", app)
+        self.assertIn("return rasterizeExportSvg(await serializedMapSvg());", app)
+        self.assertIn("await inlineSvgImages(root);", app)
 
         self.assertIn('"Legende"', app)
         self.assertNotIn('querySelector("#map-tooltip")', app)
@@ -189,6 +203,20 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn(".comparison-presets button.active:hover:not(:disabled)", style)
         self.assertIn("closeInfoPanel", app)
 
+    def test_map_direct_link_captures_and_restores_current_map_state(self):
+        html = INDEX_PATH.read_text(encoding="utf-8")
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn('id="map-copy-link"', html)
+        self.assertIn("function mapUrlState()", app)
+        self.assertIn("function writeMapUrl()", app)
+        self.assertIn("async function restoreMapState()", app)
+        for parameter in ("view", "year", "period", "map_metric", "map_values"):
+            self.assertIn(f'url.searchParams.set("{parameter}"', app)
+        self.assertIn('url.searchParams.set("country", focusedMapCountry);', app)
+        self.assertIn('await navigator.clipboard.writeText(url);', app)
+        self.assertIn('if (await restoreMapState()) return;', app)
+        self.assertIn("focusMapCountry(path, false);", app)
+
     def test_comparison_fullscreen_uses_one_chart_surface(self):
         style = STYLE_PATH.read_text(encoding="utf-8")
         self.assertIn(".comparison-stage:fullscreen .chart-panel,", style)
@@ -197,7 +225,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
 
     def test_clicking_map_water_clears_the_country_focus(self):
         app = APP_PATH.read_text(encoding="utf-8")
-        self.assertIn("function clearMapCountryFocus()", app)
+        self.assertIn("function clearMapCountryFocus(syncUrl = true)", app)
         self.assertIn('mapSvg.addEventListener("click", event => {', app)
         self.assertIn('event.target.closest?.(".map-country")', app)
         self.assertIn('$("map-detail").textContent = "Ein Land fokussieren, um Details anzuzeigen.";', app)

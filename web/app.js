@@ -243,7 +243,7 @@ function tableHeaderText(value) {
 
 function leadingTableHeader(withSelection = false) {
   const label = withSelection
-    ? "Rang, Land und Länder für den Zeitreihenvergleich auswählen"
+    ? "Rang, Land und Länder für den Zeitvergleich auswählen"
     : "Rang und Land";
   return `<th scope="colgroup" colspan="2" class="table-leading-spacer"><span class="sr-only">${label}</span></th>`;
 }
@@ -540,7 +540,7 @@ function storageQualityLabel(quality) {
 
 function toggleCountry(code, shouldSelect = !selected.has(code)) {
   if (shouldSelect && !selected.has(code) && selected.size >= 10) {
-    $("status").textContent = "Maximal zehn Länder können gleichzeitig verglichen werden.";
+    $("status").textContent = "Maximal zehn Länder können gleichzeitig im Zeitvergleich ausgewählt werden.";
     return false;
   }
   shouldSelect ? selected.add(code) : selected.delete(code);
@@ -744,6 +744,7 @@ async function setMapMetric(metricId, scrollToMap = false) {
   renderMap();
   renderHead();
   highlightMapColumn();
+  if (mapUrlState()) writeMapUrl();
   if (scrollToMap) $("atlas-map-section").scrollIntoView({behavior: "smooth", block: "start"});
 }
 
@@ -976,7 +977,7 @@ function showCountryTooltip(path, pointerEvent = null) {
   positionTooltip(path, pointerEvent);
 }
 
-function focusMapCountry(path) {
+function focusMapCountry(path, syncUrl = true) {
   focusedMapCountry = path.dataset.countryCode;
   mapSvg.querySelectorAll(".atlas-country").forEach(country => country.classList.toggle("selected", country === path));
   const detail = countryDetail(focusedMapCountry, metricDefinition(mapMetricId));
@@ -992,14 +993,16 @@ function focusMapCountry(path) {
     panel.classList.add("detail-enter");
     path.addEventListener("animationend", () => path.classList.remove("map-focus-pulse"), {once: true});
   }
+  if (syncUrl && mapUrlState()) writeMapUrl();
 }
 
-function clearMapCountryFocus() {
+function clearMapCountryFocus(syncUrl = true) {
   if (!focusedMapCountry) return;
   focusedMapCountry = null;
   mapSvg?.querySelectorAll(".atlas-country.selected").forEach(country => country.classList.remove("selected"));
   $("map-detail").textContent = "Ein Land fokussieren, um Details anzuzeigen.";
   hideMapTooltip();
+  if (syncUrl && mapUrlState()) writeMapUrl();
 }
 
 function hideMapTooltip() {
@@ -1115,8 +1118,8 @@ async function loadSummary() {
     const periodNote = periodStatus === "provisional_current_month"
       ? " Laufender Monat: vorläufig."
       : (periodStatus === "ytd" ? " Laufendes Jahr: YTD." : "");
-    $("status").textContent = data.some(row => Object.values(row).some(value => typeof value === "number"))
-      ? `Atlas-Daten geladen.${periodNote}` : `Noch keine Daten importiert.${periodNote}`;
+    const hasSummaryValues = data.some(row => Object.values(row).some(value => typeof value === "number"));
+    $("status").textContent = hasSummaryValues ? "" : `Noch keine Daten importiert.${periodNote}`;
   } catch (error) {
     $("status").textContent = `Fehler: ${error.message}`;
     $("status").className = "error";
@@ -1589,6 +1592,67 @@ function comparisonQuery() {
   });
   params.set("axis", $("compare-axis-mode").value);
   return params;
+}
+
+function mapUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("view") !== "map") return null;
+  const year = Number.parseInt(params.get("year"), 10);
+  const period = params.get("period") === "month" ? "month" : "year";
+  const month = Number.parseInt(params.get("month"), 10);
+  const country = (params.get("country") || "").toUpperCase();
+  return {
+    metric: params.get("map_metric") || "",
+    year: Number.isInteger(year) && year >= MIN_YEAR && year <= currentYear ? year : null,
+    period,
+    month: Number.isInteger(month) && month >= 1 && month <= 12 ? month : null,
+    values: params.get("map_values") !== "0",
+    country: /^[A-Z]{2}$/.test(country) ? country : null,
+  };
+}
+
+function writeMapUrl() {
+  const metric = metricDefinition(mapMetricId);
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.searchParams.set("view", "map");
+  url.searchParams.set("year", String(selectedYear()));
+  url.searchParams.set("period", isMonthView() ? "month" : "year");
+  if (isMonthView()) url.searchParams.set("month", $("month").value);
+  url.searchParams.set("map_metric", metric.id);
+  url.searchParams.set("map_values", $("map-values").checked ? "1" : "0");
+  if (focusedMapCountry) url.searchParams.set("country", focusedMapCountry);
+  history.replaceState(null, "", url);
+  return url.href;
+}
+
+function syncControlsFromMapUrl() {
+  const state = mapUrlState();
+  if (!state) return;
+  if (state.year !== null) $("year").value = String(state.year);
+  $("period-type").value = state.period;
+  if (state.month !== null) $("month").value = String(state.month);
+}
+
+async function restoreMapState() {
+  const state = mapUrlState();
+  if (!state) return false;
+  const metric = metricCatalog.get(state.metric);
+  if (!metric?.map) {
+    $("status").textContent = "Der Karten-Direktlink enthält eine ungültige Kennzahl und wurde nicht vollständig übernommen.";
+    return false;
+  }
+  mapMetricId = metric.id;
+  $("map-values").checked = state.values;
+  await loadMapData(metric);
+  renderMapControls();
+  renderMap();
+  if (state.country && data.some(row => row.country_code === state.country)) {
+    const path = mapSvg?.querySelector(`.atlas-country[data-country-code="${state.country}"]`);
+    if (path) focusMapCountry(path, false);
+  }
+  setDocumentTitle("map");
+  return true;
 }
 
 function writeComparisonUrl() {
@@ -2207,6 +2271,96 @@ function comparisonFilename(extension) {
   return `eea-${timeseriesData.metric.id}-${timeseriesData.start}-${timeseriesData.end}.${extension}`;
 }
 
+const EXPORT_THEME = Object.freeze({
+  background: "#070d18",
+  surface: "#0d1a2a",
+  panel: "#0a1726",
+  panelRaised: "#13243a",
+  border: "#29445f",
+  text: "#edf7ff",
+  muted: "#91a9bd",
+  accent: "#57d7ff",
+  signal: "#ffffff",
+});
+
+function exportText(root, x, y, value, attributes = {}) {
+  const text = svgElement("text", {x, y, "font-family": 'Calibri,"Segoe UI",sans-serif', ...attributes}, value);
+  root.appendChild(text);
+  return text;
+}
+
+function appendExportCard(root, x, y, width, height, attributes = {}) {
+  root.appendChild(svgElement("rect", {
+    x, y, width, height, rx: 16, class: "export-card", ...attributes,
+  }));
+}
+
+function createMidnightExportRoot(width, height, ariaLabel) {
+  const root = svgElement("svg", {
+    xmlns: "http://www.w3.org/2000/svg",
+    viewBox: `0 0 ${width} ${height}`,
+    width,
+    height,
+    role: "img",
+    "aria-label": ariaLabel,
+  });
+  const defs = svgElement("defs");
+  const glow = svgElement("radialGradient", {id: "eea-export-glow", cx: "22%", cy: "-10%", r: "72%"});
+  glow.appendChild(svgElement("stop", {offset: "0%", "stop-color": "#183654", "stop-opacity": ".92"}));
+  glow.appendChild(svgElement("stop", {offset: "55%", "stop-color": EXPORT_THEME.background, "stop-opacity": ".88"}));
+  glow.appendChild(svgElement("stop", {offset: "100%", "stop-color": EXPORT_THEME.background}));
+  const grid = svgElement("pattern", {id: "eea-export-grid", width: 48, height: 48, patternUnits: "userSpaceOnUse"});
+  grid.appendChild(svgElement("path", {d: "M 48 0 L 0 0 0 48", fill: "none", stroke: "#5a97c7", "stroke-opacity": ".12", "stroke-width": 1}));
+  defs.append(glow, grid);
+  root.appendChild(defs);
+  root.appendChild(svgElement("rect", {width, height, fill: "url(#eea-export-glow)"}));
+  root.appendChild(svgElement("rect", {width, height, fill: "url(#eea-export-grid)"}));
+  root.appendChild(svgElement("style", {}, `
+    text{font-family:Calibri,"Segoe UI",sans-serif}.export-card{fill:${EXPORT_THEME.surface};stroke:${EXPORT_THEME.border};stroke-width:1.25}
+    .export-brand{fill:${EXPORT_THEME.text};font-size:28px;font-weight:750}.export-title{fill:${EXPORT_THEME.text};font-size:23px;font-weight:750}
+    .export-label{fill:${EXPORT_THEME.text};font-size:15px;font-weight:700}.export-subtitle,.export-small{fill:${EXPORT_THEME.muted};font-size:13px}
+    .export-rule{stroke:#b89a5a;stroke-opacity:.55}.export-ranking-row{fill:${EXPORT_THEME.panelRaised};stroke:${EXPORT_THEME.border};stroke-width:1}
+    .export-ranking-average{fill:${EXPORT_THEME.panel};stroke:#52657c;stroke-width:1;stroke-dasharray:3 3}
+  `));
+  return root;
+}
+
+function appendExportBranding(root, metric, period, width) {
+  root.appendChild(svgElement("image", {href: "/assets/eea-mark.svg", x: 34, y: 28, width: 58, height: 58}));
+  exportText(root, 108, 54, "European Electricity Atlas", {class: "export-brand"});
+  exportText(root, 108, 78, metric.label_de, {class: "export-label"});
+  exportText(root, 108, 99, `${metric.representation} · ${metric.unit || "ohne Einheit"} · ${period}`, {class: "export-subtitle"});
+  root.appendChild(svgElement("line", {class: "export-rule", x1: 34, x2: width - 34, y1: 118, y2: 118}));
+}
+
+function exportSvgDimensions(source) {
+  const root = new DOMParser().parseFromString(source, "image/svg+xml").documentElement;
+  const values = root.getAttribute("viewBox")?.trim().split(/\s+/).map(Number) || [];
+  if (values.length !== 4 || !values.every(Number.isFinite)) throw new Error("Export-SVG hat keine gültige ViewBox.");
+  return {width: values[2], height: values[3]};
+}
+
+async function rasterizeExportSvg(source, scale = 2) {
+  const {width, height} = exportSvgDimensions(source);
+  const url = URL.createObjectURL(new Blob([source], {type: "image/svg+xml;charset=utf-8"}));
+  try {
+    const image = new Image();
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+      image.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
+    const context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function serializedChartSvg() {
   const clone = $("timeseries-chart").cloneNode(true);
   clone.querySelectorAll(".chart-interaction").forEach(element => element.remove());
@@ -2216,14 +2370,14 @@ async function serializedChartSvg() {
   clone.setAttribute("height", String(viewBox[3]));
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
   style.textContent = `
-    .chart-background{fill:#0a1422}.chart-title{fill:#f7f5f0;font:750 24px Calibri,"Segoe UI",sans-serif}
-    .chart-subtitle,.axis-label,.legend-label,.average-endpoint-tag{fill:#b6c1cc;font:13px Calibri,"Segoe UI",sans-serif}
+    .chart-background{fill:${EXPORT_THEME.panel}}.chart-title{fill:${EXPORT_THEME.text};font:750 24px Calibri,"Segoe UI",sans-serif}
+    .chart-subtitle,.axis-label,.legend-label,.average-endpoint-tag{fill:${EXPORT_THEME.muted};font:13px Calibri,"Segoe UI",sans-serif}
     .chart-grid{stroke:#34495f;stroke-width:1}.chart-grid.vertical{stroke-opacity:.45}
     .chart-zero{stroke:#b89a5a;stroke-width:1.5}.chart-line{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-    .atlas-average-line{stroke:#edf3fb;stroke-width:1.7;stroke-dasharray:10 7;opacity:.85}
+    .atlas-average-line{stroke:${EXPORT_THEME.text};stroke-width:1.7;stroke-dasharray:10 7;opacity:.85}
     .chart-guide{stroke:#dbe8f6;stroke-width:1.2;stroke-dasharray:4 5}.chart-point{stroke:#08101c;stroke-width:2}
     .endpoint-connector{fill:none;stroke-width:1;opacity:.8}.average-endpoint-connector{stroke-dasharray:6 5}.endpoint-tag{font:800 14px Calibri,"Segoe UI",sans-serif}
-    .average-endpoint-tag{font-weight:750;fill:#edf3fb}.legend-line{stroke-width:3}.legend-line.average{stroke-dasharray:7 5}
+    .average-endpoint-tag{font-weight:750;fill:${EXPORT_THEME.text}}.legend-line{stroke-width:3}.legend-line.average{stroke-dasharray:7 5}
     .x-axis-label{text-anchor:middle}.y-axis-label{text-anchor:end}
   `;
   clone.prepend(style);
@@ -2253,49 +2407,58 @@ function liveRankingExportEntries() {
 }
 
 async function serializedChartPngSvg() {
+  return serializedComparisonExportSvg();
+}
+
+async function serializedComparisonExportSvg() {
   const chartSource = await serializedChartSvg();
   const chart = new DOMParser().parseFromString(chartSource, "image/svg+xml").documentElement;
   const [, , chartWidth, chartHeight] = chart.getAttribute("viewBox").split(/\s+/).map(Number);
   const panelWidth = 390;
-  const gap = 18;
-  const panelX = chartWidth + gap;
-  const root = svgElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    viewBox: `0 0 ${chartWidth + gap + panelWidth} ${chartHeight}`,
-    width: chartWidth + gap + panelWidth,
-    height: chartHeight,
-  });
-  root.appendChild(svgElement("rect", {width: chartWidth + gap + panelWidth, height: chartHeight, fill: "#070d18"}));
+  const padding = 30;
+  const headerHeight = 132;
+  const gap = 20;
+  const chartCardWidth = chartWidth + 20;
+  const rankingEntries = liveRankingExportEntries();
+  const panelHeight = Math.max(chartHeight + 20, 182 + rankingEntries.length * 52);
+  const rootWidth = padding * 2 + chartCardWidth + gap + panelWidth;
+  const rootHeight = headerHeight + panelHeight + padding;
+  const panelX = padding + chartCardWidth + gap;
+  const contentY = headerHeight;
+  const root = createMidnightExportRoot(rootWidth, rootHeight, `Zeitvergleich: ${timeseriesData.metric.label_de}, ${timeseriesData.start} bis ${timeseriesData.end}`);
+  appendExportBranding(root, timeseriesData.metric, `${timeseriesData.start} bis ${timeseriesData.end}`, rootWidth);
+  appendExportCard(root, padding, contentY, chartCardWidth, panelHeight);
+  appendExportCard(root, panelX, contentY, panelWidth, panelHeight);
   const chartCopy = document.importNode(chart, true);
-  chartCopy.setAttribute("x", "0");
-  chartCopy.setAttribute("y", "0");
+  chartCopy.setAttribute("x", String(padding + 10));
+  chartCopy.setAttribute("y", String(contentY + 10));
   chartCopy.setAttribute("width", chartWidth);
   chartCopy.setAttribute("height", chartHeight);
+  chartCopy.setAttribute("preserveAspectRatio", "xMidYMid meet");
   root.appendChild(chartCopy);
-  root.appendChild(svgElement("rect", {x: panelX, y: 0, width: panelWidth, height: chartHeight, rx: 12, fill: "#0d1626", stroke: "#2b3b52"}));
-  const text = (x, y, value, attributes = {}) => root.appendChild(svgElement("text", {x, y, "font-family": 'Calibri,"Segoe UI",sans-serif', ...attributes}, value));
-  text(panelX + 22, 35, "Live-Ranking", {fill: "#f7f5f0", "font-size": 22, "font-weight": 750});
-  text(panelX + panelWidth - 22, 35, $("ranking-period").textContent.trim(), {fill: "#b6c1cc", "font-size": 14, "font-weight": 700, "text-anchor": "end"});
-  root.appendChild(svgElement("rect", {x: panelX + 18, y: 52, width: panelWidth - 36, height: 42, rx: 8, fill: "#111d2e", stroke: "#52657c", "stroke-dasharray": "3 3"}));
-  text(panelX + 30, 78, $("atlas-average-value").textContent.trim(), {fill: "#edf3fb", "font-size": 14, "font-weight": 750});
-  text(panelX + 22, 117, $("ranking-baseline-note").textContent.trim(), {fill: "#b6c1cc", "font-size": 12});
-  liveRankingExportEntries().forEach((entry, index) => {
-    const y = 130 + index * 36;
-    root.appendChild(svgElement("rect", {x: panelX + 18, y, width: panelWidth - 36, height: 31, rx: 7, fill: "#152238"}));
-    text(panelX + 35, y + 20, entry.rank, {fill: "#b6c1cc", "font-size": 14, "font-weight": 750, "text-anchor": "middle"});
-    root.appendChild(svgElement("image", {href: `/assets/flags/${flagCode(entry.code)}.svg`, x: panelX + 52, y: y + 6, width: 22, height: 16}));
-    text(panelX + 84, y + 15, entry.code, {fill: "#f7f5f0", "font-size": 14, "font-weight": 800});
-    text(panelX + 84, y + 27, entry.name, {fill: "#b6c1cc", "font-size": 9});
-    text(panelX + panelWidth - 94, y + 15, entry.value, {fill: "#f7f5f0", "font-size": 14, "font-weight": 800, "text-anchor": "end"});
-    text(panelX + panelWidth - 94, y + 27, entry.unit, {fill: "#b6c1cc", "font-size": 9, "text-anchor": "end"});
-    text(panelX + panelWidth - 28, y + 20, entry.change, {fill: "#8ba2bd", "font-size": 11, "font-weight": 700, "text-anchor": "end"});
+  exportText(root, panelX + 22, contentY + 35, "Live-Ranking", {class: "export-title"});
+  exportText(root, panelX + panelWidth - 22, contentY + 35, $("ranking-period").textContent.trim(), {class: "export-small", "font-weight": 700, "text-anchor": "end"});
+  root.appendChild(svgElement("rect", {class: "export-ranking-average", x: panelX + 18, y: contentY + 52, width: panelWidth - 36, height: 42, rx: 8}));
+  exportText(root, panelX + 30, contentY + 78, $("atlas-average-value").textContent.trim(), {fill: EXPORT_THEME.text, "font-size": 14, "font-weight": 750});
+  exportText(root, panelX + 22, contentY + 117, $("ranking-baseline-note").textContent.trim(), {class: "export-small", "font-size": 12});
+  rankingEntries.forEach((entry, index) => {
+    const y = contentY + 130 + index * 52;
+    root.appendChild(svgElement("rect", {class: "export-ranking-row", x: panelX + 18, y, width: panelWidth - 36, height: 45, rx: 8}));
+    exportText(root, panelX + 35, y + 28, entry.rank, {fill: EXPORT_THEME.muted, "font-size": 14, "font-weight": 750, "text-anchor": "middle"});
+    root.appendChild(svgElement("image", {href: `/assets/flags/${flagCode(entry.code)}.svg`, x: panelX + 52, y: y + 12, width: 22, height: 16}));
+    exportText(root, panelX + 84, y + 20, entry.code, {fill: EXPORT_THEME.text, "font-size": 14, "font-weight": 800});
+    exportText(root, panelX + 84, y + 34, entry.name, {fill: EXPORT_THEME.muted, "font-size": 9});
+    const valueX = panelX + panelWidth - 100;
+    exportText(root, valueX, y + 20, entry.value, {fill: EXPORT_THEME.text, "font-size": 14, "font-weight": 800, "text-anchor": "middle"});
+    exportText(root, valueX, y + 34, entry.unit, {fill: EXPORT_THEME.muted, "font-size": 9, "text-anchor": "middle"});
+    exportText(root, panelX + panelWidth - 28, y + 28, entry.change, {fill: "#8ba2bd", "font-size": 11, "font-weight": 700, "text-anchor": "end"});
   });
   await inlineSvgImages(root);
   return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(root)}`;
 }
 
 async function exportSvg() {
-  downloadBlob(new Blob([await serializedChartSvg()], {type: "image/svg+xml;charset=utf-8"}), comparisonFilename("svg"));
+  downloadBlob(new Blob([await serializedComparisonExportSvg()], {type: "image/svg+xml;charset=utf-8"}), comparisonFilename("svg"));
   pulseExportFrame($("comparison-stage"));
 }
 
@@ -2306,24 +2469,7 @@ async function exportPng() {
 }
 
 async function buildChartPngBlob() {
-  const source = await serializedChartPngSvg();
-  const url = URL.createObjectURL(new Blob([source], {type: "image/svg+xml;charset=utf-8"}));
-  const image = new Image();
-  await new Promise((resolve, reject) => {
-    image.onload = resolve;
-    image.onerror = reject;
-    image.src = url;
-  });
-  const canvas = document.createElement("canvas");
-  const chartBox = $("timeseries-chart").viewBox.baseVal;
-  canvas.width = chartBox.width * 2;
-  canvas.height = chartBox.height * 2;
-  const context = canvas.getContext("2d");
-  context.fillStyle = "#070d18";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  URL.revokeObjectURL(url);
-  return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  return rasterizeExportSvg(await serializedComparisonExportSvg());
 }
 
 function mapIsFullscreen() {
@@ -2445,7 +2591,7 @@ function renderCountryProfile(profile) {
   const sections = [...mergedSections.values()].sort((first, second) => PROFILE_SECTION_ORDER.indexOf(first.id) - PROFILE_SECTION_ORDER.indexOf(second.id));
   $("country-profile").innerHTML = `<header class="country-profile-header">
     <div class="country-profile-title"><img src="/assets/flags/${flagCode(country.code)}.svg" alt="" width="44" height="33"><div><h2 id="country-profile-title">${escapeHtml(country.name)} <small>${escapeHtml(country.code)}</small></h2></div></div>
-    <div class="profile-actions tool-actions"><button id="profile-back" type="button">Zurück zum Atlas</button><button id="profile-compare" type="button">Im Plottool vergleichen</button></div>
+    <div class="profile-actions tool-actions"><button id="profile-back" type="button">Zurück zum Atlas</button><button id="profile-compare" type="button">Im Zeitvergleich öffnen</button></div>
   </header>
   <section class="profile-highlights" aria-label="Hauptkennzahlen">${highlights.map(profileMetricCard).join("")}</section>
   <p class="profile-time-note">Monats-, Jahres- und Snapshotwerte sind anhand von Zeitbasis und tatsächlichem Datenstand getrennt ausgewiesen. Fehlende Werte bleiben leer.</p>
@@ -2505,11 +2651,11 @@ function openCountryProfile(code) {
   void loadCountryProfile();
 }
 
-function openProfileInComparison() {
+async function openProfileInComparison() {
   const code = activeProfileCountry;
   if (!code) return;
   if (!selected.has(code) && selected.size >= 10) {
-    $("country-profile").querySelector(".profile-time-note").textContent = "Maximal zehn Länder können gleichzeitig im Plottool verglichen werden.";
+    $("country-profile").querySelector(".profile-time-note").textContent = "Maximal zehn Länder können gleichzeitig im Zeitvergleich ausgewählt werden.";
     return;
   }
   selected.add(code);
@@ -2518,21 +2664,26 @@ function openProfileInComparison() {
   const params = new URLSearchParams(window.location.search);
   params.set("view", "compare"); params.delete("country"); params.delete("period");
   window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+  await loadTimeseries({scroll: false, updateUrl: true});
   $("comparison").scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
   setDocumentTitle("comparison");
 }
 
 function configureCountryProfileNavigation() {
+  syncControlsFromMapUrl();
   syncControlsFromProfileUrl();
   window.addEventListener("popstate", () => {
     if (profileUrlState()) void loadCountryProfile();
-    else leaveCountryProfile(false);
+    else {
+      leaveCountryProfile(false);
+      if (mapUrlState()) void restoreMapState();
+    }
   });
 }
 
 const TITLE_BY_SECTION = Object.freeze({
   map: "EEA · Karte",
-  comparison: "EEA · Plottool",
+  comparison: "EEA · Zeitvergleich",
   summary: "EEA · Stromsysteme",
   electromobility: "EEA · E-Mobilität",
   storage: "EEA · Speicher",
@@ -2594,6 +2745,7 @@ function configureDynamicDocumentTitle() {
   window.addEventListener("scroll", scheduleDynamicDocumentTitle, {passive: true});
   window.addEventListener("resize", scheduleDynamicDocumentTitle);
   if (profileUrlState()) setDocumentTitle("country");
+  else if (mapUrlState()) setDocumentTitle("map");
   else if (new URLSearchParams(window.location.search).get("view") === "compare") setDocumentTitle("comparison");
   else updateDynamicDocumentTitle();
 }
@@ -2620,10 +2772,6 @@ function mapFilename(extension) {
   return `eea-map-${mapMetricId}-${periodLabel(metricDefinition(mapMetricId)).replace(/[^0-9a-z-]+/gi, "-").toLowerCase()}.${extension}`;
 }
 
-function appendExportText(root, text, x, y, className) {
-  root.appendChild(svgElement("text", {x, y, class: className}, text));
-}
-
 async function serializedMapSvg() {
   if (!mapSvg) throw new Error("Karte ist noch nicht geladen.");
   const metric = metricDefinition(mapMetricId);
@@ -2632,48 +2780,60 @@ async function serializedMapSvg() {
     .filter(Number.isFinite);
   const scale = mapScale(metric, values);
   const colors = MAP_PALETTES[mapPaletteName(metric)];
-  const root = svgElement("svg", {xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 1200 760", width: 1200, height: 760, role: "img", "aria-label": `${metric.label_de}, ${periodLabel(metric)}`});
-  root.appendChild(svgElement("rect", {width: 1200, height: 760, fill: "#070d18"}));
-  const style = svgElement("style", {}, `
-    text{font-family:Calibri,"Segoe UI",sans-serif}.export-title{fill:#edf7ff;font-size:28px;font-weight:750}
-    .export-subtitle{fill:#b6c1cc;font-size:16px}.export-label{fill:#f7f5f0;font-size:17px;font-weight:700}
-    .export-small{fill:#b6c1cc;font-size:14px}.map-country{vector-effect:non-scaling-stroke;stroke:#52657a;stroke-width:1}
-    .background-country{fill:#182638;opacity:.84}.background-country[data-clipped=true]{stroke:transparent}
-    .atlas-country{stroke:#94b0c9;stroke-width:1.35}.atlas-country.no-data{fill:#657486}.atlas-country.selected{stroke:#ffffff;stroke-width:4}
+  const width = 1600;
+  const height = 1000;
+  const contentY = 140;
+  const mapCardX = 30;
+  const mapCardWidth = 1110;
+  const panelX = 1170;
+  const panelWidth = 400;
+  const panelHeight = 830;
+  const root = createMidnightExportRoot(width, height, `Europakarte: ${metric.label_de}, ${periodLabel(metric)}`);
+  root.appendChild(svgElement("style", {}, `
+    .map-country{vector-effect:non-scaling-stroke;stroke:#52657a;stroke-width:1}.background-country{fill:#182638;opacity:.84}
+    .background-country[data-clipped=true]{stroke:transparent}.atlas-country{stroke:#94b0c9;stroke-width:1.35}
+    .atlas-country.no-data{fill:#657486}.atlas-country.selected{stroke:${EXPORT_THEME.signal};stroke-width:4}
     .map-value-label{fill:#fff;stroke:#070d18;stroke-width:3px;paint-order:stroke;text-anchor:middle;dominant-baseline:middle;font-size:13px;font-weight:750}
-  `);
-  root.appendChild(style);
-  appendExportText(root, "European Electricity Atlas", 36, 45, "export-title");
-  appendExportText(root, `${metric.family}: ${metric.representation}`, 36, 76, "export-label");
-  appendExportText(root, `${metric.unit || "ohne Einheit"} · ${periodLabel(metric, mapRow("DE", metric))}`, 36, 101, "export-subtitle");
+  `));
+  appendExportBranding(root, metric, periodLabel(metric, mapRow("DE", metric)), width);
+  appendExportCard(root, mapCardX, contentY, mapCardWidth, panelHeight);
+  appendExportCard(root, panelX, contentY, panelWidth, panelHeight);
   const mapClone = mapSvg.cloneNode(true);
-  mapClone.setAttribute("x", "30");
-  mapClone.setAttribute("y", "120");
-  mapClone.setAttribute("width", "820");
-  mapClone.setAttribute("height", "585");
+  mapClone.setAttribute("x", "46");
+  mapClone.setAttribute("y", "158");
+  mapClone.setAttribute("width", "1078");
+  mapClone.setAttribute("height", "794");
+  mapClone.setAttribute("preserveAspectRatio", "xMidYMid meet");
   mapClone.removeAttribute("tabindex");
   mapClone.querySelectorAll("[tabindex]").forEach(element => element.removeAttribute("tabindex"));
   root.appendChild(mapClone);
-  appendExportText(root, "Legende", 900, 165, "export-title");
+  exportText(root, panelX + 28, contentY + 42, "Legende", {class: "export-title"});
+  exportText(root, panelX + 28, contentY + 67, `${metric.label_de} · ${metric.unit || "ohne Einheit"}`, {class: "export-small"});
   if (scale) {
+    const legendX = panelX + 30;
+    const legendY = contentY + 95;
+    const legendWidth = panelWidth - 60;
     colors.forEach((color, index) => {
-      root.appendChild(svgElement("rect", {x: 900 + index * 48, y: 190, width: 50, height: 18, fill: color}));
+      root.appendChild(svgElement("rect", {x: legendX + index * legendWidth / colors.length, y: legendY, width: legendWidth / colors.length + 1, height: 18, fill: color}));
     });
-    appendExportText(root, formatMetricValue(scale.min, metric), 900, 232, "export-small");
-    if (scale.midpoint !== null && scale.midpoint !== undefined) appendExportText(root, formatMetricValue(scale.midpoint, metric), 1000, 232, "export-small");
-    appendExportText(root, formatMetricValue(scale.max, metric), 1140, 232, "export-small");
-    appendExportText(root, `${metric.unit || "ohne Einheit"} · Grau = kein Wert`, 900, 260, "export-small");
+    exportText(root, legendX, legendY + 42, formatMetricValue(scale.min, metric), {class: "export-small"});
+    if (scale.midpoint !== null && scale.midpoint !== undefined) exportText(root, legendX + legendWidth / 2, legendY + 42, formatMetricValue(scale.midpoint, metric), {class: "export-small", "text-anchor": "middle"});
+    exportText(root, legendX + legendWidth, legendY + 42, formatMetricValue(scale.max, metric), {class: "export-small", "text-anchor": "end"});
+    exportText(root, legendX, legendY + 68, `${metric.unit || "ohne Einheit"} · Grau = kein Wert`, {class: "export-small"});
   } else {
-    appendExportText(root, "Keine Werte für den ausgewählten Datenstand verfügbar.", 900, 220, "export-small");
+    exportText(root, panelX + 28, contentY + 118, "Keine Werte für den ausgewählten Datenstand verfügbar.", {class: "export-small"});
   }
   if (focusedMapCountry) {
-    appendExportText(root, "Fokus", 900, 320, "export-label");
-    appendExportText(root, countryName(focusedMapCountry), 900, 350, "export-title");
+    const focusY = contentY + 210;
+    root.appendChild(svgElement("rect", {class: "export-ranking-average", x: panelX + 24, y: focusY, width: panelWidth - 48, height: 124, rx: 12}));
+    exportText(root, panelX + 42, focusY + 30, "Länderfokus", {class: "export-label"});
+    exportText(root, panelX + 42, focusY + 61, countryName(focusedMapCountry), {class: "export-title", "font-size": 20});
     const row = mapRow(focusedMapCountry, metric);
     const value = row?.[metric.id];
-    appendExportText(root, `${formatMetricValue(value, metric)} ${Number.isFinite(value) ? metric.unit : ""}`.trim(), 900, 382, "export-label");
+    exportText(root, panelX + 42, focusY + 94, `${formatMetricValue(value, metric)} ${Number.isFinite(value) ? metric.unit : ""}`.trim(), {class: "export-label"});
   }
-  appendExportText(root, "Lokaler Export · ohne externe Dienste", 900, 695, "export-small");
+  exportText(root, panelX + 28, contentY + panelHeight - 28, "Lokaler, eigenständiger Export", {class: "export-small"});
+  await inlineSvgImages(root);
   return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(root)}`;
 }
 
@@ -2684,23 +2844,7 @@ async function exportMapSvg() {
 }
 
 async function buildMapPngBlob() {
-  const source = await serializedMapSvg();
-  const url = URL.createObjectURL(new Blob([source], {type: "image/svg+xml;charset=utf-8"}));
-  const image = new Image();
-  await new Promise((resolve, reject) => {
-    image.onload = resolve;
-    image.onerror = reject;
-    image.src = url;
-  });
-  const canvas = document.createElement("canvas");
-  canvas.width = 2400;
-  canvas.height = 1520;
-  const context = canvas.getContext("2d");
-  context.fillStyle = "#070d18";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  URL.revokeObjectURL(url);
-  return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  return rasterizeExportSvg(await serializedMapSvg());
 }
 
 async function exportMapPng() {
@@ -2799,7 +2943,10 @@ async function toggleComparisonFullscreen() {
 
 $("period-type").addEventListener("change", syncPeriodControls);
 $("year").max = String(currentYear);
-$("load").addEventListener("click", loadSummary);
+$("load").addEventListener("click", async () => {
+  await loadSummary();
+  if (mapUrlState()) writeMapUrl();
+});
 $("compare").addEventListener("click", compare);
 $("clear-selection").addEventListener("click", clearSelection);
 $("summary-toggle").addEventListener("click", () => {
@@ -2895,7 +3042,15 @@ $("map-family").addEventListener("change", async event => {
 $("map-representation").addEventListener("change", async event => {
   await selectMapMetricForPeriod(event.target.value);
 });
-$("map-values").addEventListener("change", () => renderMapLabels(metricDefinition(mapMetricId)));
+$("map-values").addEventListener("change", () => {
+  renderMapLabels(metricDefinition(mapMetricId));
+  if (mapUrlState()) writeMapUrl();
+});
+$("map-copy-link").addEventListener("click", async () => {
+  const url = writeMapUrl();
+  await navigator.clipboard.writeText(url);
+  $("map-availability").textContent = "Karten-Direktlink wurde kopiert.";
+});
 $("map-fullscreen").addEventListener("click", toggleMapFullscreen);
 $("map-export-svg").addEventListener("click", exportMapSvg);
 $("map-export-png").addEventListener("click", exportMapPng);
@@ -2913,7 +3068,10 @@ document.addEventListener?.("keydown", event => {
   }
 });
 
-window.__atlasMapTest = {colorForValue, mapScale, NE_TO_ATLAS, serializedMapSvg, buildMapPngBlob};
+window.__atlasMapTest = {
+  colorForValue, mapScale, NE_TO_ATLAS, serializedMapSvg, buildMapPngBlob,
+  mapUrlState, writeMapUrl,
+};
 window.__atlasCompareTest = {
   availableComparisonRange,
   buildComparisonCsv,
@@ -2937,7 +3095,10 @@ window.__atlasCompareTest = {
 };
 
 if (typeof window.addEventListener === "function") configureCountryProfileNavigation();
-else syncControlsFromProfileUrl();
+else {
+  syncControlsFromMapUrl();
+  syncControlsFromProfileUrl();
+}
 syncPeriodControls();
 configureEnhancedSelectMenus();
 loadCoverage();
@@ -2955,6 +3116,7 @@ loadMetricCatalog()
       await loadCountryProfile();
       return;
     }
+    if (await restoreMapState()) return;
     const restored = await restoreComparisonState();
     if (!restored) await initializeDefaultComparison();
   })

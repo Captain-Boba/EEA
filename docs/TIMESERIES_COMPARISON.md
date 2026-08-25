@@ -59,7 +59,7 @@ so dense Max views do not flicker through periods unreadably. A click pins the
 selected period immediately. Pending hover updates are cancelled when the
 pointer leaves, a period is pinned, or the chart is rebuilt.
 
-The document title follows the active Atlas section and reads `EEA · Plottool`
+The document title follows the active Atlas section and reads `EEA · Zeitvergleich`
 in the comparison view. Direct links restore the comparison state without
 performing a data import.
 

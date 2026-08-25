@@ -14,7 +14,7 @@
 - Header, Steuerleiste, Jahr/Zeitraum, Auswahlzähler und normale Scrollbewegung
 - Europakarte mit Wertbeschriftungen und Legende
 - Karten-Vollbild
-- Plottool mit fünf Ländern, Zeitraum-Voreinstellung, Live-Ranking und Plot-Vollbild
+- Zeitvergleich mit fünf Ländern, Zeitraum-Voreinstellung, Live-Ranking und Plot-Vollbild
 - Stromsysteme in Gesamtansicht; Tabellenkopf und Ausklappzustand
 - Ländersteckbrief per Direktlink (`DE`) einschließlich oberer Scrollposition und Quellenzeile
 - Europa Overload: vor Aktivierung keine Postkarten-/Bild-Elemente; nach Opt-in aktiver Schalter. Die Postkarten selbst sind unter 1500 px absichtlich ausgeblendet; Galerie, Tastaturnavigation und WQHD-Gutter konnten deshalb nicht visuell abgenommen werden.
@@ -24,7 +24,7 @@
 ### Behoben
 
 - **P1 – horizontale Seitenscrollleiste:** Die technisch ausgeblendeten Vergleichs-`select`-Elemente wurden durch `.comparison-controls select { width: 100% }` wieder auf volle Breite gesetzt. Das erzeugte eine Dokumentbreite von 2201 px bei 1265 px Viewportbreite. Die selektive Regel für `select.sr-only` stellt nun die 1-px-Größe wieder her.
-- Nachprüfung: Karte, Plottool, erweitere Stromsystem-Tabelle sowie Karten- und Plottool-Vollbild messen jeweils `scrollWidth === clientWidth`.
+- Nachprüfung: Karte, Zeitvergleich, erweiterte Stromsystem-Tabelle sowie Karten- und Zeitvergleich-Vollbild messen jeweils `scrollWidth === clientWidth`.
 
 ### Offen / nicht abnehmbar
 

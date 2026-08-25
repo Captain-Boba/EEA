@@ -33,12 +33,12 @@ class CountryProfileUiContractTests(unittest.TestCase):
         self.assertIn('params.set("period", isMonthView() ? "month" : "year")', APP)
         self.assertIn('await loadCountryProfile({scroll: false});', APP)
 
-    def test_profile_does_not_clear_comparison_and_enforces_ten_country_limit(self):
+    def test_profile_adds_to_comparison_enforces_ten_country_limit_and_refreshes_the_plot(self):
         profile_compare = APP[APP.index("function openProfileInComparison()"):APP.index("function configureCountryProfileNavigation()")]
         self.assertNotIn("selected.clear()", profile_compare)
         self.assertIn("selected.size >= 10", profile_compare)
         self.assertIn("selected.add(code)", profile_compare)
-        self.assertNotIn("loadTimeseries", profile_compare)
+        self.assertIn("await loadTimeseries({scroll: false, updateUrl: true});", profile_compare)
 
     def test_profile_shows_only_source_and_year_for_metric_provenance(self):
         self.assertIn("function profileSourceYear(metric)", APP)

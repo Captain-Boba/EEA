@@ -66,15 +66,34 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
             "period,DE,FR,atlas_average\r\n2025-01,1,0,0.5\r\n2025-02,,2,2",
         )
 
-    def test_png_export_includes_the_current_live_ranking_panel(self):
+    def test_png_and_svg_exports_share_the_current_live_ranking_panel(self):
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn("function liveRankingExportEntries()", app)
         self.assertIn('$("ranking-list").querySelectorAll(".ranking-item")', app)
-        self.assertIn("async function serializedChartPngSvg()", app)
-        self.assertIn('text(panelX + 22, 35, "Live-Ranking"', app)
+        self.assertIn("async function serializedComparisonExportSvg()", app)
+        self.assertIn('exportText(root, panelX + 22, contentY + 35, "Live-Ranking"', app)
         self.assertIn('$("atlas-average-value").textContent.trim()', app)
         self.assertIn('href: `/assets/flags/${flagCode(entry.code)}.svg`', app)
-        self.assertIn("const source = await serializedChartPngSvg();", app)
+        self.assertIn("appendExportBranding(root, timeseriesData.metric", app)
+        self.assertIn("await inlineSvgImages(root);", app)
+        self.assertIn('new Blob([await serializedComparisonExportSvg()], {type: "image/svg+xml;charset=utf-8"})', app)
+        self.assertIn("return rasterizeExportSvg(await serializedComparisonExportSvg());", app)
+        self.assertIn('text-anchor": "middle"', app)
+
+    def test_midnight_grid_exports_use_a_shared_local_branding_and_canvas_structure(self):
+        app = APP_PATH.read_text(encoding="utf-8")
+        self.assertIn("const EXPORT_THEME = Object.freeze", app)
+        self.assertIn("function createMidnightExportRoot", app)
+        self.assertIn("function appendExportBranding", app)
+        self.assertIn('href: "/assets/eea-mark.svg"', app)
+        self.assertIn('"European Electricity Atlas"', app)
+        self.assertIn('fill: "url(#eea-export-grid)"', app)
+        self.assertIn("async function rasterizeExportSvg", app)
+        self.assertIn("function exportSvgDimensions", app)
+        self.assertIn("canvas.width = Math.round(width * scale);", app)
+        self.assertIn("canvas.height = Math.round(height * scale);", app)
+        self.assertIn("return rasterizeExportSvg(await serializedMapSvg());", app)
+        self.assertIn("return rasterizeExportSvg(await serializedComparisonExportSvg());", app)
 
     def test_live_ranking_units_are_centered_below_the_value(self):
         style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")

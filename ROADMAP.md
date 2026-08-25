@@ -33,7 +33,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 ### 3. Haupttabelle fachlich erweitern
 
 - Die verfügbare Desktopbreite mit weiteren, bewusst ausgewählten Kennzahlen nutzen.
-- Vor der Umsetzung eine feste Spaltenauswahl beschließen. Die Haupttabelle bleibt ein kuratierter Überblick; Karte und Zeitreihenvergleich bieten weiterhin den vollständigen jeweils geeigneten Kennzahlenkatalog.
+- Vor der Umsetzung eine feste Spaltenauswahl beschließen. Die Haupttabelle bleibt ein kuratierter Überblick; Karte und Zeitvergleich bieten weiterhin den vollständigen jeweils geeigneten Kennzahlenkatalog.
 - Kandidaten nach Informationsgewinn auswählen, nicht nach bloßer Datenverfügbarkeit. Insbesondere Doppelungen zwischen absoluten Werten, Anteilen und stark korrelierten Größen vermeiden.
 - Bestehende Funktionen bewahren: sticky Tabellenkopf unter der globalen Steuerleiste, zentrierte Spalten, Top-10-/Gesamtansicht, sortierabhängige Ränge, Vergleichsauswahl, Kartenaufruf und einheitliche Nachkommastellen einschließlich nachgestellter Nullen.
 - In der Speichertabelle bleibt die Reihenfolge Speicherenergie, Entladeleistung, äquivalente Entladedauer – jeweils zuerst Batterie, danach Pumpspeicher.
@@ -105,7 +105,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - `Europa Overload` ist ein optionaler, speicherbarer Schalter für 250 kuratierte und attribuierte Wikimedia-Commons-Postkarten aus den Atlasländern. Ohne Aktivierung werden keine Postkartenbilder geladen.
 - Die Postkarten lassen sich per Maus und Tastatur in einer Vollbildgalerie öffnen. Titel, Land, Urheber, Lizenz und Commons-Link bleiben sichtbar; öffentliche Daumenstimmen, Score und geteilte Rangplätze werden getrennt in der Community-Datenbank gespeichert.
 - Lokales Atlas-Logo, kontextbezogene Info-Popovers, konsistente Interaktionszustände, reduzierte Bewegung bei `prefers-reduced-motion` sowie dezente Auswahl-, Sortier-, Fokus- und Exportanimationen sind umgesetzt.
-- Karten- und Plottool-Auswahl verwenden gruppierte Atlas-Menüs. Kennzahlenvarianten folgen, soweit vorhanden, der Reihenfolge absolut, Anteil und pro Kopf.
+- Karten- und Zeitvergleich-Auswahl verwenden gruppierte Atlas-Menüs. Kennzahlenvarianten folgen, soweit vorhanden, der Reihenfolge absolut, Anteil und pro Kopf.
 
 ### Tabellen
 
@@ -118,7 +118,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - In der Haupttabelle dient der Rangkreis gleichzeitig als eindeutige Auswahlaktion für den Ländervergleich; eine separate sichtbare Auswahlspalte ist nicht erforderlich.
 - Die Speichertabelle zeigt Speicherenergie vor Entladeleistung und Entladedauer.
 
-### Zeitreihenvergleich
+### Zeitvergleich
 
 - Ein bis zehn eindeutige Länder und genau eine zeitfähige Kennzahl können monatlich oder jährlich verglichen werden; Snapshot-Kennzahlen bleiben ausgeschlossen.
 - Der native SVG-Plot enthält echte Datenlücken, lokale Endpunktflaggen, kollisionsbehandelte Ländertags, kontrastreiche flaggenbasierte Linienfarben und einen Atlas-Durchschnitt über alle jeweils vorhandenen Länderwerte.

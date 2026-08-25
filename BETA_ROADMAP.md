@@ -14,7 +14,7 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 
 - [x] `main` und `origin/main` stehen auf demselben akzeptierten Commit.
 - [x] 31 Atlasländer und 87 Kennzahlendefinitionen sind integriert.
-- [x] Karte, sortierbare Tabellen, Zeitreihenvergleich und direkt verlinkbare Ländersteckbriefe sind umgesetzt.
+- [x] Karte, sortierbare Tabellen, Zeitvergleich und direkt verlinkbare Ländersteckbriefe sind umgesetzt.
 - [x] Karten- und Plotexporte sowie Vergleichs-CSV funktionieren lokal.
 - [x] Europa Overload besitzt einen kanonischen Katalog mit 250 stabil identifizierten Bildern.
 - [x] Die Vollbildgalerie unterstützt zyklische Vor-/Zurück-Navigation, Tastaturbedienung und begrenztes Vorladen.
@@ -33,7 +33,7 @@ Die Beta ist ausdrücklich desktop-first. Eine vollständige Mobile-Parität, de
 - [x] Europa-Overload-Postkarten überdecken Atlas und Bedienelemente in der Eigentümerabnahme nicht problematisch.
 - [x] Full HD bleibt kompakt; WQHD nutzt die zusätzliche Seitenfläche sichtbar.
 - [x] Der in der Agentenprüfung gefundene horizontale Überlauf durch unsichtbare Vergleichsauswahlen ist behoben; in der Eigentümerabnahme fiel kein weiterer problematischer Überlauf auf.
-- [x] Sticky Steuerleiste und Tabellenköpfe sowie Karte, Plottool und Ländersteckbriefe wurden im verfügbaren Browser geprüft.
+- [x] Sticky Steuerleiste und Tabellenköpfe sowie Karte, Zeitvergleich und Ländersteckbriefe wurden im verfügbaren Browser geprüft.
 - [ ] Galerie mit Maus, Tab-Taste, Pfeiltasten, Escape, Hintergrundklick und Europa-Stern bedienen.
 - [ ] Reduzierte Bewegung mit `prefers-reduced-motion` kontrollieren.
 

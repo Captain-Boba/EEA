@@ -44,7 +44,7 @@ Die bereits implementierten fünf Ableitungen sowie die neuen Eurostat-, EEA- un
   - `hydro_pumping_power_gw`
   - `hydro_reservoir_energy_gwh`
 - `/api/metrics`, `/api/summary`, `/api/compare` und `/api/storage` liefern die erforderlichen Daten und Metadaten bereits aus.
-- Karte und Zeitreihenvergleich sind kataloggetrieben. Neue Jahreskennzahlen werden dadurch grundsätzlich bereits angeboten; Snapshot-Kennzahlen sind bewusst nicht im Zeitreihenvergleich.
+- Karte und Zeitvergleich sind kataloggetrieben. Neue Jahreskennzahlen werden dadurch grundsätzlich bereits angeboten; Snapshot-Kennzahlen sind bewusst nicht im Zeitvergleich.
 
 ## 3. Arbeitskopie und Dateieigentum
 
@@ -82,14 +82,14 @@ Ein vermuteter Fehler in diesem geschützten Bereich wird reproduzierbar dokumen
 ### A. Kataloggetriebene Einbindung verifizieren und vervollständigen
 
 1. Sicherstellen, dass alle neuen Jahreskennzahlen in der Karte in ihrer vorgesehenen Gruppe und Familie auswählbar sind.
-2. Sicherstellen, dass alle vergleichbaren neuen Jahreskennzahlen im Zeitreihenvergleich auswählbar sind.
+2. Sicherstellen, dass alle vergleichbaren neuen Jahreskennzahlen im Zeitvergleich auswählbar sind.
 3. Bei Auswahl einer nur jährlich verfügbaren Kennzahl aus der Monatsansicht muss die bestehende automatische Umschaltung auf `Jahr` erhalten bleiben.
 4. Die drei JRC-Wasserkraftinventar-Kennzahlen bleiben Snapshot-Kennzahlen: Karte ja, Zeitreihe nein, Anzeige mit ihrem je Kennzahl ausgewiesenen Datenstand.
 5. Fehlende Werte werden immer als `—` dargestellt. K2 darf keine Vorjahreswerte fortschreiben und keinen „letzten verfügbaren Wert“ in den gewählten Zeitraum hineinziehen.
 
 ### B. Elektromobilität sichtbar einbinden
 
-Eine eigene, kompakte Ranking-Tabelle **„Elektromobilität“** unterhalb des Stromsystem-Rankings und vor dem Zeitreihenvergleich ergänzen. Sie verwendet den aktuell gewählten Jahreszeitraum und zeigt:
+Eine eigene, kompakte Ranking-Tabelle **„Elektromobilität“** unterhalb des Stromsystem-Rankings und vor dem Zeitvergleich ergänzen. Sie verwendet den aktuell gewählten Jahreszeitraum und zeigt:
 
 - batterieelektrische Pkw im Bestand,
 - neue batterieelektrische Pkw,
@@ -124,7 +124,7 @@ Quellenlinks und bereits vorhandene Lizenztexte nicht entfernen. Keine weitergeh
 
 - Für Elektromobilität, EEA-Emissionen und JRC-Wasserkraft muss Quelle, Einheit, Zeitraum/Datenstand und Fehlstatus in der vorhandenen Karten-Detailansicht korrekt erscheinen.
 - Kartenlegende und Kartenexport müssen weiterhin Kennzahl, Einheit und aktuell gewählte Darstellung widerspiegeln.
-- Im Zeitreihenvergleich müssen Jahreskennzahlen Jahresfelder und Jahres-Presets verwenden. Snapshot-Kennzahlen dürfen dort nicht erscheinen.
+- Im Zeitvergleich müssen Jahreskennzahlen Jahresfelder und Jahres-Presets verwenden. Snapshot-Kennzahlen dürfen dort nicht erscheinen.
 - Die bestehende Europakarten-Geometrie und der Ausschnitt bleiben unverändert.
 
 ### E. Tests
@@ -135,7 +135,7 @@ Tests auf Vertrags- und DOM-Ebene ergänzen. Mindestens abdecken:
 2. Monatsansicht mischt keine Jahres-EV-Werte ein.
 3. `null` bleibt `—`; insbesondere wird ein fehlender 2025-Wert nicht mit 2024 befüllt.
 4. `ev_battery_nominal_capacity_est_gwh` ist als Schätzung mit 60-kWh-Hinweis gekennzeichnet.
-5. JRC-Wasserkraftinventar bleibt Snapshot-only und ist im Zeitreihenvergleich ausgeschlossen.
+5. JRC-Wasserkraftinventar bleibt Snapshot-only und ist im Zeitvergleich ausgeschlossen.
 6. EEA 1.A.1.a wird als Strom- und Wärmeerzeugung beschrieben.
 7. Die vorhandenen Farbkontrast-Tests für zehn Länder bleiben unverändert grün.
 8. Neue Steuerelemente sind per Tastatur bedienbar und haben sinnvolle Beschriftungen/Statusrollen.
@@ -175,8 +175,8 @@ Diese Werte dienen der Integrationsprüfung gegen die übergebene lokale Datenba
 
 Der Auftrag ist erfüllt, wenn alle folgenden Punkte nachweisbar sind:
 
-- Die fünf Ableitungen und die neuen Eurostat-/EEA-Jahreskennzahlen sind in Karte und – soweit `compare=true` – im Zeitreihenvergleich auffindbar.
-- Die drei JRC-Wasserkraftmetriken sind mit dem korrekten Snapshot-Datum auf der Karte, aber nicht im Zeitreihenvergleich verfügbar.
+- Die fünf Ableitungen und die neuen Eurostat-/EEA-Jahreskennzahlen sind in Karte und – soweit `compare=true` – im Zeitvergleich auffindbar.
+- Die drei JRC-Wasserkraftmetriken sind mit dem korrekten Snapshot-Datum auf der Karte, aber nicht im Zeitvergleich verfügbar.
 - Die EV-Ranking-Tabelle funktioniert für Jahresansichten, sortiert/rankt korrekt und zeigt fehlende Werte ohne Fortschreibung.
 - EV-Kapazität ist in jeder relevanten UI-Erklärung als theoretische nominale Schätzung und ausdrücklich nicht als V2G-/Netzspeicher gekennzeichnet.
 - EEA 1.A.1.a wird nicht als reine Stromerzeugung missverstanden.

@@ -704,6 +704,7 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
   backdrop-filter: none;
 }
 .comparison-stage:fullscreen .chart-background { fill: #081a2c; }
+#status:empty { min-height: 1lh; }
 #status.error { color: var(--danger); }
 details { margin-top: 1.5rem; padding: .9rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
 details summary { cursor: pointer; font-weight: 650; }
