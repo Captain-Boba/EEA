@@ -29,6 +29,12 @@ class ServerSmokeTests(unittest.TestCase):
                 with urlopen(base + "/llms.txt", timeout=5) as response:
                     llms_text = response.read().decode("utf-8")
                     llms_content_type = response.headers.get_content_type()
+                with urlopen(base + "/robots.txt", timeout=5) as response:
+                    robots_text = response.read().decode("utf-8")
+                    robots_content_type = response.headers.get_content_type()
+                with urlopen(base + "/sitemap.xml", timeout=5) as response:
+                    sitemap_xml = response.read().decode("utf-8")
+                    sitemap_content_type = response.headers.get_content_type()
                 with urlopen(base + "/assets/europe.svg", timeout=5) as response:
                     map_svg = response.read().decode("utf-8")
                 with urlopen(base + "/api/countries", timeout=5) as response:
@@ -58,6 +64,11 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertIn('href="/llms.txt" type="text/plain">Datenzugriff für LLMs</a>', html)
                 self.assertEqual(llms_content_type, "text/plain")
                 self.assertIn("Machine-readable guidance for language models", llms_text)
+                self.assertEqual(robots_content_type, "text/plain")
+                self.assertIn("User-agent: *", robots_text)
+                self.assertIn("Sitemap: https://ee-atlas.eu/sitemap.xml", robots_text)
+                self.assertIn(sitemap_content_type, {"application/xml", "text/xml"})
+                self.assertIn("https://ee-atlas.eu/llms.txt", sitemap_xml)
                 self.assertIn("Projekt &amp; Kontakt", contact_html)
                 self.assertIn("GitHub Issues", contact_html)
                 self.assertIn("Datenschutz &amp; Cookies", privacy_html)
