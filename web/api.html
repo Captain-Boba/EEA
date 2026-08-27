@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070d18">
+  <meta name="description" content="Dokumentation und direkt aufrufbare Beispiele der öffentlichen European Electricity Atlas API.">
+  <title>EEA · API &amp; Datenzugriff</title>
+  <link rel="canonical" href="https://ee-atlas.eu/api.html">
+  <link rel="icon" href="/assets/eea-mark.svg" type="image/svg+xml">
+  <link rel="help" href="/llms.txt" type="text/plain" title="Datenzugriff für KI und LLMs">
+  <link rel="service-desc" href="/openapi.json" type="application/vnd.oai.openapi+json" title="OpenAPI-Beschreibung">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="legal-page">
+    <header class="site-header legal-header">
+      <a class="brand-lockup legal-brand" href="/" aria-label="Zurück zum European Electricity Atlas">
+        <span class="brand-mark" aria-hidden="true"><img src="/assets/eea-mark.svg" alt=""></span>
+        <div><h1>European Electricity Atlas</h1></div>
+      </a>
+    </header>
+
+    <article class="legal-card api-docs">
+      <p class="legal-kicker">Öffentliche API · keine Anmeldung erforderlich</p>
+      <h2>API &amp; Datenzugriff</h2>
+      <p>Die analytischen Daten des Atlas können kostenlos als UTF-8-JSON abgerufen werden. Für Maschinen steht unter <a href="/api/"><code>/api/</code></a> ein Endpunktverzeichnis bereit. Sprachmodelle finden zusätzliche Interpretationsregeln in <a href="/llms.txt"><code>/llms.txt</code></a>; Werkzeuge können die formale Beschreibung unter <a href="/openapi.json"><code>/openapi.json</code></a> verwenden.</p>
+
+      <h3>Schnellstart</h3>
+      <ol>
+        <li><a href="/api/countries"><code>GET /api/countries</code></a> – gültige Länder und Ländercodes prüfen.</li>
+        <li><a href="/api/metrics"><code>GET /api/metrics</code></a> – verfügbare Kennzahlen, Einheiten und Zeitauflösungen prüfen.</li>
+        <li>Den kleinsten passenden Datenendpunkt verwenden und die zurückgegebenen Quellen-, Zeitraum- und Qualitätsangaben beibehalten.</li>
+      </ol>
+
+      <h3>Direkt aufrufbare Beispiele</h3>
+      <div class="api-endpoint-list">
+        <section class="api-endpoint">
+          <h4>Ländervergleich</h4>
+          <p>Deutschland und Frankreich im Jahr 2025:</p>
+          <p><a href="/api/compare?year=2025&amp;countries=DE,FR"><code>/api/compare?year=2025&amp;countries=DE,FR</code></a></p>
+        </section>
+        <section class="api-endpoint">
+          <h4>Komplette Rangliste</h4>
+          <p>Alle 31 Atlas-Länder für 2025:</p>
+          <p><a href="/api/summary?year=2025"><code>/api/summary?year=2025</code></a></p>
+        </section>
+        <section class="api-endpoint">
+          <h4>Ländersteckbrief</h4>
+          <p>Gebündelte Kennzahlen für Deutschland:</p>
+          <p><a href="/api/country-profile?country=DE&amp;year=2025"><code>/api/country-profile?country=DE&amp;year=2025</code></a></p>
+        </section>
+        <section class="api-endpoint">
+          <h4>Zeitreihe</h4>
+          <p>Erneuerbaren-Anteil von Deutschland und Frankreich:</p>
+          <p><a href="/api/timeseries?metric=renewable_share_pct&amp;countries=DE,FR&amp;start=2015-01&amp;end=2025-12"><code>/api/timeseries?metric=renewable_share_pct&amp;countries=DE,FR&amp;start=2015-01&amp;end=2025-12</code></a></p>
+        </section>
+        <section class="api-endpoint">
+          <h4>Europakarte</h4>
+          <p>Installierte Gesamtleistung je Land:</p>
+          <p><a href="/api/map-data?metric=capacity_total_gw&amp;year=2025"><code>/api/map-data?metric=capacity_total_gw&amp;year=2025</code></a></p>
+        </section>
+        <section class="api-endpoint">
+          <h4>Datenabdeckung</h4>
+          <p>Verfügbarkeit zentraler Datenreihen:</p>
+          <p><a href="/api/coverage?year=2025"><code>/api/coverage?year=2025</code></a></p>
+        </section>
+        <section class="api-endpoint">
+          <h4>Speicherinventar</h4>
+          <p>Neueste separat datierte Speicherbeobachtungen:</p>
+          <p><a href="/api/storage"><code>/api/storage</code></a></p>
+        </section>
+        <section class="api-endpoint">
+          <h4>Betriebsstatus</h4>
+          <p>Erreichbarkeit der beiden Datenbanken:</p>
+          <p><a href="/api/health"><code>/api/health</code></a></p>
+        </section>
+      </div>
+
+      <h3>Wichtige Regeln</h3>
+      <ul>
+        <li><code>null</code> bedeutet fehlend oder nicht anwendbar und darf nicht als Nullwert interpretiert werden.</li>
+        <li>Einheiten, tatsächliche Berichtszeiträume, Datenstatus, Qualitätsangaben und Quellen müssen erhalten bleiben.</li>
+        <li>Der Atlas verwendet für das Vereinigte Königreich den Code <code>UK</code>.</li>
+        <li>Die Community-Abstimmung der Europa-Overload-Bilder ist keine analytische Datenschnittstelle und nicht für automatisierte Stimmen vorgesehen.</li>
+      </ul>
+
+      <p class="legal-actions"><a href="/">Zurück zum Atlas</a> · <a href="/llms.txt">Anleitung für LLMs</a> · <a href="/openapi.json">OpenAPI</a> · <a href="https://github.com/Captain-Boba/EEA" target="_blank" rel="noopener noreferrer">Quellcode</a></p>
+    </article>
+  </main>
+</body>
+</html>

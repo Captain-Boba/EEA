@@ -114,7 +114,7 @@ Die Beta ist ausdrücklich desktop-first. Smartphones erhalten deshalb dieselbe 
 ## Empfohlene Arbeitspakete
 
 1. **Patch `v0.4.1` veröffentlichen**
-   Die erzwungene Desktoparbeitsfläche auf Mobilgeräten, den maschinenlesbaren LLM-Leitfaden und die aktualisierte Dokumentation committen, deployen und über die Produktionsdomain kurz prüfen.
+   Die erzwungene Desktoparbeitsfläche auf Mobilgeräten, den maschinenlesbaren LLM-Leitfaden, das API-Endpunktverzeichnis, die anklickbare API-Dokumentation, die OpenAPI-Beschreibung und die aktualisierte Dokumentation committen, deployen und über die Produktionsdomain kurz prüfen.
 
 2. **Verbliebene manuelle Beta-Abnahme kompakt nachholen**
    Exporte, Overload-Galerie, zwei Browserprofile und Firefox/Chromium bei Gelegenheit prüfen; keine weitere Hostingarchitektur aufbauen.

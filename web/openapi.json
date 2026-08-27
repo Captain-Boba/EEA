@@ -1,0 +1,493 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "European Electricity Atlas API",
+    "version": "1.0.0",
+    "description": "Public read-only electricity-system data for 31 European countries. Preserve returned units, periods, data status, quality information, warnings, and source labels. JSON null means unavailable or inapplicable, never zero.",
+    "contact": {
+      "url": "https://ee-atlas.eu/contact.html"
+    },
+    "license": {
+      "name": "Project and source-specific licenses",
+      "url": "https://github.com/Captain-Boba/EEA"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://ee-atlas.eu",
+      "description": "Canonical public beta"
+    }
+  ],
+  "externalDocs": {
+    "description": "Human- and LLM-readable API documentation",
+    "url": "https://ee-atlas.eu/api.html"
+  },
+  "tags": [
+    {
+      "name": "Discovery",
+      "description": "API, country, and metric discovery."
+    },
+    {
+      "name": "Analysis",
+      "description": "Read-only analytical electricity data."
+    },
+    {
+      "name": "Operations",
+      "description": "Service health."
+    },
+    {
+      "name": "Community",
+      "description": "Human-facing Europa Overload voting; automated clients must not submit votes."
+    }
+  ],
+  "paths": {
+    "/api/": {
+      "get": {
+        "tags": ["Discovery"],
+        "summary": "Discover the public API",
+        "operationId": "getApiDiscovery",
+        "responses": {
+          "200": {
+            "description": "Canonical documentation URLs and endpoint examples.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Discovery"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/countries": {
+      "get": {
+        "tags": ["Discovery"],
+        "summary": "List supported countries",
+        "operationId": "listCountries",
+        "responses": {
+          "200": {
+            "description": "All 31 supported Atlas countries.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {"$ref": "#/components/schemas/Country"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "tags": ["Discovery"],
+        "summary": "List authoritative metric definitions",
+        "operationId": "listMetrics",
+        "responses": {
+          "200": {
+            "description": "Metric IDs, display labels, units, groups, sources, representations, and temporal availability.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id"],
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/summary": {
+      "get": {
+        "tags": ["Analysis"],
+        "summary": "Get a complete country ranking for one period",
+        "operationId": "getSummary",
+        "parameters": [
+          {"$ref": "#/components/parameters/Year"},
+          {"$ref": "#/components/parameters/Month"}
+        ],
+        "responses": {
+          "200": {
+            "description": "One analytical row for each Atlas country.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {"$ref": "#/components/schemas/AnalyticalRow"}
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/api/country-profile": {
+      "get": {
+        "tags": ["Analysis"],
+        "summary": "Get a bundled country profile",
+        "operationId": "getCountryProfile",
+        "parameters": [
+          {"$ref": "#/components/parameters/Country"},
+          {"$ref": "#/components/parameters/Year"},
+          {"$ref": "#/components/parameters/Month"}
+        ],
+        "responses": {
+          "200": {
+            "description": "Metrics grouped into profile sections with units, periods, source, data status, quality status, and warnings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/api/compare": {
+      "get": {
+        "tags": ["Analysis"],
+        "summary": "Compare two to four countries directly",
+        "operationId": "compareCountries",
+        "parameters": [
+          {"$ref": "#/components/parameters/CountriesCompare"},
+          {"$ref": "#/components/parameters/Year"},
+          {"$ref": "#/components/parameters/Month"}
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytical rows in the requested country order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 4,
+                  "items": {"$ref": "#/components/schemas/AnalyticalRow"}
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/api/timeseries": {
+      "get": {
+        "tags": ["Analysis"],
+        "summary": "Get one metric as a monthly or yearly time series",
+        "operationId": "getTimeseries",
+        "parameters": [
+          {"$ref": "#/components/parameters/Metric"},
+          {"$ref": "#/components/parameters/CountriesTimeseries"},
+          {"$ref": "#/components/parameters/Start"},
+          {"$ref": "#/components/parameters/End"}
+        ],
+        "responses": {
+          "200": {
+            "description": "Country values, baseline values, and the Atlas average. Preserve null gaps.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/api/map-data": {
+      "get": {
+        "tags": ["Analysis"],
+        "summary": "Get map-compatible values for one metric and year",
+        "operationId": "getMapData",
+        "parameters": [
+          {"$ref": "#/components/parameters/Metric"},
+          {"$ref": "#/components/parameters/Year"}
+        ],
+        "responses": {
+          "200": {
+            "description": "Requested year, actual data year, metric metadata, and country rows.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/api/coverage": {
+      "get": {
+        "tags": ["Analysis"],
+        "summary": "Inspect per-country data coverage",
+        "operationId": "getCoverage",
+        "parameters": [
+          {"$ref": "#/components/parameters/Year"}
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability of core datasets and earliest imported years.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/api/storage": {
+      "get": {
+        "tags": ["Analysis"],
+        "summary": "Get the latest storage inventories",
+        "operationId": "getStorage",
+        "responses": {
+          "200": {
+            "description": "Separately dated battery, pumped-storage, and hydro-inventory observations with provenance.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": ["Operations"],
+        "summary": "Check service health",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Both databases are available.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Health"}
+              }
+            }
+          },
+          "503": {
+            "description": "At least one database is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Health"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallpaper-votes": {
+      "get": {
+        "tags": ["Community"],
+        "summary": "Read Europa Overload image scores",
+        "operationId": "getWallpaperVotes",
+        "responses": {
+          "200": {
+            "description": "Current public image scores and the requesting browser's vote when available.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Community"],
+        "summary": "Submit one human Europa Overload image vote",
+        "description": "For direct human interaction only. Automated clients must not submit votes. The endpoint enforces the configured same-origin policy and a basic rate limit.",
+        "operationId": "castWallpaperVote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["wallpaper_id", "vote"],
+                "additionalProperties": false,
+                "properties": {
+                  "wallpaper_id": {"type": "string"},
+                  "vote": {"type": "string", "enum": ["up", "down"]}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated vote state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "429": {
+            "description": "Too many vote requests."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "Year": {
+        "name": "year",
+        "in": "query",
+        "required": true,
+        "description": "Requested calendar year.",
+        "schema": {"type": "integer", "minimum": 2015},
+        "example": 2025
+      },
+      "Month": {
+        "name": "month",
+        "in": "query",
+        "required": false,
+        "description": "Optional calendar month. Omit for annual or year-to-date data.",
+        "schema": {"type": "integer", "minimum": 1, "maximum": 12},
+        "example": 7
+      },
+      "Country": {
+        "name": "country",
+        "in": "query",
+        "required": true,
+        "description": "Atlas country code returned by /api/countries. The United Kingdom uses UK.",
+        "schema": {"type": "string", "minLength": 2, "maxLength": 2},
+        "example": "DE"
+      },
+      "CountriesCompare": {
+        "name": "countries",
+        "in": "query",
+        "required": true,
+        "description": "Comma-separated list of two to four unique Atlas country codes.",
+        "schema": {"type": "string"},
+        "example": "DE,FR"
+      },
+      "CountriesTimeseries": {
+        "name": "countries",
+        "in": "query",
+        "required": true,
+        "description": "Comma-separated list of one to ten unique Atlas country codes.",
+        "schema": {"type": "string"},
+        "example": "DE,FR"
+      },
+      "Metric": {
+        "name": "metric",
+        "in": "query",
+        "required": true,
+        "description": "Metric ID returned by /api/metrics.",
+        "schema": {"type": "string"},
+        "example": "renewable_share_pct"
+      },
+      "Start": {
+        "name": "start",
+        "in": "query",
+        "required": true,
+        "description": "Inclusive start token as YYYY-MM for monthly metrics or YYYY for yearly metrics.",
+        "schema": {"type": "string"},
+        "example": "2015-01"
+      },
+      "End": {
+        "name": "end",
+        "in": "query",
+        "required": true,
+        "description": "Inclusive end token using the same granularity as start.",
+        "schema": {"type": "string"},
+        "example": "2025-12"
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid query parameter. Correct the request instead of guessing a result.",
+        "content": {
+          "application/json": {
+            "schema": {"$ref": "#/components/schemas/Error"}
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Discovery": {
+        "type": "object",
+        "required": ["name", "api_version", "canonical_url", "documentation_url", "llms_url", "openapi_url", "analytical_endpoints"],
+        "additionalProperties": true
+      },
+      "Country": {
+        "type": "object",
+        "required": ["code", "name"],
+        "properties": {
+          "code": {"type": "string", "minLength": 2, "maxLength": 2},
+          "name": {"type": "string"}
+        },
+        "additionalProperties": true
+      },
+      "AnalyticalRow": {
+        "type": "object",
+        "required": ["country_code", "source", "period", "period_status", "data_status"],
+        "description": "Country observation bundle. Metric values can be null. Additional fields are defined by /api/metrics and may grow without removing existing fields.",
+        "properties": {
+          "country_code": {"type": "string"},
+          "source": {"type": "string"},
+          "period": {"type": "string"},
+          "period_status": {"type": "string"},
+          "data_status": {"type": "string"}
+        },
+        "additionalProperties": true
+      },
+      "Health": {
+        "type": "object",
+        "required": ["status", "atlas_database", "community_database"],
+        "properties": {
+          "status": {"type": "string", "enum": ["ok", "unavailable"]},
+          "atlas_database": {"type": "string", "enum": ["ok", "unavailable"]},
+          "community_database": {"type": "string", "enum": ["ok", "unavailable"]}
+        },
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -82,8 +82,11 @@ nameserver and SOA records remain untouched.
 Wait until Railway has accepted both DNS records and completed certificate
 authority validation before advertising the domain. Then set
 `EEA_PUBLIC_ORIGIN=https://ee-atlas.eu`, deploy the resulting configuration,
-and verify `/api/health`, core navigation, and a vote submission through the
-custom HTTPS domain. Do not add a trailing slash or path to the origin value.
+and verify `/api/health`, `/api/`, `/api.html`, `/openapi.json`, core navigation,
+and a vote submission through the custom HTTPS domain. Follow at least one
+linked analytical example from `/api.html` to confirm that the public discovery
+chain reaches a JSON response. Do not add a trailing slash or path to the origin
+value.
 
 ## Data volumes and replacement
 

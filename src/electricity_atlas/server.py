@@ -29,6 +29,91 @@ COMMUNITY_COOKIE = "eea_community"
 MAX_VOTE_BODY_BYTES = 4096
 VOTE_RATE_LIMIT = 30
 VOTE_RATE_WINDOW_SECONDS = 60
+PUBLIC_SITE_URL = "https://ee-atlas.eu"
+
+API_DISCOVERY = {
+    "name": "European Electricity Atlas API",
+    "description": "Public read-only electricity-system data for 31 European countries.",
+    "api_version": "1",
+    "canonical_url": f"{PUBLIC_SITE_URL}/api/",
+    "documentation_url": f"{PUBLIC_SITE_URL}/api.html",
+    "llms_url": f"{PUBLIC_SITE_URL}/llms.txt",
+    "openapi_url": f"{PUBLIC_SITE_URL}/openapi.json",
+    "authentication": "none",
+    "format": "application/json; charset=utf-8",
+    "analytical_endpoints": [
+        {
+            "method": "GET",
+            "path": "/api/countries",
+            "description": "Supported Atlas countries and country codes.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/countries",
+        },
+        {
+            "method": "GET",
+            "path": "/api/metrics",
+            "description": "Authoritative metric catalog with units and availability.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/metrics",
+        },
+        {
+            "method": "GET",
+            "path": "/api/summary",
+            "description": "All-country ranking for one annual or monthly period.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/summary?year=2025",
+        },
+        {
+            "method": "GET",
+            "path": "/api/country-profile",
+            "description": "Bundled electricity-system profile for one country.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/country-profile?country=DE&year=2025",
+        },
+        {
+            "method": "GET",
+            "path": "/api/compare",
+            "description": "Direct comparison of two to four countries.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/compare?year=2025&countries=DE,FR",
+        },
+        {
+            "method": "GET",
+            "path": "/api/timeseries",
+            "description": "Monthly or yearly time series for one metric and up to ten countries.",
+            "example_url": (
+                f"{PUBLIC_SITE_URL}/api/timeseries?metric=renewable_share_pct"
+                "&countries=DE,FR&start=2015-01&end=2025-12"
+            ),
+        },
+        {
+            "method": "GET",
+            "path": "/api/map-data",
+            "description": "Map-compatible country values for one metric and year.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/map-data?metric=capacity_total_gw&year=2025",
+        },
+        {
+            "method": "GET",
+            "path": "/api/coverage",
+            "description": "Per-country data coverage for one year.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/coverage?year=2025",
+        },
+        {
+            "method": "GET",
+            "path": "/api/storage",
+            "description": "Latest separately dated electricity-storage inventories.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/storage",
+        },
+        {
+            "method": "GET",
+            "path": "/api/health",
+            "description": "Operational database health without private path disclosure.",
+            "example_url": f"{PUBLIC_SITE_URL}/api/health",
+        },
+    ],
+    "community_endpoints": [
+        {
+            "method": "GET, POST",
+            "path": "/api/wallpaper-votes",
+            "description": "Human-facing Europa Overload voting; automated clients must not vote.",
+        }
+    ],
+}
 
 
 class VoteRateLimiter:
@@ -56,7 +141,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler API
         parsed = urlparse(self.path)
-        if parsed.path.startswith("/api/"):
+        if parsed.path == "/api" or parsed.path.startswith("/api/"):
             self._api(parsed.path, parse_qs(parsed.query))
             return
         relative = "index.html" if parsed.path == "/" else parsed.path.lstrip("/")
@@ -108,6 +193,9 @@ class AtlasHandler(BaseHTTPRequestHandler):
 
     def _api(self, path: str, query: dict[str, list[str]]) -> None:
         try:
+            if path in {"/api", "/api/"}:
+                self._json(API_DISCOVERY)
+                return
             if path == "/api/wallpaper-votes":
                 browser_id, _created = self._browser_id(create=False)
                 payload = {"wallpapers": self.community_store.list_votes(browser_hash(browser_id) if browser_id else None)}

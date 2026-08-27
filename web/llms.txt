@@ -4,6 +4,8 @@
 
 Canonical site: https://ee-atlas.eu/
 API base URL: https://ee-atlas.eu/api/
+Clickable API documentation: https://ee-atlas.eu/api.html
+OpenAPI description: https://ee-atlas.eu/openapi.json
 Source repository: https://github.com/Captain-Boba/EEA
 Project contact: https://ee-atlas.eu/contact.html
 
@@ -35,11 +37,12 @@ The Atlas is not an institution of the European Union and is not an official EU 
 
 ## Recommended discovery sequence
 
-1. `GET /api/countries`
-2. `GET /api/metrics`
-3. Select the narrowest endpoint matching the question.
-4. Inspect availability, periods, units, status, quality, and source metadata before interpreting values.
-5. Cite the exact API URL used when presenting derived conclusions.
+1. `GET /api/` for the live endpoint directory and directly usable example URLs.
+2. `GET /api/countries` to validate country codes.
+3. `GET /api/metrics` to validate metric IDs and units.
+4. Select the narrowest endpoint matching the question.
+5. Inspect availability, periods, units, status, quality, and source metadata before interpreting values.
+6. Cite the exact API URL used when presenting derived conclusions.
 
 ## Endpoints
 

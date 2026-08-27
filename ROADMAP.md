@@ -26,7 +26,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - Projekt-, Kontakt-, Datenschutz- und Cookieinformationen sind öffentlich erreichbar.
 - `ee-atlas.eu` ist per DNS und gültigem Railway-Zertifikat erreichbar. Die endgültige HTTPS-Origin ist aktiv; Startseite und `/api/health` antworten öffentlich erfolgreich.
 - `v0.4.0` mit dem Titel `Beta`, aktueller README, Vorschaubildern und geprüftem Datenbanksnapshot ist veröffentlicht.
-- Der nächste Patch erzwingt auf Mobilgeräten die vollständige 1920-Pixel-Desktoparbeitsfläche mit Pinch-Zoom und horizontaler Navigation und veröffentlicht unter `/llms.txt` einen maschinenlesbaren Leitfaden für die analytische API.
+- Der nächste Patch erzwingt auf Mobilgeräten die vollständige 1920-Pixel-Desktoparbeitsfläche mit Pinch-Zoom und horizontaler Navigation. Für den maschinenlesbaren Datenzugriff ergänzt er den Leitfaden unter `/llms.txt` um ein lebendes Endpunktverzeichnis unter `/api/`, anklickbare Beispiele unter `/api.html` und eine OpenAPI-Beschreibung unter `/openapi.json`.
 - Datenupdates bleiben der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → Datenbanktausch`; der Webserver führt weder Importe noch automatische Hintergrundaktualisierungen aus.
 
 **Abnahme:** `https://ee-atlas.eu`, Healthcheck, Kernnavigation, Exporte und öffentliche Abstimmung funktionieren über die endgültige Domain; CI ist auf dem finalen Release-Commit grün und der Release enthält ausschließlich die vorgesehenen Artefakte.

@@ -804,6 +804,24 @@ a { color: var(--accent); }
 .legal-card code { overflow-wrap: anywhere; }
 .legal-kicker { color: var(--success); font-size: .82rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .legal-actions { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.api-docs ol,
+.api-docs ul { max-width: 78ch; line-height: 1.65; }
+.api-endpoint-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: .8rem;
+  margin-top: 1rem;
+}
+.api-endpoint {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(7, 22, 38, .52);
+}
+.api-endpoint h4 { margin: 0 0 .35rem; }
+.api-endpoint p { margin: .35rem 0 0; }
+.api-endpoint a { display: inline-block; max-width: 100%; }
 .merge-rules { margin-top: 1rem; }
 .section-heading > div, .compact-heading { position: relative; }
 .compact-heading { justify-content: flex-start; align-items: center; }

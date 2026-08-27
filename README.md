@@ -200,6 +200,9 @@ A missing analytical SQLite file is initialized automatically when the server st
 
 ## Local API
 
+- `/api/` (machine-readable endpoint directory)
+- `/api.html` (clickable API documentation)
+- `/openapi.json` (OpenAPI 3.1 description)
 - `/api/countries`
 - `/api/metrics`
 - `/api/summary?year=2025`
@@ -214,7 +217,7 @@ A missing analytical SQLite file is initialized automatically when the server st
 - `GET /api/wallpaper-votes`
 - `POST /api/wallpaper-votes`
 
-[`/llms.txt`](https://ee-atlas.eu/llms.txt) provides a machine-readable entry point for LLM sessions, including endpoint examples, metric semantics, interpretation constraints, and safe citation guidance. Public crawlers can discover the canonical pages and this entry point through [`/robots.txt`](https://ee-atlas.eu/robots.txt) and [`/sitemap.xml`](https://ee-atlas.eu/sitemap.xml).
+[`/api/`](https://ee-atlas.eu/api/) provides a machine-readable directory of the live endpoints and canonical discovery documents. [`/api.html`](https://ee-atlas.eu/api.html) exposes the same entry points and common requests as real hyperlinks for browser-based tools. [`/openapi.json`](https://ee-atlas.eu/openapi.json) provides an OpenAPI 3.1 description, while [`/llms.txt`](https://ee-atlas.eu/llms.txt) adds metric semantics, interpretation constraints, and safe citation guidance for LLM sessions. Public crawlers can discover these resources through [`/robots.txt`](https://ee-atlas.eu/robots.txt) and [`/sitemap.xml`](https://ee-atlas.eu/sitemap.xml).
 
 The web interface never performs imports. The analytical interface, map, flags, logo, and exports use local assets and no external map service. Only the optional Europa Overload mode requests attributed postcard images from Wikimedia Commons, and only after the user enables it. Its public votes are stored separately from `atlas.sqlite3` in `data/community.sqlite3` by default; set `EEA_COMMUNITY_DB` to use a persistent hosting volume.
 

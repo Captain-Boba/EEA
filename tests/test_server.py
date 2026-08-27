@@ -4,6 +4,7 @@ import threading
 import unittest
 from pathlib import Path
 from urllib.error import HTTPError
+from urllib.parse import urlsplit
 from urllib.request import urlopen
 
 from electricity_atlas.server import create_server
@@ -29,6 +30,16 @@ class ServerSmokeTests(unittest.TestCase):
                 with urlopen(base + "/llms.txt", timeout=5) as response:
                     llms_text = response.read().decode("utf-8")
                     llms_content_type = response.headers.get_content_type()
+                with urlopen(base + "/api.html", timeout=5) as response:
+                    api_html = response.read().decode("utf-8")
+                    api_html_content_type = response.headers.get_content_type()
+                with urlopen(base + "/openapi.json", timeout=5) as response:
+                    openapi = json.load(response)
+                    openapi_content_type = response.headers.get_content_type()
+                with urlopen(base + "/api/", timeout=5) as response:
+                    api_discovery = json.load(response)
+                with urlopen(base + "/api", timeout=5) as response:
+                    api_discovery_alias = json.load(response)
                 with urlopen(base + "/robots.txt", timeout=5) as response:
                     robots_text = response.read().decode("utf-8")
                     robots_content_type = response.headers.get_content_type()
@@ -61,6 +72,8 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertIn('href="/contact.html"', html)
                 self.assertIn('href="/privacy.html"', html)
                 self.assertIn('rel="help" href="/llms.txt"', html)
+                self.assertIn('rel="service-desc" href="/openapi.json"', html)
+                self.assertIn('href="/api.html">API &amp; Datenzugriff</a>', html)
                 self.assertIn('href="/llms.txt" type="text/plain">Datenzugriff für LLMs</a>', html)
                 self.assertIn('<link rel="canonical" href="https://ee-atlas.eu/">', html)
                 self.assertIn('property="og:site_name" content="European Electricity Atlas"', html)
@@ -69,11 +82,37 @@ class ServerSmokeTests(unittest.TestCase):
                 self.assertIn('name="twitter:card" content="summary"', html)
                 self.assertEqual(llms_content_type, "text/plain")
                 self.assertIn("Machine-readable guidance for language models", llms_text)
+                self.assertIn("Clickable API documentation: https://ee-atlas.eu/api.html", llms_text)
+                self.assertIn("OpenAPI description: https://ee-atlas.eu/openapi.json", llms_text)
+                self.assertEqual(api_html_content_type, "text/html")
+                self.assertIn("API &amp; Datenzugriff", api_html)
+                self.assertIn('href="/api/compare?year=2025&amp;countries=DE,FR"', api_html)
+                self.assertEqual(openapi_content_type, "application/json")
+                self.assertEqual(openapi["openapi"], "3.1.0")
+                self.assertEqual(openapi["servers"][0]["url"], "https://ee-atlas.eu")
+                self.assertIn("/api/compare", openapi["paths"])
+                self.assertEqual(api_discovery_alias, api_discovery)
+                self.assertEqual(api_discovery["canonical_url"], "https://ee-atlas.eu/api/")
+                self.assertEqual(api_discovery["documentation_url"], "https://ee-atlas.eu/api.html")
+                self.assertEqual(api_discovery["llms_url"], "https://ee-atlas.eu/llms.txt")
+                self.assertEqual(api_discovery["openapi_url"], "https://ee-atlas.eu/openapi.json")
+                for endpoint in api_discovery["analytical_endpoints"]:
+                    self.assertIn(endpoint["path"], openapi["paths"])
+                    example = urlsplit(endpoint["example_url"])
+                    local_example = base + example.path
+                    if example.query:
+                        local_example += "?" + example.query
+                    with urlopen(local_example, timeout=5) as response:
+                        self.assertEqual(response.status, 200, endpoint["example_url"])
+                        self.assertEqual(response.headers.get_content_type(), "application/json")
                 self.assertEqual(robots_content_type, "text/plain")
                 self.assertIn("User-agent: *", robots_text)
                 self.assertIn("Sitemap: https://ee-atlas.eu/sitemap.xml", robots_text)
                 self.assertIn(sitemap_content_type, {"application/xml", "text/xml"})
                 self.assertIn("https://ee-atlas.eu/llms.txt", sitemap_xml)
+                self.assertIn("https://ee-atlas.eu/api.html", sitemap_xml)
+                self.assertIn("https://ee-atlas.eu/api/", sitemap_xml)
+                self.assertIn("https://ee-atlas.eu/openapi.json", sitemap_xml)
                 self.assertIn("Projekt &amp; Kontakt", contact_html)
                 self.assertIn("GitHub Issues", contact_html)
                 self.assertIn("Datenschutz &amp; Cookies", privacy_html)
