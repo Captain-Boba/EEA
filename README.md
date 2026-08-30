@@ -67,7 +67,13 @@ py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
 ```
 
-Download `atlas.sqlite3` from the **Assets** section of the [latest release](https://github.com/Captain-Boba/EEA/releases/latest) and place it at `data\atlas.sqlite3` inside the cloned repository. The release snapshot requires neither an Ember API key nor a fresh import.
+An immutable `atlas.sqlite3` snapshot is available from the **Assets** section
+of the [first public beta release](https://github.com/Captain-Boba/EEA/releases/tag/v0.4.0).
+Place it at `data\atlas.sqlite3` inside the cloned repository. This historical
+beta snapshot requires neither an Ember API key nor a fresh import, does not
+contain the separate community vote database, and grants no access to the
+hosted service. Newer releases are not required to bundle an analytical
+database.
 
 Start the server:
 
@@ -97,7 +103,8 @@ Ember, Battery-Charts, the JRC Hydro-power database, and the EEA GHG inventory a
 
 ## Updating the data yourself
 
-This section is only required when the ready-made release snapshot is not used or a newer data snapshot needs to be built.
+This section is required when the historical beta snapshot is not used or a
+newer analytical database needs to be built.
 
 ### Ember electricity data
 
