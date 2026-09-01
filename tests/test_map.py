@@ -472,7 +472,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("async function selectMapMetricForPeriod(metricId)", app)
         self.assertIn('$("period-type").value = "year"', app)
         self.assertIn("metric.temporal_availability.yearly", app)
-        self.assertIn("async function applyComparisonPreset(preset)", app)
+        self.assertIn("async function applyComparisonPreset(preset, {updateUrl = true} = {})", app)
         self.assertIn("availabilityPreset", app)
         self.assertIn(".comparison-presets::before", style)
         self.assertIn(".selection-energy-pulse", style)

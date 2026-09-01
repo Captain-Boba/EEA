@@ -60,8 +60,12 @@
   const reactions = document.createElement("div"); reactions.className = "wallpaper-reactions"; reactions.setAttribute("aria-label", "Öffentliche Abstimmung");
   const upButton = button("wallpaper-vote-up", "Daumen hoch vergeben", icons.up); upButton.dataset.reaction = "up";
   const downButton = button("wallpaper-vote-down", "Daumen runter vergeben", icons.down); downButton.dataset.reaction = "down";
+  const voteHelp = document.createElement("span"); voteHelp.className = "wallpaper-vote-help"; voteHelp.tabIndex = 0; voteHelp.setAttribute("aria-label", "Tastatursteuerung für die Abstimmung"); voteHelp.setAttribute("aria-describedby", "wallpaper-vote-help-tooltip");
+  const voteHelpLabel = document.createElement("span"); voteHelpLabel.setAttribute("aria-hidden", "true"); voteHelpLabel.textContent = "i";
+  const voteHelpTooltip = document.createElement("span"); voteHelpTooltip.id = "wallpaper-vote-help-tooltip"; voteHelpTooltip.className = "wallpaper-vote-help-tooltip"; voteHelpTooltip.setAttribute("role", "tooltip"); voteHelpTooltip.textContent = "←/→ Bildwechsel\n↑ Like\n↓ Dislike";
+  voteHelp.append(voteHelpLabel, voteHelpTooltip);
   upButton.setAttribute("aria-keyshortcuts", "ArrowUp"); downButton.setAttribute("aria-keyshortcuts", "ArrowDown");
-  reactions.append(voteSummary, upButton, downButton);
+  reactions.append(voteSummary, upButton, downButton, voteHelp);
   info.append(title, position, details, attribution, source, reactions);
   card.append(closeButton, previousButton, nextButton, image, info); lightbox.append(card); document.body.append(lightbox);
 

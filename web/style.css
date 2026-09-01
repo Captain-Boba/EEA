@@ -1827,6 +1827,46 @@ main { position: relative; z-index: 1; }
 .wallpaper-reactions button { display: grid; width: 2.6rem; height: 2.4rem; padding: .48rem; place-items: center; }
 .wallpaper-reactions button:disabled { cursor: wait; opacity: .52; }
 .wallpaper-reactions button[aria-pressed="true"] { border-color: var(--europe-gold); color: var(--europe-gold); background: rgba(184,154,90,.17); }
+.wallpaper-vote-help {
+  position: relative;
+  display: inline-grid;
+  width: .9rem;
+  height: .9rem;
+  border: 1px solid rgba(220,232,242,.52);
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: help;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1;
+  place-items: center;
+}
+.wallpaper-vote-help:focus-visible { outline: 2px solid var(--europe-gold); outline-offset: 2px; }
+.wallpaper-vote-help-tooltip {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: calc(100% + .55rem);
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 2rem));
+  padding: .48rem .65rem;
+  border: 1px solid rgba(245,215,129,.55);
+  border-radius: .45rem;
+  background: rgba(4,13,25,.98);
+  box-shadow: 0 8px 24px rgba(0,0,0,.45);
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(.2rem);
+  transition: opacity 140ms ease, transform 140ms ease;
+  visibility: hidden;
+  white-space: pre-line;
+}
+.wallpaper-vote-help:hover .wallpaper-vote-help-tooltip,
+.wallpaper-vote-help:focus .wallpaper-vote-help-tooltip { opacity: 1; transform: translateY(0); visibility: visible; }
 @media (max-width: 700px) {
   .wallpaper-lightbox { padding: .6rem; }
   .wallpaper-lightbox-card { padding: .65rem; }

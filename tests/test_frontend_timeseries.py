@@ -111,7 +111,7 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
     def test_default_comparison_uses_the_ten_year_preset(self):
         app = APP_PATH.read_text(encoding="utf-8")
         initializer = app[app.index("async function initializeDefaultComparison()"):app.index("async function compare()")]
-        self.assertIn('await applyComparisonPreset("10y");', initializer)
+        self.assertIn('await applyComparisonPreset("10y", {updateUrl: false});', initializer)
         self.assertNotIn('await applyComparisonPreset("max");', initializer)
 
     def test_comparison_family_picker_groups_metric_families(self):

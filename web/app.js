@@ -1611,14 +1611,14 @@ function syncComparisonPresetFromFields(metric = metricDefinition($("compare-met
   setActiveComparisonPreset(match);
 }
 
-async function applyComparisonPreset(preset) {
+async function applyComparisonPreset(preset, {updateUrl = true} = {}) {
   const metric = metricDefinition($("compare-metric").value);
   const range = comparisonPresetRange(preset, metric, $("compare-end").value, null);
   if (!range) return;
   $("compare-start").value = range.start;
   $("compare-end").value = range.end;
   setActiveComparisonPreset(preset);
-  await loadTimeseries({scroll: false, updateUrl: true, availabilityPreset: preset});
+  await loadTimeseries({scroll: false, updateUrl, availabilityPreset: preset});
 }
 
 function comparisonQuery() {
@@ -1759,7 +1759,7 @@ async function initializeDefaultComparison() {
   renderComparisonControls(DEFAULT_COMPARISON_METRIC);
   updateSelection();
   $("comparison").hidden = false;
-  await applyComparisonPreset("10y");
+  await applyComparisonPreset("10y", {updateUrl: false});
 }
 
 async function compare() {
