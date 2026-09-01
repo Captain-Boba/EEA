@@ -60,6 +60,7 @@
   const reactions = document.createElement("div"); reactions.className = "wallpaper-reactions"; reactions.setAttribute("aria-label", "Öffentliche Abstimmung");
   const upButton = button("wallpaper-vote-up", "Daumen hoch vergeben", icons.up); upButton.dataset.reaction = "up";
   const downButton = button("wallpaper-vote-down", "Daumen runter vergeben", icons.down); downButton.dataset.reaction = "down";
+  upButton.setAttribute("aria-keyshortcuts", "ArrowUp"); downButton.setAttribute("aria-keyshortcuts", "ArrowDown");
   reactions.append(voteSummary, upButton, downButton);
   info.append(title, position, details, attribution, source, reactions);
   card.append(closeButton, previousButton, nextButton, image, info); lightbox.append(card); document.body.append(lightbox);
@@ -144,6 +145,8 @@
     if (event.key === "Escape") { event.preventDefault(); closeLightbox(); return; }
     if (event.key === "ArrowLeft") { event.preventDefault(); showIndex(activeIndex - 1); return; }
     if (event.key === "ArrowRight") { event.preventDefault(); showIndex(activeIndex + 1); return; }
+    if (event.key === "ArrowUp") { event.preventDefault(); void submitVote("up"); return; }
+    if (event.key === "ArrowDown") { event.preventDefault(); void submitVote("down"); return; }
     if (event.key !== "Tab") return;
     const focusable = [...lightbox.querySelectorAll("button, a[href]")].filter(item => !item.disabled), first = focusable[0], last = focusable.at(-1);
     if (!first || !last) return;

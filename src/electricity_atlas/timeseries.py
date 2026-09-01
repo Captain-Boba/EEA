@@ -6,7 +6,7 @@ import sqlite3
 from datetime import date
 from typing import Any, Iterable
 
-from .aggregation import aggregate_country
+from .aggregation import aggregate_country, reporting_period_status
 from .config import ATLAS_MIN_YEAR, COUNTRIES
 from .metrics import METRICS_BY_ID
 
@@ -54,7 +54,10 @@ def build_timeseries(
         year = int(period[:4])
         month = int(period[5:7]) if granularity == "monthly" else None
         rows = {
-            code: aggregate_country(connection, code, year, month)
+            code: {
+                **aggregate_country(connection, code, year, month),
+                "period_status": reporting_period_status(year, month, current),
+            }
             for code in COUNTRIES
         }
         for code in codes:

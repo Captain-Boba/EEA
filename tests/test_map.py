@@ -125,7 +125,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
     def test_header_adds_the_opt_in_overload_toggle_and_short_dynamic_title(self):
         html = INDEX_PATH.read_text(encoding="utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
-        self.assertIn("<title>EEA</title>", html)
+        self.assertIn("<title>European Electricity Atlas</title>", html)
         self.assertIn('id="europe-overload"', html)
         self.assertIn('aria-pressed="false"', html)
         self.assertIn("const TITLE_BY_SECTION", app)
@@ -134,6 +134,8 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("new IntersectionObserver", app)
         self.assertIn('window.addEventListener("scroll", scheduleDynamicDocumentTitle, {passive: true});', app)
         self.assertIn("requestAnimationFrame", app)
+        self.assertIn('(TITLE_BY_SECTION[section] || "European Electricity Atlas")', app)
+        self.assertIn("section.getBoundingClientRect().top <= referenceY", app)
         self.assertIn('setDocumentTitle("map")', app)
         self.assertIn('setDocumentTitle("comparison")', app)
         self.assertIn("await loadTimeseries({scroll: false, updateUrl: false});\n  setDocumentTitle(\"comparison\");", app)

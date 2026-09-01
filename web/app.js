@@ -2757,14 +2757,13 @@ function setDocumentTitle(section = null) {
   activeTitleSection = section;
   document.title = section === "country" && activeProfileCountry
     ? `EEA · ${countryName(activeProfileCountry)}`
-    : (TITLE_BY_SECTION[section] || "EEA");
+    : (TITLE_BY_SECTION[section] || "European Electricity Atlas");
 }
 
 function visibleTitleSection() {
   if (mapIsFullscreen()) return "map";
   if (comparisonIsFullscreen()) return "comparison";
-  const controlsBottom = document.querySelector(".controls")?.getBoundingClientRect().bottom || 0;
-  const referenceY = controlsBottom + 28;
+  const referenceY = Math.min(180, Math.max(96, window.innerHeight * .18));
   const sections = [
     ["map", $("atlas-map-section")], ["comparison", $("comparison")], ["summary", $("summary-section")],
     ["electromobility", $("electromobility")], ["storage", $("storage")], ["sources", document.querySelector?.(".source-details")],
@@ -2774,7 +2773,8 @@ function visibleTitleSection() {
     return rect.top <= referenceY && rect.bottom > referenceY;
   });
   if (containing) return containing[0];
-  return sections.find(([, section]) => section.getBoundingClientRect().bottom > referenceY)?.[0] || null;
+  const passed = sections.filter(([, section]) => section.getBoundingClientRect().top <= referenceY);
+  return passed.at(-1)?.[0] || null;
 }
 
 function updateDynamicDocumentTitle() {

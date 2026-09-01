@@ -60,6 +60,15 @@ class WallpaperTest(unittest.TestCase):
         self.assertIn("wallpaper-vote-summary", self.javascript)
         self.assertIn("wallpaper-reactions button:disabled", self.css)
 
+    def test_gallery_arrow_keys_use_existing_vote_actions_only_while_open(self):
+        self.assertIn('if (activeIndex === null) return;', self.javascript)
+        self.assertIn('event.key === "ArrowUp"', self.javascript)
+        self.assertIn('void submitVote("up")', self.javascript)
+        self.assertIn('event.key === "ArrowDown"', self.javascript)
+        self.assertIn('void submitVote("down")', self.javascript)
+        self.assertIn('upButton.setAttribute("aria-keyshortcuts", "ArrowUp")', self.javascript)
+        self.assertIn('downButton.setAttribute("aria-keyshortcuts", "ArrowDown")', self.javascript)
+
     def test_lightbox_preserves_close_focus_and_scroll_contract(self):
         for token in ("wallpaper-lightbox", "aria-modal", "europe-star.svg", "event.key === \"Escape\"", "event.target === lightbox", "lockScroll", "unlockScroll", "focusBeforeLightbox.focus"):
             self.assertIn(token, self.javascript)
@@ -69,6 +78,6 @@ class WallpaperTest(unittest.TestCase):
         self.assertIn("if (readOptIn()) void start()", self.javascript)
         self.assertIn("await loadCatalog(); if (!readOptIn()) return; active = true", self.javascript)
         self.assertLess(self.javascript.index("await loadCatalog()"), self.javascript.index("sequence = shuffled(catalog)"))
-        self.assertIn('src="/wallpapers.js?v=europa-overload-gallery-v2"', self.html)
+        self.assertIn('src="/wallpapers.js?v=europa-overload-gallery-v3"', self.html)
         self.assertIn('id="wallpaper-stream"', self.html)
         self.assertIn('aria-pressed="false"', self.html)
