@@ -14,6 +14,15 @@ The command-line value wins over an environment variable; an environment variabl
 | `EEA_PORT` | `8000` | TCP port, from 1 through 65535. |
 | `EEA_PUBLIC_ORIGIN` | unset | Exact public `http://` or `https://` origin allowed to submit votes. |
 | `EEA_REQUIRE_EXISTING_DB` | unset / false | Require an existing, readable Atlas database with the expected schema. |
+| `EEA_MONTHLY_REFRESH` | `0` | Opt-in internal monthly candidate refresh; use exactly `1` to enable. |
+| `EEA_MONTHLY_REFRESH_DAY_UTC` | `2` | UTC calendar day of the normal monthly run (1–28). |
+| `EEA_MONTHLY_REFRESH_HOUR_UTC` | `3` | UTC hour of the normal monthly run (0–23). |
+| `EEA_MONTHLY_REFRESH_POLL_SECONDS` | `86400` | Scheduler fallback check interval. |
+| `EEA_MONTHLY_REFRESH_RETRY_SECONDS` | `21600` | Delay after a failed run before another attempt. |
+| `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Expiry for a crashed monthly-worker lease. |
+| `EEA_MONTHLY_REFRESH_FROM_YEAR` | `2015` | History start for planned Ember and Eurostat imports. |
+| `EEA_BATTERY_ENERGY_FILE` | unset | Approved local Battery-Charts energy JSON on the service volume. |
+| `EEA_BATTERY_POWER_FILE` | unset | Approved local Battery-Charts power JSON on the service volume. |
 
 Example local development start:
 
@@ -95,6 +104,50 @@ Treat `atlas.sqlite3` as a versioned, read-only release snapshot. Mount or copy 
 For a complete source refresh, use the isolated [`refresh-all` lifecycle](DATA_REFRESH.md). It builds the candidate and rollback database under the Git-ignored `data/.refresh-work/<run-id>/`, checks Windows replacement locks before network access, publishes the validated candidate atomically where possible, and removes its temporary databases and sidecars after success. Persistent fallback copies do not remain in `data/` by default. The community vote database is never part of this lifecycle.
 
 Treat `community.sqlite3` as a separate persistent volume. It contains public vote state and must never be replaced by an Atlas dataset or included in a data release. Keep Ember keys and all other secrets outside both SQLite files and outside release assets.
+
+### Monthly refresh on Railway
+
+Use the existing web service and its attached `/data` volume. Do **not** create
+a second Railway Cron service for this workflow unless shared-volume ownership,
+single-writer behaviour, and same-volume atomic replacement have separately
+been proved. Railway Cron services are designed to run their start command and
+exit after the task, whereas the selected design keeps the permanently running
+web server, its candidate database, lock, reports, and published Atlas snapshot
+on the one known writable volume.
+
+To activate it, set Railway service variables such as:
+
+```text
+EEA_MONTHLY_REFRESH=1
+EEA_MONTHLY_REFRESH_DAY_UTC=2
+EEA_MONTHLY_REFRESH_HOUR_UTC=3
+EEA_MONTHLY_REFRESH_FROM_YEAR=2015
+EEA_BATTERY_ENERGY_FILE=/data/inputs/battery-energy.json
+EEA_BATTERY_POWER_FILE=/data/inputs/battery-power.json
+```
+
+Keep Ember credentials exclusively as Railway secrets. The scheduler checks on
+startup and then daily, so a missed UTC time is caught up after a Railway
+restart. It runs the child refresh process without stopping HTTP handling. Read
+`/data/reports/MONTHLY_REFRESH.generated.json` for the last result, candidate
+and publication hashes, source policy, and next retry time.
+
+The production Docker/Railpack image deliberately has no Playwright/Chromium
+runtime. Planned runs therefore preserve the existing JRC storage snapshot;
+they do not delete it or create zeros. JRC hydro and EEA GHG are optional and
+preserved on failure. Ember, prices, and both Eurostat imports are critical:
+their failure prevents publication entirely. Battery values are refreshed only
+from both approved local JSON files; absent files preserve the current values
+without any Battery-Charts network access.
+
+The worker creates only its exact candidate/rollback files below
+`/data/.refresh-work/<run-id>/` plus the short-lived
+`/data/.monthly-refresh.lock`. Cleanup never scans `*.sqlite3`, `*-wal`, or
+`*-shm`. `community.sqlite3` and its sidecars are outside the lifecycle and are
+hash-checked for non-interference. For operational rollback, leave the failed
+report in place, keep the old published Atlas file, correct the source or
+secret, and let the reported retry time or a manual `monthly-refresh-run`
+attempt create a new candidate.
 
 To update the Atlas snapshot safely:
 

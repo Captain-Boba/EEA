@@ -18,6 +18,7 @@ from .eurostat_supplement import EurostatSupplementImporter
 from .eea_ghg_importer import EeaGhgImporter
 from .full_refresh import run_full_refresh
 from .hydro_importer import JrcHydroImporter
+from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshRunner
 from .price_importer import WholesalePriceImporter
 from .server import serve
 from .runtime import resolve_community_db, resolve_server_config
@@ -124,6 +125,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compact lifecycle report; default data/reports/REFRESH.generated.json",
     )
 
+    scheduled_refresh_parser = subparsers.add_parser(
+        "monthly-refresh-run",
+        help="Run one planned monthly production refresh under the persistent scheduler lease",
+    )
+    scheduled_refresh_parser.add_argument("--community-db", type=Path)
+    scheduled_refresh_parser.add_argument("--refresh-report", type=Path)
+
     subparsers.add_parser("reset-db", help="Delete the local SQLite database")
     return parser
 
@@ -141,17 +149,18 @@ def main(argv: list[str] | None = None) -> int:
                 public_origin=args.public_origin,
                 require_existing_db=args.require_existing_db,
             )
+            monthly_refresh = MonthlyRefreshConfig.from_environment()
         except ValueError as exc:
             parser.error(str(exc))
         try:
-            serve(
-                runtime.atlas_db,
-                runtime.host,
-                runtime.port,
-                community_path=runtime.community_db,
-                public_origin=runtime.public_origin,
-                require_existing_db=runtime.require_existing_db,
-            )
+            serve_kwargs = {
+                "community_path": runtime.community_db,
+                "public_origin": runtime.public_origin,
+                "require_existing_db": runtime.require_existing_db,
+            }
+            if monthly_refresh.enabled:
+                serve_kwargs["monthly_refresh_config"] = monthly_refresh
+            serve(runtime.atlas_db, runtime.host, runtime.port, **serve_kwargs)
         except (OSError, ValueError) as exc:
             print(f"Server start aborted: {exc}", file=sys.stderr)
             return 1
@@ -181,6 +190,21 @@ def main(argv: list[str] | None = None) -> int:
             )
         except Exception as exc:
             print(f"Full refresh aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+    if args.command == "monthly-refresh-run":
+        try:
+            config = MonthlyRefreshConfig.from_environment()
+            community_path = resolve_community_db(args.community_db)
+            result = MonthlyRefreshRunner(
+                args.db,
+                community_path,
+                config,
+                report_path=args.refresh_report,
+            ).run()
+        except Exception as exc:
+            print(f"Monthly refresh aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
             return 1
         print(json.dumps(result, ensure_ascii=False))
         return 0

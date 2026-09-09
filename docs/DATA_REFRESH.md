@@ -55,3 +55,75 @@ Deletion is limited to resolved paths inside the current per-run directory. The 
 `community.sqlite3` is independent from the analytical snapshot. The refresh never opens it for writing, copies it into the candidate, replaces it, clears it or deletes its sidecars. Its before/after SHA-256 is included in the compact lifecycle report as an additional non-interference check. Public votes therefore remain outside every Atlas candidate and rollback.
 
 Do not point `--db` at `community.sqlite3`; the lifecycle rejects a collision between the Atlas and community paths.
+
+## Opt-in monthly production refresh
+
+The persistent web service can start one planned production refresh per UTC
+calendar month. It is disabled by default (`EEA_MONTHLY_REFRESH=0`) and is
+enabled only with `EEA_MONTHLY_REFRESH=1`. The service itself remains available:
+the scheduler starts a separate Python child process for the actual refresh.
+The child uses this same lifecycle, builds its candidate below the same `/data`
+volume, then exits after success or failure.
+
+The standard schedule is the second day of each month at 03:00 UTC. It may be
+changed without a cron parser:
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `EEA_MONTHLY_REFRESH` | `0` | Opt in with exactly `1`; any other value is rejected. |
+| `EEA_MONTHLY_REFRESH_DAY_UTC` | `2` | Calendar day, 1 through 28. |
+| `EEA_MONTHLY_REFRESH_HOUR_UTC` | `3` | UTC hour, 0 through 23. |
+| `EEA_MONTHLY_REFRESH_POLL_SECONDS` | `86400` | Fallback check interval. |
+| `EEA_MONTHLY_REFRESH_RETRY_SECONDS` | `21600` | Delay before retrying a failed current-month run. |
+| `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Lease timeout for a crashed worker. |
+| `EEA_MONTHLY_REFRESH_FROM_YEAR` | `2015` | First Ember/Eurostat year for the planned run. |
+| `EEA_BATTERY_ENERGY_FILE` | unset | Approved local Battery-Charts energy JSON. |
+| `EEA_BATTERY_POWER_FILE` | unset | Approved local Battery-Charts power JSON. |
+
+At startup and at each check, a successful report for the current month
+suppresses another run. If the service was down at the scheduled time, the
+first later check starts the missing month. Failed runs record a UTC retry time;
+they may be retried, but a successful month is never published twice.
+
+`data/.monthly-refresh.lock` is a small persistent lease on the same volume.
+It is created exclusively, includes only a random token, process ID, hostname
+and UTC start time, and is removed only by its owner. An expired lease or a
+same-host dead process can be recovered without terminating any process. This
+prevents accidental parallel refreshes; it is not a distributed-lock service
+for multiple writable application replicas.
+
+The compact report is written atomically to
+`data/reports/MONTHLY_REFRESH.generated.json`. It records the target month,
+timestamps, old/candidate/published hashes, source statuses, publication and
+cleanup status, retry time, and a sanitised error when applicable. It never
+contains API keys or request URLs with credentials.
+
+### Planned source policy
+
+The planned mode is intentionally separate from strict `refresh-all`; it does
+not weaken that manual command.
+
+- Ember, Ember wholesale prices, Eurostat core, and Eurostat supplement are
+  critical. Any error aborts the candidate and leaves the published
+  `atlas.sqlite3` byte-identical.
+- Battery-Charts is a controlled local input only. Both configured JSON files
+  must exist and pass the existing importer validation before they are used.
+  Otherwise existing Battery-Charts rows are retained as
+  `preserved_controlled_input`; no Battery-Charts network request is made.
+- JRC storage remains browser-bound in this mode and is retained as
+  `preserved`. No Chromium or Playwright dependency is installed in the Railway
+  image for this scheduler.
+- JRC hydro and EEA GHG are attempted as optional sources. A temporary failure
+  rolls only that source back inside the candidate and is reported as
+  `failed_optional`; existing rows remain part of the published candidate.
+
+For a supervised one-off run with the same source policy, use:
+
+```powershell
+$env:PYTHONPATH = 'src'
+.\.venv\Scripts\python.exe -m electricity_atlas.cli --db .\data\atlas.sqlite3 monthly-refresh-run --community-db .\data\community.sqlite3
+```
+
+This command does not need `EEA_MONTHLY_REFRESH=1`; that switch controls only
+the background scheduler. Disable the scheduler again with
+`EEA_MONTHLY_REFRESH=0` and restart the web service.

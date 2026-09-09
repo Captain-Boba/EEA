@@ -27,7 +27,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - `ee-atlas.eu` ist per DNS und gültigem Railway-Zertifikat erreichbar. Die endgültige HTTPS-Origin ist aktiv; Startseite und `/api/health` antworten öffentlich erfolgreich.
 - `v0.4.0` mit dem Titel `Beta`, aktueller README, Vorschaubildern und geprüftem Datenbanksnapshot ist veröffentlicht.
 - Der nächste Patch erzwingt auf Mobilgeräten die vollständige 1920-Pixel-Desktoparbeitsfläche mit Pinch-Zoom und horizontaler Navigation. Für den maschinenlesbaren Datenzugriff ergänzt er den Leitfaden unter `/llms.txt` um ein lebendes Endpunktverzeichnis unter `/api/`, anklickbare Beispiele unter `/api.html` und eine OpenAPI-Beschreibung unter `/openapi.json`.
-- Datenupdates bleiben der kontrollierte Ablauf `lokaler Import → Validierung → geprüfte atlas.sqlite3 → Datenbanktausch`; der Webserver führt weder Importe noch automatische Hintergrundaktualisierungen aus.
+- Datenupdates bleiben der kontrollierte Ablauf `Kandidat → Validierung → atomarer Datenbanktausch`. Ein standardmäßig deaktivierter, opt-in Monats-Scheduler im Webservice kann diesen Ablauf auf demselben `/data`-Volume auslösen; er veröffentlicht nur vollständig geprüfte Kandidaten und berührt `community.sqlite3` nie.
 
 **Abnahme:** `https://ee-atlas.eu`, Healthcheck, Kernnavigation, Exporte und öffentliche Abstimmung funktionieren über die endgültige Domain; CI ist auf dem finalen Release-Commit grün und der Release enthält ausschließlich die vorgesehenen Artefakte.
 
@@ -64,7 +64,7 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 - Den bewussten JRC-Dashboard-Refresh höchstens einmal pro Kalendermonat betreiben und die reale Abdeckung beobachten. Ein Lauf besteht aus einer sichtbaren, isolierten Browser-Sitzung mit vier gefilterten XLSX-Downloads (Operational Electrochemical sowie Operational Pumped Hydro Storage, jeweils Leistung und Energie).
 - Battery-Charts ausschließlich über den manuellen, atomaren Import der beiden JSON-Dateien aktualisieren. Der Atlas führt keinen automatischen Battery-Charts-Netzwerkzugriff aus.
-- Nach mehreren realen Aktualisierungen entscheiden, ob ein externer monatlicher Scheduler sinnvoll ist. Der Atlas-Server selbst startet weiterhin keine Hintergrundimporte.
+- Den opt-in Monats-Scheduler nach mehreren realen Produktionsläufen überwachen. Er aktualisiert die kritischen maschinenlesbaren Kernquellen, erhält JRC-Speicher ohne Browserlauf und bewahrt Battery-Charts ohne kontrollierte JSON-Eingaben.
 - Änderungen des nicht formal versionierten JRC-Dashboard-Exports und der Battery-Charts-Antworten sichtbar dokumentieren, statt die Validierung stillschweigend zu lockern.
 - Für Länder außerhalb Deutschlands transparent prüfen, welche stationären Batterieklassen im JRC-Projektbestand fehlen. Fehlende Heim- oder Gewerbespeicher nicht schätzen.
 - Mittelfristig bei Ember nach einem CC-BY-4.0-Datensatz für Batterie- und Pumpspeicherenergie sowie Entladeleistung fragen und bei Verfügbarkeit die Übergangsquellen ablösen.

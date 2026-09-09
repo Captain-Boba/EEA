@@ -19,6 +19,7 @@ from .community import CommunityStore, browser_hash
 from .country_profile import build_country_profile
 from .db import database, read_database
 from .metrics import metric_catalog
+from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshScheduler
 from .runtime import DEFAULT_COMMUNITY_DB, parse_public_origin, validate_existing_atlas_database
 from .storage_online import latest_storage
 from .timeseries import build_timeseries
@@ -357,6 +358,7 @@ def serve(
     community_path: Path | None = None,
     public_origin: str | None = None,
     require_existing_db: bool = False,
+    monthly_refresh_config: MonthlyRefreshConfig | None = None,
 ) -> None:
     server = create_server(
         db_path,
@@ -366,6 +368,14 @@ def serve(
         public_origin=public_origin,
         require_existing_db=require_existing_db,
     )
+    scheduler = MonthlyRefreshScheduler(
+        db_path,
+        Path(community_path) if community_path is not None else Path(
+            os.environ.get("EEA_COMMUNITY_DB", DEFAULT_COMMUNITY_DB)
+        ),
+        monthly_refresh_config or MonthlyRefreshConfig.from_environment(),
+    )
+    scheduler.start()
     print(f"European Electricity Atlas: http://{host}:{port}")
     print(f"SQLite: {db_path}")
     try:
@@ -373,4 +383,5 @@ def serve(
     except KeyboardInterrupt:
         pass
     finally:
+        scheduler.stop()
         server.server_close()
