@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -14,14 +15,17 @@ from .eurostat_supplement import EurostatSupplementImporter
 from .hydro_importer import JrcHydroImporter
 from .price_importer import WholesalePriceImporter
 from .refresh_lifecycle import run_refresh_lifecycle
+from .refresh_safety import observation_coverage, require_preserved_coverage, prune_superseded_ember_cache, safe_error
 from .storage_online import BatteryChartsImporter, OnlineStorageUpdater
+
+logger = logging.getLogger(__name__)
 
 
 class ScheduledRefreshCriticalError(RuntimeError):
     """A required scheduled source failed with source-status context."""
 
     def __init__(self, source_results: dict[str, Any], cause: Exception):
-        super().__init__(str(cause))
+        super().__init__(safe_error(cause))
         self.source_results = source_results
 
 
@@ -142,18 +146,23 @@ def _optional_candidate_source(
     """
 
     savepoint = f"scheduled_{source_name}"
+    before = observation_coverage(connection)
+    logger.info("Refresh source started: %s", source_name)
     connection.execute(f"SAVEPOINT {savepoint}")
     try:
         result = action()
+        require_preserved_coverage(connection, before)
         connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+        logger.info("Refresh source completed: %s", source_name)
         return {"status": "refreshed", "result": _compact_result(result)}
     except Exception as exc:
         connection.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
         connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+        logger.warning("Refresh source preserved after failure: %s (%s)", source_name, type(exc).__name__)
         return {
             "status": "failed_optional",
             "error_type": type(exc).__name__,
-            "error": str(exc)[:500],
+            "error": safe_error(exc),
         }
 
 
@@ -166,6 +175,7 @@ def run_scheduled_refresh(
     battery_power_file: Path | str | None = None,
     report_path: Path | str | None = None,
     community_path: Path | str | None = None,
+    run_id: str | None = None,
 ) -> dict[str, Any]:
     """Refresh the production snapshot under the monthly source policy.
 
@@ -192,28 +202,33 @@ def run_scheduled_refresh(
     }
 
     def critical(source_name: str, action: Any) -> Any:
+        logger.info("Refresh source started: %s", source_name)
         try:
             result = action()
         except Exception as exc:
             source_results[source_name] = {
                 "status": "failed_critical",
                 "error_type": type(exc).__name__,
-                "error": str(exc)[:500],
+                "error": safe_error(exc),
             }
             raise ScheduledRefreshCriticalError(source_results, exc) from exc
         source_results[source_name] = {
             "status": "refreshed",
             "result": _compact_result(result) if isinstance(result, dict) else {},
         }
+        logger.info("Refresh source completed: %s", source_name)
         return result
 
     def refresh_candidate(candidate: Path) -> dict[str, Any]:
         critical("ember", load_ember_api_key)
+        refreshed_since = datetime.now(UTC).isoformat()
         with database(candidate) as connection:
+            before_ember = observation_coverage(connection)
             ember = EmberImporter(connection, refresh=True)
             ember_failures: list[dict[str, Any]] = []
             ember_successes = 0
             for code in EMBER_COUNTRIES:
+                logger.info("Refresh Ember country: %s", code)
                 country_result = ember.import_range(code, from_year, last_year)
                 ember_successes += len(country_result.get("successes", []))
                 if country_result.get("errors", 0):
@@ -229,6 +244,8 @@ def run_scheduled_refresh(
                     "error": f"Ember refresh failed for Atlas countries: {failed_countries}",
                 }
                 raise ScheduledRefreshCriticalError(source_results, RuntimeError(source_results["ember"]["error"]))
+            critical("ember", lambda: require_preserved_coverage(connection, before_ember))
+            del before_ember
             source_results["ember"] = {
                 "status": "refreshed",
                 "countries": len(EMBER_COUNTRIES),
@@ -236,12 +253,28 @@ def run_scheduled_refresh(
                 "from_year": from_year,
                 "to_year": last_year,
             }
-            critical("wholesale_prices", lambda: WholesalePriceImporter(connection).import_prices())
+            def checked(action):
+                before = observation_coverage(connection)
+                result = action()
+                require_preserved_coverage(connection, before)
+                return result
+
+            critical("wholesale_prices", lambda: checked(lambda: WholesalePriceImporter(connection).import_prices()))
+            # Core temporarily removes supplement rows: compare the combined group
+            # only after both importers have completed, never halfway through.
+            before_eurostat = observation_coverage(connection)
             critical("eurostat_core", lambda: EurostatImporter(connection).import_years(from_year, last_year))
             critical(
                 "eurostat_supplement",
                 lambda: EurostatSupplementImporter(connection).import_years(from_year, last_year),
             )
+            try:
+                require_preserved_coverage(connection, before_eurostat)
+            except ValueError as exc:
+                for name in ("eurostat_core", "eurostat_supplement"):
+                    source_results[name] = {"status": "failed_critical", "error": safe_error(exc)}
+                raise ScheduledRefreshCriticalError(source_results, exc) from exc
+            del before_eurostat
 
             if energy_file is not None and power_file is not None and energy_file.is_file() and power_file.is_file():
                 source_results["battery_charts"] = _optional_candidate_source(
@@ -271,6 +304,9 @@ def run_scheduled_refresh(
                 "eea_ghg",
                 lambda: EeaGhgImporter(connection).import_url(),
             )
+            removed = prune_superseded_ember_cache(connection, refreshed_since)
+            source_results["cache_cleanup"] = {"status": "completed", "superseded_ember_responses_removed": removed}
+            logger.info("Refresh cache cleanup: %s superseded Ember responses removed", removed)
         return source_results
 
     try:
@@ -279,6 +315,7 @@ def run_scheduled_refresh(
             refresh_candidate,
             report_path=report_path,
             community_path=community_path,
+            run_id=run_id,
         )
     except Exception as exc:
         if isinstance(exc, ScheduledRefreshCriticalError):

@@ -75,28 +75,48 @@ changed without a cron parser:
 | `EEA_MONTHLY_REFRESH_HOUR_UTC` | `3` | UTC hour, 0 through 23. |
 | `EEA_MONTHLY_REFRESH_POLL_SECONDS` | `86400` | Fallback check interval. |
 | `EEA_MONTHLY_REFRESH_RETRY_SECONDS` | `21600` | Delay before retrying a failed current-month run. |
-| `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Lease timeout for a crashed worker. |
+| `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Legacy setting, accepted but no longer used; the OS releases crashed-worker locks. |
 | `EEA_MONTHLY_REFRESH_FROM_YEAR` | `2015` | First Ember/Eurostat year for the planned run. |
 | `EEA_BATTERY_ENERGY_FILE` | unset | Approved local Battery-Charts energy JSON. |
 | `EEA_BATTERY_POWER_FILE` | unset | Approved local Battery-Charts power JSON. |
 
 At startup and at each check, a successful report for the current month
 suppresses another run. If the service was down at the scheduled time, the
-first later check starts the missing month. Failed runs record a UTC retry time;
+first later check starts the current due month. A successful previous month does
+not trigger a run before this month's configured day/hour. The scheduler wakes
+at the next scheduled/retry deadline, with the daily interval as an upper bound.
+Failed runs record a UTC retry time;
 they may be retried, but a successful month is never published twice.
 
-`data/.monthly-refresh.lock` is a small persistent lease on the same volume.
-It is created exclusively, includes only a random token, process ID, hostname
-and UTC start time, and is removed only by its owner. An expired lease or a
-same-host dead process can be recovered without terminating any process. This
-prevents accidental parallel refreshes; it is not a distributed-lock service
-for multiple writable application replicas.
+`data/.monthly-refresh.lock` is a small persistent file with an OS-owned lock
+(`flock` on Linux, `msvcrt.locking` on Windows). Closing/crashing releases the
+lock automatically; no process is killed and no PID/age heuristic is used.
+The file stays in place to avoid inode-replacement races. A second shared
+`data/.atlas-refresh.lock` serializes both `refresh-all` and monthly lifecycle
+workers. Direct individual import commands are still maintenance-only: do not
+run them against production while the service/scheduler is active. Use one
+writable service replica. The worker rechecks monthly success under its lock.
 
 The compact report is written atomically to
 `data/reports/MONTHLY_REFRESH.generated.json`. It records the target month,
 timestamps, old/candidate/published hashes, source statuses, publication and
 cleanup status, retry time, and a sanitised error when applicable. It never
-contains API keys or request URLs with credentials.
+contains API keys or request URLs with credentials. The separate fixed-size-in-count
+`MONTHLY_LIFECYCLE.generated.json` stores lifecycle results. A shared run ID
+allows recovery if the worker exits after publication but before recording
+monthly success. Logs identify source/country progress and publication phases.
+
+Read the status without opening or changing either database:
+
+```powershell
+eea --db data/atlas.sqlite3 monthly-refresh-status
+```
+
+The status command reports `not_run` or `unreadable_report` explicitly. The
+public `/api/health` includes only last-run state, target month and valid
+completion/retry timestamps; it is not a refresh control endpoint and exposes
+no errors, paths or source payloads. A `running` report after an abrupt exit is the last recorded
+state, not proof that a process is still alive; kernel locks remain authoritative.
 
 ### Planned source policy
 
@@ -106,6 +126,14 @@ not weaken that manual command.
 - Ember, Ember wholesale prices, Eurostat core, and Eurostat supplement are
   critical. Any error aborts the candidate and leaves the published
   `atlas.sqlite3` byte-identical.
+- Automatic publication must preserve every previously published observation
+  key (country, source, series, metric, unit and period). Empty/partial source
+  responses that remove keys are rejected even if HTTP/JSON parsing succeeded.
+  Numerical revisions are allowed. Snapshots may advance their date but cannot
+  lose series or move backwards. Eurostat core and supplement are checked as
+  one group because core temporarily replaces supplement rows. A legitimate
+  upstream series removal needs a reviewed manual refresh, not an automatic
+  relaxation of this guard.
 - Battery-Charts is a controlled local input only. Both configured JSON files
   must exist and pass the existing importer validation before they are used.
   Otherwise existing Battery-Charts rows are retained as
@@ -117,6 +145,15 @@ not weaken that manual command.
   rolls only that source back inside the candidate and is reported as
   `failed_optional`; existing rows remain part of the published candidate.
 
+Optional-source coverage checks run inside the source savepoint, so a partial
+response restores both observations and cache changes. After successful core
+checks, cache cleanup removes only older Ember responses fully covered by a
+newer response fetched this run for the exact same endpoint and target/options.
+Partial overlaps and unrelated caches remain. SQLite reuses freed pages; no
+live `VACUUM` is run and immediate physical file shrinkage is not guaranteed.
+Existing source-cache keys are overwritten by their importers. Crash-retained
+work directories are not blindly swept: inspect them before manual recovery.
+
 For a supervised one-off run with the same source policy, use:
 
 ```powershell
@@ -126,4 +163,6 @@ $env:PYTHONPATH = 'src'
 
 This command does not need `EEA_MONTHLY_REFRESH=1`; that switch controls only
 the background scheduler. Disable the scheduler again with
-`EEA_MONTHLY_REFRESH=0` and restart the web service.
+`EEA_MONTHLY_REFRESH=0` and restart the web service. A successful current month
+is a no-op even for the one-off command. Disabling prevents future launches;
+it does not cancel an already running worker.

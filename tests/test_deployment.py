@@ -55,7 +55,8 @@ class DeploymentHttpTests(unittest.TestCase):
         with urlopen(self.base + "/api/health", timeout=5) as response:
             payload = json.load(response)
             headers = response.headers
-        self.assertEqual(payload, {"status": "ok", "atlas_database": "ok", "community_database": "ok"})
+        self.assertEqual(payload, {"status": "ok", "atlas_database": "ok", "community_database": "ok",
+                                  "monthly_refresh": {"last_run_status": "not_run"}})
         self.assertNotIn(str(self.atlas), json.dumps(payload))
         self.assertNotIn(str(self.community), json.dumps(payload))
         self.assertEqual(headers["X-Content-Type-Options"], "nosniff")

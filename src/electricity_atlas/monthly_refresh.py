@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import os
-import socket
+import logging
+import re
 import subprocess
 import sys
 import tempfile
 import threading
-import time
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -15,7 +15,10 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .full_refresh import run_scheduled_refresh
-from .refresh_lifecycle import RefreshLifecycleError, file_sha256
+from .refresh_lifecycle import file_sha256
+from .refresh_safety import FileRefreshLock, RefreshBusyError, safe_error
+
+logger = logging.getLogger(__name__)
 
 
 MONTHLY_REPORT_NAME = "MONTHLY_REFRESH.generated.json"
@@ -31,8 +34,7 @@ class MonthlyRefreshConfigurationError(ValueError):
     """A monthly refresh setting is malformed or unsafe."""
 
 
-class MonthlyRefreshBusyError(RuntimeError):
-    """Another persisted monthly refresh lease is still active."""
+MonthlyRefreshBusyError = RefreshBusyError
 
 
 def utc_now() -> datetime:
@@ -117,93 +119,53 @@ def _atomic_json_write(path: Path, payload: dict[str, Any]) -> None:
 def _read_json(path: Path) -> dict[str, Any] | None:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, ValueError, UnicodeError):
         return None
     return payload if isinstance(payload, dict) else None
 
 
-@dataclass
-class PersistentRefreshLock:
-    path: Path
-    stale_seconds: int
-    now: Callable[[], datetime] = utc_now
-    hostname: str = socket.gethostname()
-    token: str | None = None
+def monthly_refresh_status(database_path: Path | str) -> dict[str, Any]:
+    """Read-only operational status; never start an import or open SQLite."""
+    report_path = Path(database_path).resolve().parent / "reports" / MONTHLY_REPORT_NAME
+    report = _read_json(report_path)
+    if report is None:
+        return {"status": "unreadable_report" if report_path.exists() else "not_run"}
+    result = {key: report.get(key) for key in (
+        "status", "target_month", "started_at", "completed_at", "publication",
+        "next_attempt_at", "cleanup_complete", "published_sha256",
+    )}
+    sources = report.get("sources", {})
+    if not isinstance(sources, dict):
+        return {"status": "unreadable_report"}
+    result["sources"] = {name: source.get("status") for name, source in sources.items()
+                         if isinstance(source, dict)}
+    return result
 
-    def _owner(self) -> dict[str, Any]:
-        return {
-            "token": self.token,
-            "pid": os.getpid(),
-            "hostname": self.hostname,
-            "started_at": self.now().isoformat(),
-        }
 
-    def _is_stale(self, owner: dict[str, Any]) -> bool:
-        started_raw = owner.get("started_at")
+def monthly_refresh_health(database_path: Path | str) -> dict[str, Any]:
+    """Strict public allowlist: no errors, paths, credentials or source payloads."""
+    status = monthly_refresh_status(database_path)
+    state = status.get("status")
+    result = {"last_run_status": state if state in (
+        "not_run", "unreadable_report", "running", "success", "failed"
+    ) else "unreadable_report"}
+    month = status.get("target_month")
+    if isinstance(month, str) and re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):
+        result["target_month"] = month
+    for key in ("completed_at", "next_attempt_at"):
         try:
-            started = datetime.fromisoformat(str(started_raw))
-            if started.tzinfo is None:
-                return True
-            expired = self.now() - started.astimezone(UTC) > timedelta(seconds=self.stale_seconds)
-        except (TypeError, ValueError):
-            return True
-        if owner.get("hostname") == self.hostname:
-            pid = owner.get("pid")
-            if isinstance(pid, int) and pid > 0:
-                try:
-                    os.kill(pid, 0)
-                except ProcessLookupError:
-                    return True
-                except PermissionError:
-                    return False
-                except OSError:
-                    # Windows reports an invalid non-existent PID as a generic
-                    # OSError.  Keep an unexpired lease in that ambiguous case.
-                    return expired
-                else:
-                    return False
-        return expired
+            timestamp = datetime.fromisoformat(str(status.get(key)))
+            if timestamp.tzinfo is not None:
+                result[key] = timestamp.astimezone(UTC).isoformat()
+        except ValueError:
+            pass
+    return result
 
-    def acquire(self) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.token = uuid.uuid4().hex
-        for attempt in range(2):
-            try:
-                descriptor = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-            except FileExistsError:
-                existing = _read_json(self.path) or {}
-                if attempt == 0 and self._is_stale(existing):
-                    # The lease has expired or its same-host owner vanished.  No
-                    # process is terminated; a replacement token is simply allowed.
-                    try:
-                        self.path.unlink()
-                    except FileNotFoundError:
-                        pass
-                    continue
-                self.token = None
-                raise MonthlyRefreshBusyError("A monthly refresh lease is already active")
-            else:
-                try:
-                    with os.fdopen(descriptor, "w", encoding="utf-8") as output:
-                        json.dump(self._owner(), output, ensure_ascii=False, allow_nan=False)
-                        output.write("\n")
-                except Exception:
-                    try:
-                        self.path.unlink()
-                    except FileNotFoundError:
-                        pass
-                    raise
-                return
-        self.token = None
-        raise MonthlyRefreshBusyError("A monthly refresh lease is already active")
 
-    def release(self) -> None:
-        if self.token is None:
-            return
-        owner = _read_json(self.path)
-        if owner and owner.get("token") == self.token:
-            self.path.unlink(missing_ok=True)
-        self.token = None
+class PersistentRefreshLock(FileRefreshLock):
+    def __init__(self, path: Path, stale_seconds: int, now=utc_now):
+        # Keep the old constructor compatible; ownership no longer expires by age.
+        super().__init__(path)
 
 
 class MonthlyRefreshRunner:
@@ -227,6 +189,15 @@ class MonthlyRefreshRunner:
         self.report_path = Path(report_path).resolve() if report_path else (
             self.database_path.parent / "reports" / MONTHLY_REPORT_NAME
         ).resolve()
+        self.lifecycle_path = self.report_path.with_name("MONTHLY_LIFECYCLE.generated.json")
+        protected = {self.database_path, self.community_path}
+        for database_file in (self.database_path, self.community_path):
+            protected.update(Path(f"{database_file}{suffix}") for suffix in ("-wal", "-shm", "-journal"))
+        protected.update(self.database_path.parent / name for name in (LOCK_FILE_NAME, ".atlas-refresh.lock"))
+        if self.database_path == self.community_path or self.report_path in protected or self.lifecycle_path in protected:
+            raise MonthlyRefreshConfigurationError("Monthly report/database paths collide with protected files")
+        if self.report_path == self.lifecycle_path:
+            raise MonthlyRefreshConfigurationError("Monthly and lifecycle reports must be separate files")
         self.lock = PersistentRefreshLock(
             self.database_path.parent / LOCK_FILE_NAME,
             config.lock_stale_seconds,
@@ -236,16 +207,43 @@ class MonthlyRefreshRunner:
     def run(self, *, target_month: str | None = None) -> dict[str, Any]:
         started = self.now()
         month = target_month or started.strftime("%Y-%m")
-        before_hash = file_sha256(self.database_path)
         self.lock.acquire()
+        lifecycle_path = self.lifecycle_path
+        before_hash = None
+        lifecycle_initialized = False
+        lifecycle = {}
         try:
+            previous = _read_json(self.report_path) or {}
+            completed = _read_json(lifecycle_path) or {}
+            if (previous.get("status") == "running" and previous.get("attempt_id")
+                    and completed.get("run_id") == previous["attempt_id"]
+                    and completed.get("status") == "success"):
+                # Recover a crash between lifecycle publication and monthly report.
+                previous = {**completed, "target_month": previous["target_month"],
+                            "sources": completed.get("refresh", {}),
+                            "publication": "published", "next_attempt_at": None}
+                _atomic_json_write(self.report_path, previous)
+            if previous.get("status") == "success" and previous.get("target_month") == month:
+                return previous
+            before_hash = file_sha256(self.database_path)
+            attempt_id = uuid.uuid4().hex
+            _atomic_json_write(self.report_path, {
+                "status": "running", "target_month": month,
+                "attempt_id": attempt_id,
+                "started_at": started.isoformat(), "publication": "not_published",
+            })
+            # Do not mistake a previous run's lifecycle report for this attempt.
+            _atomic_json_write(lifecycle_path, {"status": "running", "started_at": started.isoformat()})
+            lifecycle_initialized = True
+            logger.info("Monthly refresh started: %s", month)
             lifecycle = self.refresh(
                 self.database_path,
                 from_year=self.config.from_year,
                 battery_energy_file=self.config.battery_energy_file,
                 battery_power_file=self.config.battery_power_file,
-                report_path=self.report_path,
+                report_path=lifecycle_path,
                 community_path=self.community_path,
+                run_id=attempt_id,
             )
             result = {
                 **lifecycle,
@@ -260,25 +258,30 @@ class MonthlyRefreshRunner:
                 "next_attempt_at": None,
             }
             _atomic_json_write(self.report_path, result)
+            logger.info("Monthly refresh finished: %s (%s)", month, result["publication"])
             return result
         except Exception as exc:
-            lifecycle = _read_json(self.report_path) or {}
+            lifecycle = lifecycle or (_read_json(lifecycle_path) if lifecycle_initialized else {}) or {}
             source_results = getattr(exc, "source_results", lifecycle.get("refresh", {}))
+            # A report-write error after successful publication must not trigger
+            # another import or falsely claim the production database was untouched.
+            published = lifecycle.get("status") == "success"
             result = {
                 **lifecycle,
                 "target_month": month,
                 "sources": source_results,
-                "status": "failed",
+                "status": "success" if published else "failed",
                 "started_at": lifecycle.get("started_at", started.isoformat()),
                 "completed_at": self.now().isoformat(),
                 "previous_sha256": lifecycle.get("previous_sha256", before_hash),
                 "current_sha256": file_sha256(self.database_path),
-                "publication": "not_published",
+                "publication": "published" if published else "not_published",
                 "error_type": type(exc).__name__,
-                "error": str(exc)[:1000],
-                "next_attempt_at": (self.now() + timedelta(seconds=self.config.retry_seconds)).isoformat(),
+                "error": safe_error(exc),
+                "next_attempt_at": None if published else (self.now() + timedelta(seconds=self.config.retry_seconds)).isoformat(),
             }
             _atomic_json_write(self.report_path, result)
+            logger.error("Monthly refresh error: %s (%s)", month, type(exc).__name__)
             raise
         finally:
             self.lock.release()
@@ -308,6 +311,7 @@ class MonthlyRefreshScheduler:
         self._process: Any | None = None
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
+        self._launch_not_before: datetime | None = None
 
     def _report(self) -> dict[str, Any] | None:
         return _read_json(self.report_path)
@@ -323,8 +327,6 @@ class MonthlyRefreshScheduler:
                     return False
             except (TypeError, ValueError):
                 pass
-        if report and isinstance(report.get("target_month"), str) and report["target_month"] < target_month:
-            return True
         return (current.day, current.hour) >= (self.config.day_utc, self.config.hour_utc)
 
     def _command(self) -> list[str]:
@@ -343,10 +345,33 @@ class MonthlyRefreshScheduler:
                 return False
             self._process = None
         moment = (current or self.now()).astimezone(UTC)
+        if self._launch_not_before and moment < self._launch_not_before:
+            return False
         if not self._is_due(moment, self._report()):
             return False
+        self._launch_not_before = moment + timedelta(seconds=self.config.retry_seconds)
         self._process = self.popen(self._command(), start_new_session=True)
         return True
+
+    def _wait_seconds(self) -> float:
+        # Wake at the schedule/retry deadline, not only 24 hours after startup.
+        current = self.now().astimezone(UTC)
+        scheduled = current.replace(day=self.config.day_utc, hour=self.config.hour_utc,
+                                    minute=0, second=0, microsecond=0)
+        report = self._report() or {}
+        if report.get("status") == "success" and report.get("target_month") == current.strftime("%Y-%m"):
+            scheduled = (scheduled.replace(day=28) + timedelta(days=4)).replace(day=self.config.day_utc)
+        retry = report.get("next_attempt_at")
+        if retry:
+            try:
+                scheduled = max(scheduled, datetime.fromisoformat(str(retry)).astimezone(UTC))
+            except (ValueError, TypeError):
+                pass
+        if self._launch_not_before:
+            scheduled = max(scheduled, self._launch_not_before)
+        if self._process is not None:
+            return min(60, self.config.poll_seconds)
+        return min(self.config.poll_seconds, max(1, (scheduled - current).total_seconds()))
 
     def start(self) -> None:
         if not self.config.enabled or self._thread is not None:
@@ -359,15 +384,10 @@ class MonthlyRefreshScheduler:
             try:
                 self.check()
             except Exception as exc:
-                _atomic_json_write(self.report_path, {
-                    "status": "failed",
-                    "target_month": self.now().strftime("%Y-%m"),
-                    "publication": "not_published",
-                    "error_type": type(exc).__name__,
-                    "error": str(exc)[:1000],
-                    "next_attempt_at": (self.now() + timedelta(seconds=self.config.retry_seconds)).isoformat(),
-                })
-            self._stop.wait(self.config.poll_seconds)
+                # The parent never overwrites a worker's report (or its success).
+                logger.error("Monthly scheduler could not launch worker: %s", type(exc).__name__)
+                self._launch_not_before = self.now() + timedelta(seconds=self.config.retry_seconds)
+            self._stop.wait(self._wait_seconds())
 
     def stop(self) -> None:
         self._stop.set()

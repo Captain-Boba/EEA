@@ -3,6 +3,7 @@ from __future__ import annotations
 import ctypes
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -15,6 +16,9 @@ from pathlib import Path
 from typing import Any
 
 from .config import COUNTRIES
+from .refresh_safety import FileRefreshLock, RefreshBusyError, safe_error
+
+logger = logging.getLogger(__name__)
 
 
 WORK_DIRECTORY_NAME = ".refresh-work"
@@ -357,6 +361,25 @@ def run_refresh_lifecycle(
     run_id: str | None = None,
     replace_file: Callable[[Path, Path], None] = os.replace,
 ) -> dict[str, Any]:
+    lock = FileRefreshLock(Path(database_path).resolve().parent / ".atlas-refresh.lock")
+    try:
+        lock.acquire()
+    except RefreshBusyError as exc:
+        raise RefreshLockError(str(exc)) from exc
+    try:
+        return _run_refresh_lifecycle(
+            database_path, refresh_action, validate_action=validate_action,
+            report_path=report_path, community_path=community_path,
+            run_id=run_id, replace_file=replace_file,
+        )
+    finally:
+        lock.release()
+
+
+def _run_refresh_lifecycle(
+    database_path, refresh_action, *, validate_action, report_path,
+    community_path, run_id, replace_file,
+) -> dict[str, Any]:
     database_file = Path(database_path).resolve()
     data_directory = database_file.parent
     work_root = (data_directory / WORK_DIRECTORY_NAME).resolve(strict=False)
@@ -379,7 +402,10 @@ def run_refresh_lifecycle(
         if community_path is not None
         else (data_directory / "community.sqlite3").resolve()
     )
-    protected_paths = {database_file, community_file}
+    protected_paths = {database_file, community_file, data_directory / ".atlas-refresh.lock",
+                       data_directory / ".monthly-refresh.lock"}
+    protected_paths.update(_sidecar_paths(database_file))
+    protected_paths.update(_sidecar_paths(community_file))
     if report_file in protected_paths:
         raise RefreshPathError("Refresh report path collides with a protected database")
     if database_file == community_file:
@@ -414,6 +440,7 @@ def run_refresh_lifecycle(
             raise RefreshPathError("Refresh work directory is not on the Atlas database volume")
 
         phase = "backup"
+        logger.info("Refresh lifecycle: building isolated candidate")
         _sqlite_backup(database_file, rollback)
         rollback_hash = file_sha256(rollback)
         shutil.copy2(rollback, candidate)
@@ -425,6 +452,7 @@ def run_refresh_lifecycle(
         _checkpoint_candidate(candidate)
 
         phase = "validate-candidate"
+        logger.info("Refresh lifecycle: validating candidate")
         candidate_validation = validate_action(candidate)
         candidate_hash = file_sha256(candidate)
 
@@ -434,6 +462,7 @@ def run_refresh_lifecycle(
         removed_sidecars = _remove_production_sidecars(database_file)
 
         phase = "publish"
+        logger.info("Refresh lifecycle: publishing candidate")
         replace_file(candidate, database_file)
 
         phase = "validate-published"
@@ -449,6 +478,7 @@ def run_refresh_lifecycle(
         _remove_production_sidecars(database_file)
 
         phase = "cleanup"
+        logger.info("Refresh lifecycle: cleaning run files")
         _cleanup_run_directory(
             run_directory,
             work_root,
@@ -503,7 +533,7 @@ def run_refresh_lifecycle(
                     _remove_production_sidecars(database_file)
                     restored = True
             except Exception as restore_exc:
-                restore_error = f"{type(restore_exc).__name__}: {restore_exc}"
+                restore_error = f"{type(restore_exc).__name__}: {safe_error(restore_exc)}"
 
         if restore_error is None and run_directory.exists():
             try:
@@ -514,7 +544,7 @@ def run_refresh_lifecycle(
                 )
                 cleanup_complete = True
             except Exception as cleanup_exc:
-                restore_error = f"cleanup: {type(cleanup_exc).__name__}: {cleanup_exc}"
+                restore_error = f"cleanup: {type(cleanup_exc).__name__}: {safe_error(cleanup_exc)}"
 
         if not exchange_started:
             _remove_new_empty_sidecars(database_file, initial_sidecars)
@@ -532,7 +562,7 @@ def run_refresh_lifecycle(
             "candidate_sha256": candidate_hash,
             "rollback_sha256": rollback_hash,
             "error_type": type(exc).__name__,
-            "error": str(exc)[:2000],
+            "error": safe_error(exc),
             "restored": restored,
             "restore_or_cleanup_error": restore_error,
             "community": {
@@ -549,7 +579,7 @@ def run_refresh_lifecycle(
         except Exception:
             pass
         message = (
-            f"Refresh failed during {failure_phase}: {type(exc).__name__}: {exc}. "
+            f"Refresh failed during {failure_phase}: {type(exc).__name__}: {safe_error(exc)}. "
             f"Report: {report_file}"
         )
         if restore_error is not None:

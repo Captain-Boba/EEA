@@ -19,7 +19,7 @@ The command-line value wins over an environment variable; an environment variabl
 | `EEA_MONTHLY_REFRESH_HOUR_UTC` | `3` | UTC hour of the normal monthly run (0–23). |
 | `EEA_MONTHLY_REFRESH_POLL_SECONDS` | `86400` | Scheduler fallback check interval. |
 | `EEA_MONTHLY_REFRESH_RETRY_SECONDS` | `21600` | Delay after a failed run before another attempt. |
-| `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Expiry for a crashed monthly-worker lease. |
+| `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Legacy setting; OS locks now release automatically on process exit. |
 | `EEA_MONTHLY_REFRESH_FROM_YEAR` | `2015` | History start for planned Ember and Eurostat imports. |
 | `EEA_BATTERY_ENERGY_FILE` | unset | Approved local Battery-Charts energy JSON on the service volume. |
 | `EEA_BATTERY_POWER_FILE` | unset | Approved local Battery-Charts power JSON on the service volume. |
@@ -50,7 +50,8 @@ Do not let a reverse proxy’s client-supplied `Host` or `X-Forwarded-*` headers
 The repository contains `railpack.json` as the reproducible Railway/Railpack
 entry point. It pins Python 3.11 and starts the source-layout application on
 Railway's injected `PORT`. Browser binaries are deliberately not installed:
-the public service reads a prepared Atlas snapshot and never runs importers.
+HTTP requests read a prepared Atlas snapshot. Only the explicitly enabled
+monthly scheduler may launch a separate importer child process.
 
 Use one service instance and attach one persistent volume at `/data`. Before
 the first healthy deployment, upload the reviewed release snapshot as
@@ -103,7 +104,7 @@ Treat `atlas.sqlite3` as a versioned, read-only release snapshot. Mount or copy 
 
 For a complete source refresh, use the isolated [`refresh-all` lifecycle](DATA_REFRESH.md). It builds the candidate and rollback database under the Git-ignored `data/.refresh-work/<run-id>/`, checks Windows replacement locks before network access, publishes the validated candidate atomically where possible, and removes its temporary databases and sidecars after success. Persistent fallback copies do not remain in `data/` by default. The community vote database is never part of this lifecycle.
 
-Treat `community.sqlite3` as a separate persistent volume. It contains public vote state and must never be replaced by an Atlas dataset or included in a data release. Keep Ember keys and all other secrets outside both SQLite files and outside release assets.
+Treat `community.sqlite3` as a separate persistent database on the same `/data` volume. It contains public vote state and must never be replaced by an Atlas dataset or included in a data release. Keep Ember keys and all other secrets outside both SQLite files and outside release assets.
 
 ### Monthly refresh on Railway
 
@@ -115,20 +116,51 @@ exit after the task, whereas the selected design keeps the permanently running
 web server, its candidate database, lock, reports, and published Atlas snapshot
 on the one known writable volume.
 
-To activate it, set Railway service variables such as:
+After committing/pushing the hardening patch and confirming Linux CI and the
+new deployment are green, keep `EEA_MONTHLY_REFRESH=0` for the supervised first
+run. In Railway open **European Electricity Atlas → EEA → Variables** and add
+`EMBER_API_KEY` securely (never paste it into commands, Git or logs).
+
+On your Windows PC, open PowerShell in `E:\EEA`. If the CLI says Unauthorized,
+log in, then open a shell **inside the deployed service**:
+
+```powershell
+C:\Tools\Railway\railway.exe login
+C:\Tools\Railway\railway.exe ssh --service EEA
+```
+
+In that remote shell, run:
+
+```sh
+PYTHONPATH=src python -m electricity_atlas.cli --db /data/atlas.sqlite3 monthly-refresh-run --community-db /data/community.sqlite3
+PYTHONPATH=src python -m electricity_atlas.cli --db /data/atlas.sqlite3 monthly-refresh-status
+```
+
+The first command performs real source requests and publishes only a checked
+candidate. Confirm `status=success`, `publication=published`, cleanup success
+and expected source statuses; check the public `/api/health` and a data page.
+Do not use `railway run` for this: it runs locally with Railway environment
+variables, not inside the service container.
+
+Then set these **EEA service Variables** and deploy the pending changes:
 
 ```text
 EEA_MONTHLY_REFRESH=1
 EEA_MONTHLY_REFRESH_DAY_UTC=2
 EEA_MONTHLY_REFRESH_HOUR_UTC=3
 EEA_MONTHLY_REFRESH_FROM_YEAR=2015
-EEA_BATTERY_ENERGY_FILE=/data/inputs/battery-energy.json
-EEA_BATTERY_POWER_FILE=/data/inputs/battery-power.json
 ```
 
+Only set the optional `EEA_BATTERY_ENERGY_FILE` and `EEA_BATTERY_POWER_FILE` when
+both approved JSON files actually exist on the volume. No placeholder paths
+are required. Keep **one replica**, the persistent `/data` volume, and the web
+service continuously running (do not enable service sleeping for this scheduler).
+
 Keep Ember credentials exclusively as Railway secrets. The scheduler checks on
-startup and then daily, so a missed UTC time is caught up after a Railway
-restart. It runs the child refresh process without stopping HTTP handling. Read
+startup and wakes at schedule/retry deadlines (at most 24 hours between checks).
+A missed due time is caught up after a restart; a completed month is not run
+again. Enabling after day 2 can start the current month's run immediately if
+it has not yet succeeded. It runs the child without stopping HTTP handling. Read
 `/data/reports/MONTHLY_REFRESH.generated.json` for the last result, candidate
 and publication hashes, source policy, and next retry time.
 
@@ -141,13 +173,20 @@ from both approved local JSON files; absent files preserve the current values
 without any Battery-Charts network access.
 
 The worker creates only its exact candidate/rollback files below
-`/data/.refresh-work/<run-id>/` plus the short-lived
-`/data/.monthly-refresh.lock`. Cleanup never scans `*.sqlite3`, `*-wal`, or
+`/data/.refresh-work/<run-id>/` plus two small persistent lock files
+`/data/.monthly-refresh.lock` and `/data/.atlas-refresh.lock`, and two overwritten
+monthly/lifecycle reports under `/data/reports`. Cleanup never scans `*.sqlite3`, `*-wal`, or
 `*-shm`. `community.sqlite3` and its sidecars are outside the lifecycle and are
 hash-checked for non-interference. For operational rollback, leave the failed
 report in place, keep the old published Atlas file, correct the source or
 secret, and let the reported retry time or a manual `monthly-refresh-run`
 attempt create a new candidate.
+
+Empty/partial responses are checked against previously published coverage.
+Critical-source loss blocks publication; optional-source loss rolls that source
+back. See [DATA_REFRESH.md](DATA_REFRESH.md) for cache retention and crash recovery.
+To disable future launches set `EEA_MONTHLY_REFRESH=0` and deploy the change;
+this is not a cancellation command for an already running worker.
 
 To update the Atlas snapshot safely:
 
@@ -161,13 +200,17 @@ To roll back, stop the server, restore the previous Atlas snapshot, and start it
 
 ## Health check
 
-`GET /api/health` reports only component states:
+`GET /api/health` reports component states and a strictly limited refresh summary:
 
 ```json
-{"status":"ok","atlas_database":"ok","community_database":"ok"}
+{"status":"ok","atlas_database":"ok","community_database":"ok","monthly_refresh":{"last_run_status":"not_run"}}
 ```
 
-It returns a non-success status when either database cannot be reached. It deliberately does not expose file paths, import state, request URLs, or secrets.
+It returns a non-success status when either database cannot be reached. A failed
+refresh alone does not make the serving database unhealthy. The refresh summary
+may add `target_month`, `completed_at` and `next_attempt_at`; these describe the
+last report, not proof that a worker is currently alive. It never exposes file
+paths, detailed errors, source payloads, request URLs or secrets.
 
 ## Community backups and restore
 

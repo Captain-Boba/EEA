@@ -104,14 +104,15 @@ class MonthlyRefreshTests(unittest.TestCase):
             now=lambda: datetime(2026, 9, 1, 1, tzinfo=UTC),
             popen=lambda *args, **kwargs: calls.append(args) or FakeProcess(None),
         )
-        self.assertTrue(scheduler.check())
+        self.assertFalse(scheduler.check())
+        self.assertTrue(scheduler.check(datetime(2026, 9, 2, 3, tzinfo=UTC)))
         scheduler._process = None
         report.write_text(json.dumps({
             "status": "failed", "target_month": "2026-09",
-            "next_attempt_at": "2026-09-01T05:00:00+00:00",
+            "next_attempt_at": "2026-09-02T05:00:00+00:00",
         }), encoding="utf-8")
-        self.assertFalse(scheduler.check(datetime(2026, 9, 1, 4, tzinfo=UTC)))
-        self.assertTrue(scheduler.check(datetime(2026, 9, 2, 3, tzinfo=UTC)))
+        self.assertFalse(scheduler.check(datetime(2026, 9, 2, 4, tzinfo=UTC)))
+        self.assertTrue(scheduler.check(datetime(2026, 9, 2, 5, tzinfo=UTC)))
         self.assertEqual(len(calls), 2)
 
     def test_persistent_lock_rejects_parallel_owner_and_recovers_an_orphan_without_killing_processes(self):
@@ -123,14 +124,95 @@ class MonthlyRefreshTests(unittest.TestCase):
             second.acquire()
         first.release()
         (self.data / LOCK_FILE_NAME).write_text(json.dumps({
-            "token": "orphan", "pid": 99999999, "hostname": first.hostname,
+            "token": "orphan", "pid": 99999999, "hostname": "old-container",
             "started_at": (now - timedelta(hours=1)).isoformat(),
         }), encoding="utf-8")
         recovered = PersistentRefreshLock(self.data / LOCK_FILE_NAME, 300, now=lambda: now)
         recovered.acquire()
         self.assertTrue((self.data / LOCK_FILE_NAME).exists())
         recovered.release()
-        self.assertFalse((self.data / LOCK_FILE_NAME).exists())
+        self.assertTrue((self.data / LOCK_FILE_NAME).exists())
+
+    def test_schedule_waits_until_exact_deadline_and_retry_instead_of_next_daily_poll(self):
+        from dataclasses import replace
+        now = datetime(2026, 9, 2, 2, 59, tzinfo=UTC)
+        scheduler = MonthlyRefreshScheduler(self.atlas, self.community,
+            replace(self.config, poll_seconds=86400), now=lambda: now)
+        self.assertEqual(scheduler._wait_seconds(), 60)
+        now = datetime(2026, 9, 2, 3, tzinfo=UTC)
+        scheduler.report_path.parent.mkdir(exist_ok=True)
+        scheduler.report_path.write_text(json.dumps({"status": "failed", "target_month": "2026-09",
+            "next_attempt_at": "2026-09-02T09:00:00+00:00"}), encoding="utf-8")
+        self.assertEqual(scheduler._wait_seconds(), 21600)
+
+    def test_dead_child_without_report_is_backed_off(self):
+        now = datetime(2026, 9, 2, 3, tzinfo=UTC)
+        scheduler = MonthlyRefreshScheduler(self.atlas, self.community, self.config,
+            now=lambda: now, popen=lambda *a, **k: FakeProcess(1))
+        self.assertTrue(scheduler.check())
+        self.assertFalse(scheduler.check(now + timedelta(seconds=60)))
+        self.assertTrue(scheduler.check(now + timedelta(seconds=600)))
+
+    def test_worker_checks_month_again_under_lock(self):
+        refresh = MagicMock(return_value={"status": "success", "refresh": {}})
+        runner = MonthlyRefreshRunner(self.atlas, self.community, self.config,
+            now=lambda: datetime(2026, 9, 2, 3, tzinfo=UTC), refresh=refresh)
+        self.assertEqual(runner.run()["status"], "success")
+        self.assertEqual(runner.run()["status"], "success")
+        refresh.assert_called_once()
+
+    def test_worker_recovers_published_lifecycle_without_reimporting(self):
+        refresh = MagicMock()
+        runner = MonthlyRefreshRunner(self.atlas, self.community, self.config,
+            now=lambda: datetime(2026, 9, 2, 3, tzinfo=UTC), refresh=refresh)
+        runner.report_path.parent.mkdir()
+        runner.report_path.write_text(json.dumps({"status": "running", "attempt_id": "fixture-run",
+            "target_month": "2026-09"}), encoding="utf-8")
+        runner.lifecycle_path.write_text(json.dumps({"status": "success", "run_id": "fixture-run",
+            "refresh": {"ember": {"status": "refreshed"}}}), encoding="utf-8")
+        result = runner.run()
+        self.assertEqual(result["publication"], "published")
+        self.assertEqual(result["sources"]["ember"]["status"], "refreshed")
+        refresh.assert_not_called()
+
+    def test_old_lifecycle_success_is_not_reused_for_new_failure(self):
+        runner = MonthlyRefreshRunner(self.atlas, self.community, self.config,
+            now=lambda: datetime(2026, 9, 2, 3, tzinfo=UTC),
+            refresh=MagicMock(side_effect=RuntimeError("fixture failure")))
+        runner.report_path.parent.mkdir()
+        runner.lifecycle_path.write_text(json.dumps({"status": "success", "run_id": "old-run",
+            "previous_sha256": "wrong-old-hash"}), encoding="utf-8")
+        with self.assertRaises(RuntimeError):
+            runner.run()
+        result = json.loads(runner.report_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["publication"], "not_published")
+        self.assertEqual(result["previous_sha256"].lower(), digest(self.atlas))
+
+    def test_read_only_status_does_not_create_database_or_expose_error_paths(self):
+        from electricity_atlas.monthly_refresh import monthly_refresh_status, monthly_refresh_health
+        missing = self.root / "does-not-exist" / "atlas.sqlite3"
+        self.assertEqual(monthly_refresh_status(missing), {"status": "not_run"})
+        self.assertFalse(missing.parent.exists())
+        report = self.data / "reports" / MONTHLY_REPORT_NAME
+        report.parent.mkdir()
+        report.write_text(json.dumps({"status": "failed", "error": "secret/path",
+            "database": "private/path", "sources": {"ember": {"status": "failed_critical", "error": "secret"}}}), encoding="utf-8")
+        result = monthly_refresh_status(self.atlas)
+        self.assertNotIn("error", result)
+        self.assertNotIn("database", result)
+        self.assertEqual(result["sources"], {"ember": "failed_critical"})
+        self.assertEqual(monthly_refresh_health(self.atlas), {"last_run_status": "failed"})
+        report.write_text(json.dumps({"status": "private/path", "target_month": "secret",
+            "completed_at": "secret", "sources": {}}), encoding="utf-8")
+        self.assertEqual(monthly_refresh_health(self.atlas), {"last_run_status": "unreadable_report"})
+
+    def test_monthly_report_cannot_overwrite_database_or_sidecars(self):
+        before = self.atlas.read_bytes()
+        for path in (self.atlas, self.community, Path(f"{self.community}-wal"),
+                     self.data / LOCK_FILE_NAME):
+            with self.assertRaises(MonthlyRefreshConfigurationError):
+                MonthlyRefreshRunner(self.atlas, self.community, self.config, report_path=path)
+        self.assertEqual(self.atlas.read_bytes(), before)
 
     def test_runner_preserves_community_and_old_atlas_on_critical_failure_then_allows_later_retry(self):
         community_wal = Path(f"{self.community}-wal")

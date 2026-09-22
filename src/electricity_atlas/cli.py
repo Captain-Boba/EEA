@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sqlite3
 import sys
 from pathlib import Path
@@ -18,7 +19,8 @@ from .eurostat_supplement import EurostatSupplementImporter
 from .eea_ghg_importer import EeaGhgImporter
 from .full_refresh import run_full_refresh
 from .hydro_importer import JrcHydroImporter
-from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshRunner
+from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshRunner, monthly_refresh_status
+from .refresh_safety import safe_error
 from .price_importer import WholesalePriceImporter
 from .server import serve
 from .runtime import resolve_community_db, resolve_server_config
@@ -131,12 +133,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     scheduled_refresh_parser.add_argument("--community-db", type=Path)
     scheduled_refresh_parser.add_argument("--refresh-report", type=Path)
+    subparsers.add_parser("monthly-refresh-status", help="Read the monthly report without importing or opening databases")
 
     subparsers.add_parser("reset-db", help="Delete the local SQLite database")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "serve":
@@ -174,6 +178,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Community backup created: {backup}")
         return 0
     args.db = args.db or DEFAULT_DB
+    if args.command == "monthly-refresh-status":
+        print(json.dumps(monthly_refresh_status(args.db), ensure_ascii=False))
+        return 0
     if args.command == "reset-db":
         print("Database deleted." if reset(args.db) else "Database did not exist.")
         return 0
@@ -204,7 +211,7 @@ def main(argv: list[str] | None = None) -> int:
                 report_path=args.refresh_report,
             ).run()
         except Exception as exc:
-            print(f"Monthly refresh aborted: {type(exc).__name__}: {exc}", file=sys.stderr)
+            print(f"Monthly refresh aborted: {type(exc).__name__}: {safe_error(exc)}", file=sys.stderr)
             return 1
         print(json.dumps(result, ensure_ascii=False))
         return 0

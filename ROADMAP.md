@@ -2,6 +2,12 @@
 
 Stand: 26. August 2026
 
+Betriebsnachtrag 22. September 2026: Monats-Refresh-Härtung lokal umgesetzt
+(Abdeckungsschutz, Betriebssystem-Sperren, Termin-/Retryplanung, begrenzte
+Ember-Cache-Bereinigung und Laufmeldungen). Produktionsaktivierung bleibt bis
+zum Deployment mit grüner Linux-CI und einem betreuten ersten Lauf offen;
+konkrete Schritte stehen in `docs/DEPLOYMENT.md`.
+
 Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktentscheidungen. Historische K2-Arbeitsaufträge sind als solche gekennzeichnet und gelten nicht als aktuelle Spezifikation.
 
 Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROADMAP.md](BETA_ROADMAP.md).

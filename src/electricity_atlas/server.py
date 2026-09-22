@@ -19,7 +19,7 @@ from .community import CommunityStore, browser_hash
 from .country_profile import build_country_profile
 from .db import database, read_database
 from .metrics import metric_catalog
-from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshScheduler
+from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshScheduler, monthly_refresh_health
 from .runtime import DEFAULT_COMMUNITY_DB, parse_public_origin, validate_existing_atlas_database
 from .storage_online import latest_storage
 from .timeseries import build_timeseries
@@ -266,6 +266,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
                 "status": "ok" if healthy else "unavailable",
                 "atlas_database": "ok" if atlas_ok else "unavailable",
                 "community_database": "ok" if community_ok else "unavailable",
+                "monthly_refresh": monthly_refresh_health(self.db_path),
             },
             HTTPStatus.OK if healthy else HTTPStatus.SERVICE_UNAVAILABLE,
         )
