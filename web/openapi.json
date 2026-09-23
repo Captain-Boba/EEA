@@ -466,7 +466,10 @@
           "source": {"type": "string"},
           "period": {"type": "string"},
           "period_status": {"type": "string"},
-          "data_status": {"type": "string"}
+          "data_status": {"type": "string"},
+          "retained_source_periods": {"type": "array", "items": {"type": "string"}, "description": "YYYY-MM periods retained from an older snapshot after an Ember source gap."},
+          "retained_source_metrics": {"type": "array", "items": {"type": "string"}, "description": "Public metric IDs depending on retained monthly observations; not newly verified source values."},
+          "quality_issues": {"type": "array", "items": {"type": "object"}}
         },
         "additionalProperties": true
       },

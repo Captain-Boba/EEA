@@ -440,5 +440,36 @@ process.stdout.write(JSON.stringify(values));
         self.assertIn("clearChartHoverThrottle();\n    const count", app)
 
 
+    def test_retention_notices_and_csv_quality_are_explicit(self):
+        result = self.run_node(r'''
+global.document = {getElementById: () => ({addEventListener: () => {}})};
+global.window = {location: {href: "http://localhost/"}, matchMedia: () => ({matches: true})};
+global.history = {replaceState: () => {}};
+global.fetch = () => new Promise(() => {});
+const {buildComparisonCsv, retainedComparisonNotice, statusLabel} = require("./web/app.js");
+const payload = {
+  countries: [{country_code: "HU", values: [{value: 2, quality_status: "retained_source_gap"}]}],
+  atlas_average: {values: [{period: "2017-01", value: 2, quality_status: "retained_source_gap"}]},
+};
+const row = {solar_twh: 2, price_avg_eur_mwh: 40, retained_source_metrics: ["solar_twh"], data_status: "complete"};
+const csv = buildComparisonCsv(payload);
+const notice = retainedComparisonNotice(payload);
+const solarStatus = statusLabel(row, {id: "solar_twh"});
+const priceStatus = statusLabel(row, {id: "price_avg_eur_mwh", temporal_availability: {}});
+payload.countries[0].values[0].quality_status = "observed";
+payload.atlas_average.values[0].quality_status = "observed";
+const clear = retainedComparisonNotice(payload);
+payload.countries[0].baseline_values = [{value: 1, quality_status: "retained_source_gap"}];
+process.stdout.write(JSON.stringify({csv, notice, solarStatus, priceStatus, clear, baseline: retainedComparisonNotice(payload)}));
+''')
+        self.assertIn("HU_quality_status,atlas_average_quality_status", result["csv"])
+        self.assertIn("retained_source_gap", result["csv"])
+        self.assertIn("HU, Atlas-Durchschnitt", result["notice"])
+        self.assertIn("älterer Datenstand", result["solarStatus"])
+        self.assertEqual(result["priceStatus"], "vollständig")
+        self.assertEqual(result["clear"], "")
+        self.assertIn("Vergleichsbasis", result["baseline"])
+
+
 if __name__ == "__main__":
     unittest.main()

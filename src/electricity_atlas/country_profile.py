@@ -65,6 +65,8 @@ def _metric_payload(
     else:
         source = _source_for(metric, row)
         quality_status = "missing" if value is None else row.get("data_status", "observed")
+        if value is not None and metric["id"] in row.get("retained_source_metrics", []):
+            quality_status = "retained_source_gap"
     return {
         "id": metric["id"],
         "label": metric["label_de"],

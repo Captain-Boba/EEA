@@ -128,12 +128,34 @@ not weaken that manual command.
   `atlas.sqlite3` byte-identical.
 - Automatic publication must preserve every previously published observation
   key (country, source, series, metric, unit and period). Empty/partial source
-  responses that remove keys are rejected even if HTTP/JSON parsing succeeded.
+  responses that remove keys are rejected even if HTTP/JSON parsing succeeded,
+  except for the narrowly defined Ember monthly component policy below.
   Numerical revisions are allowed. Snapshots may advance their date but cannot
   lose series or move backwards. Eurostat core and supplement are checked as
-  one group because core temporarily replaces supplement rows. A legitimate
-  upstream series removal needs a reviewed manual refresh, not an automatic
-  relaxation of this guard.
+  one group because core temporarily replaces supplement rows. Actual deletion
+  of published series still requires a reviewed manual decision.
+- When a previously published **monthly Ember generation component or its
+  percentage share** disappears, keep the entire previous country/month across
+  generation (including all totals and shares), demand and carbon intensity.
+  Other months, countries and yearly data can update normally. Do not fill gaps
+  with zero or splice old components into revised totals. This policy applies
+  only after every Ember import succeeds, only while fresh generation components
+  remain for that month, and never to missing aggregate, demand, carbon or yearly
+  keys. Those losses, empty periods and request/normalization failures still abort.
+  The final global coverage guard remains mandatory after restoration.
+- Retained observations carry `quality_status=retained_source_gap` in SQLite.
+  The Ember result is `refreshed_with_retention`; its `retention` object lists
+  missing series, missing/retained observation counts and each country/month.
+  Summary/compare rows expose `retained_source_periods`, `retained_source_metrics`
+  and a warning in `quality_issues`. YTD and yearly monthly-demand fallbacks
+  propagate retention only to dependent metrics; independent yearly generation
+  is not marked merely because historical months were retained. Time-series
+  points (including the Atlas average) and profiles expose quality status.
+  Map details and comparison/ranking notices explain the older data; affected
+  comparison CSVs include quality columns. A complete later source response
+  replaces the retained month and clears its flag automatically. A cache fetch
+  timestamp is not a fresh observation timestamp for these retained values.
+  No extra persistent database copies or external dependencies are introduced.
 - Battery-Charts is a controlled local input only. Both configured JSON files
   must exist and pass the existing importer validation before they are used.
   Otherwise existing Battery-Charts rows are retained as

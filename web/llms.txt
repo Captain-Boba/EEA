@@ -82,6 +82,14 @@ https://ee-atlas.eu/api/summary?year=2025&month=7
 
 Use this endpoint for full rankings or calculations involving all Atlas countries. Inspect each row's `data_status` and `period_status`.
 
+`retained_source_periods` lists country/months kept from an older Atlas snapshot
+because Ember no longer returned a previously published generation component.
+`retained_source_metrics` identifies the affected public metric IDs, including
+derived values; `quality_issues` explains the limitation. These are older retained
+observations, not newly verified source values or zero-filled gaps. Independent
+annual observations can still be current. Time-series points, Atlas averages and
+profile metrics expose `quality_status=retained_source_gap` when affected.
+
 ### Country profile
 
 `GET /api/country-profile?country=CC&year=YYYY[&month=M]`

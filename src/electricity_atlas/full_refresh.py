@@ -10,6 +10,7 @@ from .db import database
 from .eea_ghg_importer import EeaGhgImporter
 from .ember_client import load_ember_api_key
 from .ember_importer import EmberImporter
+from .ember_retention import monthly_ember_baseline, retain_monthly_source_gaps
 from .eurostat_importer import EurostatImporter
 from .eurostat_supplement import EurostatSupplementImporter
 from .hydro_importer import JrcHydroImporter
@@ -224,6 +225,7 @@ def run_scheduled_refresh(
         refreshed_since = datetime.now(UTC).isoformat()
         with database(candidate) as connection:
             before_ember = observation_coverage(connection)
+            ember_baseline = monthly_ember_baseline(connection)
             ember = EmberImporter(connection, refresh=True)
             ember_failures: list[dict[str, Any]] = []
             ember_successes = 0
@@ -244,10 +246,13 @@ def run_scheduled_refresh(
                     "error": f"Ember refresh failed for Atlas countries: {failed_countries}",
                 }
                 raise ScheduledRefreshCriticalError(source_results, RuntimeError(source_results["ember"]["error"]))
+            retention = critical("ember", lambda: retain_monthly_source_gaps(connection, ember_baseline))
             critical("ember", lambda: require_preserved_coverage(connection, before_ember))
             del before_ember
+            del ember_baseline
             source_results["ember"] = {
-                "status": "refreshed",
+                "status": "refreshed_with_retention" if retention["retained_periods"] else "refreshed",
+                "retention": retention,
                 "countries": len(EMBER_COUNTRIES),
                 "successful_units": ember_successes,
                 "from_year": from_year,

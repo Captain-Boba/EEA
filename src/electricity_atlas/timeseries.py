@@ -74,6 +74,10 @@ def build_timeseries(
                 "value": sum(values) / len(values) if values else None,
                 "data_status": "available" if values else "missing",
                 "period_status": period_status,
+                "quality_status": "retained_source_gap" if any(
+                    row.get(metric_id) is not None and metric_id in row.get("retained_source_metrics", [])
+                    for row in rows.values()
+                ) else "observed",
             }
         )
 
@@ -141,6 +145,8 @@ def _point(period: str, row: dict[str, Any], metric_id: str) -> dict[str, Any]:
         "value": value,
         "data_status": "available" if value is not None else "missing",
         "period_status": row["period_status"],
+        "quality_status": ("missing" if value is None else "retained_source_gap"
+                           if metric_id in row.get("retained_source_metrics", []) else "observed"),
     }
 
 

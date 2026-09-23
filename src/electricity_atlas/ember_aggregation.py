@@ -6,6 +6,8 @@ from datetime import date
 from typing import Any, Iterable
 
 from .aggregation import period_bounds, renewable_share, reporting_period_status, weighted_mean
+from .ember_retention import RETAINED_SOURCE_GAP
+from .metrics import METRICS
 from .config import (
     COUNTRIES,
     EMBER_PRICE_ENDPOINT,
@@ -154,7 +156,7 @@ def aggregate_ember_country(
     if is_current_ytd:
         rows = list(
             connection.execute(
-                """SELECT period_start,period_end,source_series,metric,value,unit
+                """SELECT period_start,period_end,source_series,metric,value,unit,quality_status
                    FROM period_observation
                    WHERE source=? AND country_code=? AND granularity='monthly'
                      AND period_start>=? AND period_start<?""",
@@ -165,7 +167,7 @@ def aggregate_ember_country(
         granularity = "monthly" if month is not None else "yearly"
         rows = list(
             connection.execute(
-                """SELECT period_start,period_end,source_series,metric,value,unit
+                """SELECT period_start,period_end,source_series,metric,value,unit,quality_status
                    FROM period_observation
                    WHERE source=? AND country_code=? AND granularity=? AND period_start=?""",
                 (EMBER_SOURCE_NAME, code, granularity, start),
@@ -239,6 +241,10 @@ def aggregate_ember_country(
     if consumption_twh is None:
         consumption_twh = fallback_consumption
     quality_issues: list[dict[str, str]] = []
+    retained_periods = {row["period_start"][:7] for row in rows
+                        if row["quality_status"] == RETAINED_SOURCE_GAP}
+    retained_metrics = {metric["id"] for metric in METRICS
+                        if EMBER_SOURCE_LABEL in metric["source"]} if retained_periods else set()
     if negative_residual_metrics:
         quality_issues.append(
             {
@@ -250,7 +256,7 @@ def aggregate_ember_country(
     if month is None and consumption_twh is None:
         monthly_demand = list(
             connection.execute(
-                """SELECT period_start, value FROM period_observation
+                """SELECT period_start, value, quality_status FROM period_observation
                    WHERE source=? AND country_code=? AND granularity='monthly'
                      AND metric='consumption' AND unit='TWh'
                      AND period_start>=? AND period_start<?
@@ -260,6 +266,12 @@ def aggregate_ember_country(
         )
         if len({row["period_start"][:7] for row in monthly_demand}) == 12:
             consumption_twh = sum(row["value"] for row in monthly_demand)
+            retained_demand = {row["period_start"][:7] for row in monthly_demand
+                               if row["quality_status"] == RETAINED_SOURCE_GAP}
+            if retained_demand:
+                retained_periods.update(retained_demand)
+                retained_metrics.update(("consumption_twh", "consumption_per_capita_mwh",
+                                         "consumption_gdp_intensity_kwh_eur", "self_sufficiency_pct"))
             quality_issues.append(
                 {
                     "issue_type": "yearly_demand_derived_from_monthly",
@@ -426,8 +438,19 @@ def aggregate_ember_country(
         if value is not None:
             public_supplemental[metric] = value * EUR_PER_MWH_TO_CENTS_PER_KWH
 
+    if retained_periods:
+        quality_issues.append({
+            "issue_type": RETAINED_SOURCE_GAP,
+            "severity": "warning",
+            "details": "Älterer Datenstand: Ember liefert zuvor vorhandene Monatswerte nicht mehr. "
+                       "Zusammengehörige Monatsdaten wurden beibehalten (keine Null-Ersetzung): "
+                       + ", ".join(sorted(retained_periods)) + ".",
+        })
+
     return {
         "country_code": code,
+        "retained_source_periods": sorted(retained_periods),
+        "retained_source_metrics": sorted(retained_metrics),
         "country_name": COUNTRIES[code].name,
         "period": f"{year:04d}-{month:02d}" if month else str(year),
         "period_status": reporting_period_status(year, month),

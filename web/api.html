@@ -81,6 +81,7 @@
       <ul>
         <li><code>null</code> bedeutet fehlend oder nicht anwendbar und darf nicht als Nullwert interpretiert werden.</li>
         <li>Einheiten, tatsächliche Berichtszeiträume, Datenstatus, Qualitätsangaben und Quellen müssen erhalten bleiben.</li>
+        <li><code>retained_source_periods</code> und <code>retained_source_metrics</code> kennzeichnen ältere Monatsdaten und davon abhängige Kennzahlen, die wegen einer Ember-Quellenlücke beibehalten wurden. Zeitreihen und Steckbriefe melden dafür <code>quality_status=retained_source_gap</code>. Diese Werte sind nicht frisch bestätigt; fehlende Daten wurden nicht durch null oder Nullwerte ersetzt.</li>
         <li>Der Atlas verwendet für das Vereinigte Königreich den Code <code>UK</code>.</li>
         <li>Die Community-Abstimmung der Europa-Overload-Bilder ist keine analytische Datenschnittstelle und nicht für automatisierte Stimmen vorgesehen.</li>
       </ul>

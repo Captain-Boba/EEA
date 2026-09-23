@@ -285,7 +285,7 @@ function leadingTableHeader(withSelection = false) {
 function tableCountry(row) {
   return `<button type="button" class="table-country profile-open" data-country-profile="${row.country_code}" aria-label="Steckbrief für ${escapeAttribute(row.country_name)} öffnen">
     <img src="/assets/flags/${flagCode(row.country_code)}.svg" alt="" loading="lazy">
-    <span class="table-country-copy"><span class="country-name">${escapeHtml(row.country_name)}</span><small>${escapeHtml(row.country_code)}</small></span>
+    <span class="table-country-copy"><span class="country-name">${escapeHtml(row.country_name)}</span><small>${escapeHtml(row.country_code)}</small>${row.retained_source_periods?.length ? '<small title="Einige Ember-Kennzahlen enthalten wegen einer Quellenlücke beibehaltene Monatsdaten. Details im Steckbrief.">Ember: teils älterer Stand</small>' : ""}</span>
   </button>`;
 }
 
@@ -838,6 +838,7 @@ function statusLabel(row, metric) {
   if (!row) return "fehlend";
   const value = row[metric.id];
   if (value === null || value === undefined) return "fehlend";
+  if (row.retained_source_metrics?.includes(metric.id)) return "älterer Datenstand · wegen Quellenlücke beibehalten";
   if (metric.temporal_availability.snapshot) {
     const quality = row.metric_provenance?.[metric.id]?.quality_status || row.quality_status;
     return storageQualityLabel(quality);
@@ -1808,7 +1809,7 @@ async function loadTimeseries({scroll = false, updateUrl = true, availabilityPre
   animateChartNextRender = true;
   renderTimeseriesChart();
   for (const id of ["export-csv", "export-svg", "export-png", "copy-link"]) $(id).disabled = false;
-  $("comparison-status").textContent = `${payload.countries.length} Länder · ${payload.granularity === "monthly" ? "Monatswerte" : "Jahreswerte"} · fehlende Werte bleiben als Linienlücken sichtbar.`;
+  $("comparison-status").textContent = `${payload.countries.length} Länder · ${payload.granularity === "monthly" ? "Monatswerte" : "Jahreswerte"} · fehlende Werte bleiben als Linienlücken sichtbar.${retainedComparisonNotice(payload)}`;
   syncComparisonPresetFromFields(payload.metric);
   if (updateUrl) writeComparisonUrl();
   if (scroll) $("comparison").scrollIntoView({behavior: "smooth"});
@@ -2214,6 +2215,11 @@ function renderRanking(index) {
   const fallbackNotes = SHOW_RANKING_DATA_QUALITY_NOTICES
     ? entries.filter(entry => entry.fallback.active).map(entry => `<span class="ranking-footnote-star" aria-hidden="true">*</span> ${escapeHtml(entry.fallback.text)}`)
     : [];
+  entries.filter(entry => entry.country.values[index]?.quality_status === "retained_source_gap")
+    .forEach(entry => fallbackNotes.push(`${escapeHtml(entry.country.country_name)}: älterer Monatsstand wegen Ember-Quellenlücke beibehalten.`));
+  if (timeseriesData.atlas_average.values[index]?.quality_status === "retained_source_gap") {
+    fallbackNotes.push("Atlas-Durchschnitt enthält beibehaltene ältere Monatsdaten.");
+  }
   $("ranking-footnotes").hidden = fallbackNotes.length === 0;
   $("ranking-footnotes").innerHTML = fallbackNotes.join("<br>");
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -2253,12 +2259,24 @@ function animateMetricNumber(element, from, to, metric) {
   requestAnimationFrame(frame);
 }
 
+function retainedComparisonNotice(payload) {
+  const affected = payload.countries.filter(country => [...country.values, ...(country.baseline_values || [])]
+    .some(point => point.quality_status === "retained_source_gap")).map(country => country.country_code);
+  const averageAffected = payload.atlas_average.values.some(point => point.quality_status === "retained_source_gap");
+  if (!affected.length && !averageAffected) return "";
+  const subjects = [...affected, ...(averageAffected ? ["Atlas-Durchschnitt"] : [])];
+  return ` Hinweis: ${subjects.join(", ")} enthalten ältere Monatsdaten, die wegen einer Ember-Quellenlücke beibehalten wurden (ggf. auch Vergleichsbasis).`;
+}
+
 function buildComparisonCsv(payload) {
   const header = ["period", ...payload.countries.map(country => country.country_code), "atlas_average"];
+  const includeQuality = Boolean(retainedComparisonNotice(payload));
+  if (includeQuality) header.push(...payload.countries.map(country => `${country.country_code}_quality_status`), "atlas_average_quality_status");
   const rows = payload.atlas_average.values.map((average, index) => [
     average.period,
     ...payload.countries.map(country => country.values[index].value ?? ""),
     average.value ?? "",
+    ...(includeQuality ? [...payload.countries.map(country => country.values[index].quality_status || "observed"), average.quality_status || "observed"] : []),
   ]);
   return [header, ...rows].map(row => row.map(value => {
     const text = String(value);
@@ -2270,6 +2288,8 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     assignCountryColors,
     buildComparisonCsv,
+    retainedComparisonNotice,
+    statusLabel,
     colorDistance,
     electromobilityRowsForView,
     extractFlagColors,
