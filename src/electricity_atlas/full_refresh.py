@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import EMBER_COUNTRIES
+from .battery_dashboard import BatteryDashboardClient
 from .db import database
 from .eea_ghg_importer import EeaGhgImporter
 from .ember_client import load_ember_api_key
@@ -18,6 +19,7 @@ from .price_importer import WholesalePriceImporter
 from .refresh_lifecycle import run_refresh_lifecycle
 from .refresh_safety import observation_coverage, require_preserved_coverage, prune_superseded_ember_cache, safe_error
 from .storage_online import BatteryChartsImporter, OnlineStorageUpdater
+from .storage_dashboard import JrcDashboardClient
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,8 @@ def _compact_result(result: dict[str, Any]) -> dict[str, Any]:
         "network_requests",
         "download_requests",
         "release_date",
+        "latest_date",
+        "import_mode",
     ):
         if key in result:
             compact[key] = result[key]
@@ -182,9 +186,9 @@ def run_scheduled_refresh(
 
     This deliberately differs from :func:`run_full_refresh`: the latter is the
     strict manual command and remains strict for every source.  The scheduled
-    production mode requires the four machine-readable core sources, retains
-    controlled Battery-Charts values when local exports are absent, and never
-    invokes the browser-bound JRC storage updater.
+    production mode requires the four machine-readable core sources. Public
+    Battery-Charts/JRC browser exports are optional, with per-source rollback.
+    Explicit local Battery-Charts inputs override its browser download.
     """
 
     last_year = to_year or date.today().year
@@ -287,7 +291,7 @@ def run_scheduled_refresh(
                     "battery_charts",
                     lambda: BatteryChartsImporter(connection).import_files(energy_file, power_file),
                 )
-            else:
+            elif energy_file is not None or power_file is not None:
                 configured = [str(path) for path in (energy_file, power_file) if path is not None]
                 source_results["battery_charts"] = {
                     "status": "preserved_controlled_input",
@@ -295,10 +299,18 @@ def run_scheduled_refresh(
                     "configured_files": [Path(path).name for path in configured],
                 }
 
-            source_results["jrc_storage"] = {
-                "status": "preserved",
-                "reason": "The scheduled refresh does not run the browser-bound JRC dashboard importer",
-            }
+            else:
+                source_results["battery_charts"] = _optional_candidate_source(
+                    connection, "battery_charts",
+                    lambda: BatteryChartsImporter(connection).import_downloads(*BatteryDashboardClient().fetch_pair()),
+                )
+
+            source_results["jrc_storage"] = _optional_candidate_source(
+                connection, "jrc_storage",
+                lambda: OnlineStorageUpdater(
+                    connection, refresh=True, jrc_client=JrcDashboardClient(headed=False),
+                ).update()["jrc"],
+            )
             source_results["jrc_hydro"] = _optional_candidate_source(
                 connection,
                 "jrc_hydro",

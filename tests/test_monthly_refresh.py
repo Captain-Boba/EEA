@@ -5,6 +5,7 @@ import sqlite3
 import tempfile
 import threading
 import unittest
+from contextlib import ExitStack
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.request import urlopen
@@ -326,7 +327,34 @@ class MonthlyRefreshTests(unittest.TestCase):
 
 
 class ScheduledRefreshSourcePolicyTests(unittest.TestCase):
-    def test_core_sources_are_strict_battery_without_files_is_preserved_and_jrc_storage_is_not_called(self):
+    def test_explicit_local_battery_files_never_fall_back_to_browser(self):
+        fixtures = Path(__file__).parent / "fixtures" / "storage"
+        for power in (None, fixtures / "missing.json", fixtures / "battery_power.json"):
+            with self.subTest(power=power), tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+                root = Path(directory)
+                stack.enter_context(patch("electricity_atlas.full_refresh.run_refresh_lifecycle",
+                                          side_effect=lambda _path, action, **_kw: action(root / "candidate.sqlite3")))
+                stack.enter_context(patch("electricity_atlas.full_refresh.load_ember_api_key"))
+                ember = stack.enter_context(patch("electricity_atlas.full_refresh.EmberImporter"))
+                ember.return_value.import_range.return_value = {"successes": [], "errors": 0}
+                for cls, method in (("WholesalePriceImporter", "import_prices"),
+                                    ("EurostatImporter", "import_years"),
+                                    ("EurostatSupplementImporter", "import_years"),
+                                    ("JrcHydroImporter", "import_release"),
+                                    ("EeaGhgImporter", "import_url")):
+                    mock = stack.enter_context(patch(f"electricity_atlas.full_refresh.{cls}"))
+                    getattr(mock.return_value, method).return_value = {"rows": 0}
+                storage = stack.enter_context(patch("electricity_atlas.full_refresh.OnlineStorageUpdater"))
+                storage.return_value.update.return_value = {"jrc": {"rows": 0}}
+                browser = stack.enter_context(patch("electricity_atlas.full_refresh.BatteryDashboardClient"))
+                result = run_scheduled_refresh(root / "atlas.sqlite3",
+                                               battery_energy_file=fixtures / "battery_energy.json",
+                                               battery_power_file=power)
+                expected = "refreshed" if power is not None and power.is_file() else "preserved_controlled_input"
+                self.assertEqual(result["battery_charts"]["status"], expected)
+                browser.assert_not_called()
+
+    def test_core_sources_are_strict_and_public_storage_exports_are_optional(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             candidate = root / "candidate.sqlite3"
@@ -356,14 +384,20 @@ class ScheduledRefreshSourcePolicyTests(unittest.TestCase):
             ), patch("electricity_atlas.full_refresh.JrcHydroImporter", return_value=hydro), patch(
                 "electricity_atlas.full_refresh.EeaGhgImporter", return_value=ghg), patch(
                 "electricity_atlas.full_refresh.BatteryChartsImporter"
-            ) as battery, patch("electricity_atlas.full_refresh.OnlineStorageUpdater") as storage:
+            ) as battery, patch("electricity_atlas.full_refresh.OnlineStorageUpdater") as storage, patch(
+                "electricity_atlas.full_refresh.BatteryDashboardClient"
+            ) as dashboard, patch("electricity_atlas.full_refresh.JrcDashboardClient") as jrc:
+                dashboard.return_value.fetch_pair.return_value = ("energy", "power")
+                battery.return_value.import_downloads.return_value = {"rows": 12}
+                storage.return_value.update.return_value = {"jrc": {"rows": 3}}
                 result = run_scheduled_refresh(root / "atlas.sqlite3", to_year=2026)
             self.assertEqual(result["status"], "success")
             policy = result["refresh"]
-            self.assertEqual(policy["battery_charts"]["status"], "preserved_controlled_input")
-            self.assertEqual(policy["jrc_storage"]["status"], "preserved")
-            battery.assert_not_called()
-            storage.assert_not_called()
+            self.assertEqual(policy["battery_charts"]["status"], "refreshed")
+            self.assertEqual(policy["jrc_storage"]["status"], "refreshed")
+            battery.return_value.import_downloads.assert_called_once_with("energy", "power")
+            jrc.assert_called_once_with(headed=False)
+            storage.return_value.update.assert_called_once_with()
             self.assertEqual(events[0:3], ["ember:AT", "ember:BE", "ember:BG"])
             self.assertEqual(events[-5:], ["prices", "core", "supplement", "hydro", "ghg"])
             self.assertIn("ghg", events)
@@ -385,7 +419,11 @@ class ScheduledRefreshSourcePolicyTests(unittest.TestCase):
             ) as prices, patch("electricity_atlas.full_refresh.EurostatImporter") as core, patch(
                 "electricity_atlas.full_refresh.EurostatSupplementImporter"
             ) as supplement, patch("electricity_atlas.full_refresh.JrcHydroImporter") as hydro, patch(
-                "electricity_atlas.full_refresh.EeaGhgImporter") as ghg:
+                "electricity_atlas.full_refresh.EeaGhgImporter") as ghg, patch(
+                "electricity_atlas.full_refresh.BatteryDashboardClient"
+            ) as battery, patch("electricity_atlas.full_refresh.OnlineStorageUpdater") as storage:
+                battery.return_value.fetch_pair.side_effect = RuntimeError("fixture browser unavailable")
+                storage.return_value.update.side_effect = RuntimeError("fixture browser unavailable")
                 prices.return_value.import_prices.return_value = {"rows": 1}
                 core.return_value.import_years.return_value = {"rows": 1}
                 supplement.return_value.import_years.return_value = {"rows": 1}
@@ -393,6 +431,8 @@ class ScheduledRefreshSourcePolicyTests(unittest.TestCase):
                 ghg.return_value.import_url.return_value = {"rows": 1}
                 result = run_scheduled_refresh(root / "atlas.sqlite3", to_year=2026)
             self.assertEqual(result["jrc_hydro"]["status"], "failed_optional")
+            self.assertEqual(result["battery_charts"]["status"], "failed_optional")
+            self.assertEqual(result["jrc_storage"]["status"], "failed_optional")
 
             with patch("electricity_atlas.full_refresh.run_refresh_lifecycle", side_effect=lifecycle), patch(
                 "electricity_atlas.full_refresh.load_ember_api_key"

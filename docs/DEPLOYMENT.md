@@ -21,8 +21,9 @@ The command-line value wins over an environment variable; an environment variabl
 | `EEA_MONTHLY_REFRESH_RETRY_SECONDS` | `21600` | Delay after a failed run before another attempt. |
 | `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Legacy setting; OS locks now release automatically on process exit. |
 | `EEA_MONTHLY_REFRESH_FROM_YEAR` | `2015` | History start for planned Ember and Eurostat imports. |
-| `EEA_BATTERY_ENERGY_FILE` | unset | Approved local Battery-Charts energy JSON on the service volume. |
-| `EEA_BATTERY_POWER_FILE` | unset | Approved local Battery-Charts power JSON on the service volume. |
+| `EEA_BATTERY_ENERGY_FILE` | unset | Optional local energy JSON override; otherwise public dashboard export. |
+| `EEA_BATTERY_POWER_FILE` | unset | Matching local power JSON override; configure both or neither. |
+| `RAILPACK_PYTHON_PLAYWRIGHT_INSTALL` | `1` | Build-time installation of Playwright browsers and their system dependencies for public storage exports. |
 
 Example local development start:
 
@@ -164,13 +165,45 @@ it has not yet succeeded. It runs the child without stopping HTTP handling. Read
 `/data/reports/MONTHLY_REFRESH.generated.json` for the last result, candidate
 and publication hashes, source policy, and next retry time.
 
-The production Docker/Railpack image deliberately has no Playwright/Chromium
-runtime. Planned runs therefore preserve the existing JRC storage snapshot;
-they do not delete it or create zeros. JRC hydro and EEA GHG are optional and
-preserved on failure. Ember, prices, and both Eurostat imports are critical:
-their failure prevents publication entirely. Battery values are refreshed only
-from both approved local JSON files; absent files preserve the current values
-without any Battery-Charts network access.
+### Browser exports for JRC storage and Battery-Charts
+
+In **Railway → EEA → Variables**, add:
+
+```text
+RAILPACK_PYTHON_PLAYWRIGHT_INSTALL=1
+```
+
+Deploy the code and variable together. This is the official
+[Railpack Python Playwright integration](https://railpack.com/languages/python/#playwright):
+it installs browser binaries matching the project's Playwright package plus
+Linux runtime libraries during the build. A restart of an older image is not
+enough. If the selected Railpack version does not recognize this setting,
+update the builder before enabling browser exports; do not install packages
+in the running service or add a separate cron service with a different volume.
+
+Playwright is already a production dependency (established Microsoft project,
+Apache-2.0); this adds its browser runtime, not another Python library.
+Browser binaries enlarge the image and increase peak RAM during the two
+sequential monthly acquisitions. Keep Playwright/browser security updates
+current. No privileged container, custom sandbox bypass, persistent browser
+profile or extracted website API key is required. Do not suppress TLS checks.
+
+JRC storage downloads its four official filtered XLSX exports; Battery-Charts
+downloads the energy/power CSV pair through the public buttons. Leave both
+`EEA_BATTERY_*_FILE` variables unset for automatic CSV acquisition. Explicit
+local JSON overrides remain available. The old direct Battery-Charts API
+client remains disabled.
+
+These sources, JRC hydro and EEA GHG are optional: failures preserve their
+existing observations and source caches and appear as `failed_optional` in
+the monthly report. Core sources (Ember, prices and both Eurostat imports)
+remain critical. A completed monthly run does not rerun just because this
+browser setting was added; the next due month uses it automatically.
+
+After deployment, verify the build installed browsers and perform a read-only,
+in-memory acquisition/import check on Linux before claiming production browser
+acceptance. Local Windows headless success is not Linux deployment acceptance.
+Do not force another whole monthly refresh just to test the browser runtime.
 
 The worker creates only its exact candidate/rollback files below
 `/data/.refresh-work/<run-id>/` plus two small persistent lock files

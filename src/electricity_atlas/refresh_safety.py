@@ -87,10 +87,15 @@ def observation_coverage(connection) -> dict[tuple, str]:
                granularity, period_start, period_end, unit FROM period_observation
     """):
         country, source, endpoint, series, metric, granularity, start, end, unit = row
+        # Battery registry exports extend a provisional month's end date on
+        # subsequent runs. Preserve month identity and require a non-decreasing
+        # end date; no missing month/series or completed-month regression allowed.
+        battery_month = (source == "battery_charts" and granularity == "monthly"
+                         and start[:7] == end[:7] and start.endswith("-01"))
         key = (country, source, endpoint, series, metric, granularity, unit,
                "" if granularity == "snapshot" else start,
-               "" if granularity == "snapshot" else end)
-        coverage[key] = max(start, coverage.get(key, ""))
+               "" if granularity == "snapshot" or battery_month else end)
+        coverage[key] = max(end if battery_month else start, coverage.get(key, ""))
     return coverage
 
 

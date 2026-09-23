@@ -10,6 +10,13 @@ konkrete Schritte stehen in `docs/DEPLOYMENT.md`.
 
 Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktentscheidungen. Historische K2-Arbeitsaufträge sind als solche gekennzeichnet und gelten nicht als aktuelle Spezifikation.
 
+Betriebsnachtrag 23. September 2026: JRC-Speicherinventar und Battery-Charts
+sind als optionale Headless-Browser-Exporte in den Monatslauf integriert.
+Battery-Charts nutzt die öffentlichen CSV-Downloads; lokale JSONs bleiben
+explizite Overrides. Für Railway ist die offizielle Build-Variable
+`RAILPACK_PYTHON_PLAYWRIGHT_INSTALL=1` nötig. Lokale Headless-Abrufe funktionieren;
+Deployment und Linux-Live-Abnahme dieser Erweiterung stehen noch aus.
+
 Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROADMAP.md](BETA_ROADMAP.md).
 
 ## Aktuelle Arbeitsprioritäten

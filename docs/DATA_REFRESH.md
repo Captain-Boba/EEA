@@ -77,8 +77,8 @@ changed without a cron parser:
 | `EEA_MONTHLY_REFRESH_RETRY_SECONDS` | `21600` | Delay before retrying a failed current-month run. |
 | `EEA_MONTHLY_REFRESH_LOCK_STALE_SECONDS` | `43200` | Legacy setting, accepted but no longer used; the OS releases crashed-worker locks. |
 | `EEA_MONTHLY_REFRESH_FROM_YEAR` | `2015` | First Ember/Eurostat year for the planned run. |
-| `EEA_BATTERY_ENERGY_FILE` | unset | Approved local Battery-Charts energy JSON. |
-| `EEA_BATTERY_POWER_FILE` | unset | Approved local Battery-Charts power JSON. |
+| `EEA_BATTERY_ENERGY_FILE` | unset | Optional local energy JSON override; otherwise public dashboard CSV. |
+| `EEA_BATTERY_POWER_FILE` | unset | Matching local power JSON override; configure both or neither. |
 
 At startup and at each check, a successful report for the current month
 suppresses another run. If the service was down at the scheduled time, the
@@ -156,13 +156,33 @@ not weaken that manual command.
   replaces the retained month and clears its flag automatically. A cache fetch
   timestamp is not a fresh observation timestamp for these retained values.
   No extra persistent database copies or external dependencies are introduced.
-- Battery-Charts is a controlled local input only. Both configured JSON files
-  must exist and pass the existing importer validation before they are used.
-  Otherwise existing Battery-Charts rows are retained as
-  `preserved_controlled_input`; no Battery-Charts network request is made.
-- JRC storage remains browser-bound in this mode and is retained as
-  `preserved`. No Chromium or Playwright dependency is installed in the Railway
-  image for this scheduler.
+- Battery-Charts uses the two public CSV download buttons at
+  <https://battery-charts.de/battery-charts/> in headless Chromium. CSV values
+  are GWh/GW, not the kWh/kW used by local JSON. Units are checked against the
+  loaded charts; column names, finite/non-negative values, matching dates and
+  historical coverage are validated before replacement. The raw CSVs replace
+  the same two source-cache entries, with landing-page provenance and hashes.
+  Data attribution remains Battery-Charts / RWTH ISEA, CC BY 4.0. No API key
+  is extracted, configured or retained; the legacy direct API remains disabled.
+  Two configured local JSONs take precedence. If only one file is configured,
+  or a configured file is missing, retain `preserved_controlled_input` without
+  silently falling back to network access.
+- Battery month identity includes its month start; its published end date
+  may advance (including closing a provisional month), never move backwards.
+  Every prior month/segment/metric must remain present. This exception is
+  restricted to Battery-Charts monthly records, not other time series.
+- JRC storage uses the existing four filtered XLSX dashboard downloads in
+  headless Chromium (Operational; Electrochemical and Mechanical/PHS).
+  Snapshots cannot move backwards or lose published series.
+- Both browser sources are optional and run sequentially in the existing
+  monthly child process. Missing browser/runtime, timeout, malformed/partial
+  exports or coverage loss produces `failed_optional` and restores that source's
+  rows and cache. A successful core refresh may still publish; a successful
+  month does not retry its optional failures until the next monthly run.
+  Downloads and browser profiles are temporary and removed on browser close;
+  no new persistent JSON/CSV/database copies are created in `/data`.
+  Install the browser during the build, never from the running monthly worker;
+  see [DEPLOYMENT.md](DEPLOYMENT.md#browser-exports-for-jrc-storage-and-battery-charts).
 - JRC hydro and EEA GHG are attempted as optional sources. A temporary failure
   rolls only that source back inside the candidate and is reported as
   `failed_optional`; existing rows remain part of the published candidate.

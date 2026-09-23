@@ -144,7 +144,11 @@ The JRC command imports the CC BY 4.0 release inventory without estimating missi
 
 ### Battery and pumped-storage inventories
 
-Battery-Charts is currently imported exclusively from two manually saved JSON responses. The Atlas does not use a Battery-Charts key and never requests its JSON endpoint:
+The scheduled monthly refresh downloads Battery-Charts energy and power through
+its public CSV export buttons in headless Chromium. It does not extract an API
+key or call the legacy JSON client. Both exports must pass validation together;
+on failure, the existing inventory and source cache are retained. Local JSONs
+remain available as explicit overrides or for manual imports:
 
 ```powershell
 .\.venv\Scripts\eea.exe import-battery-storage `
@@ -230,7 +234,11 @@ The web interface never performs imports. The analytical interface, map, flags, 
 
 ## Development and tests
 
-The local server and analytical API use the Python standard library. The explicitly triggered JRC dashboard refresh additionally requires the declared Playwright dependency and its isolated Chromium runtime.
+The local server and analytical API use the Python standard library. JRC and
+Battery-Charts dashboard downloads additionally use the declared Playwright
+dependency and its isolated Chromium runtime. For automatic Railway acquisition,
+set `RAILPACK_PYTHON_PLAYWRIGHT_INSTALL=1` during the build; see
+[deployment instructions](docs/DEPLOYMENT.md#browser-exports-for-jrc-storage-and-battery-charts).
 
 ```powershell
 $env:PYTHONPATH = "$PWD\src"

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import calendar
+import csv
 import hashlib
+import io
 import json
 import math
 import os
@@ -285,7 +287,7 @@ class BatteryChartsImporter:
 
     def import_downloads(self, energy: SourceDownload, power: SourceDownload) -> dict[str, Any]:
         if energy.status_code not in {200, 304} or power.status_code not in {200, 304}:
-            raise StorageOnlineError("Battery-Charts responses must be successful JSON responses")
+            raise StorageOnlineError("Battery-Charts responses must be successful exports")
         if not energy.payload_text or not power.payload_text:
             raise StorageOnlineError("Battery-Charts conditional response is missing its cached payload")
         energy_rows = self._series(energy, "energy")
@@ -343,13 +345,17 @@ class BatteryChartsImporter:
             "replaced_rows": replaced,
             "segments": list(BATTERY_SEGMENTS),
             "not_modified": energy.status_code == 304 and power.status_code == 304,
+            "import_mode": "public_dashboard_csv" if energy.content_type == power.content_type == "text/csv" else "json",
         }
 
     def _series(self, download: SourceDownload, label: str) -> dict[str, dict[str, float]]:
-        try:
-            payload = json.loads(download.payload_text)
-        except json.JSONDecodeError as exc:
-            raise StorageOnlineError(f"Battery-Charts {label} returned invalid JSON") from exc
+        if download.content_type == "text/csv":
+            payload = self._csv_rows(download.payload_text)
+        else:
+            try:
+                payload = json.loads(download.payload_text)
+            except json.JSONDecodeError as exc:
+                raise StorageOnlineError(f"Battery-Charts {label} returned invalid JSON") from exc
         if not isinstance(payload, list) or not payload:
             raise StorageOnlineError(f"Battery-Charts {label} JSON must be a non-empty array")
         parsed: dict[str, dict[str, float]] = {}
@@ -361,8 +367,12 @@ class BatteryChartsImporter:
                 point = datetime.strptime(item["date"], "%Y-%m-%d %H:%M:%S").date()
             except (TypeError, ValueError) as exc:
                 raise StorageOnlineError(f"Battery-Charts {label} row {index} has an invalid date") from exc
+            if point > self.today:
+                raise StorageOnlineError(f"Battery-Charts {label} contains a future date")
             if previous is not None and point <= previous:
                 raise StorageOnlineError(f"Battery-Charts {label} dates are not strictly increasing")
+            if previous is not None and point.replace(day=1) == previous.replace(day=1):
+                raise StorageOnlineError(f"Battery-Charts {label} contains duplicate months")
             previous = point
             month_end = point.replace(day=calendar.monthrange(point.year, point.month)[1])
             if index + 1 < len(payload) and point != month_end:
@@ -382,6 +392,31 @@ class BatteryChartsImporter:
                     raise StorageOnlineError(f"Battery-Charts {label} contains duplicate date {key}")
                 parsed[key] = values
         return parsed
+
+    @staticmethod
+    def _csv_rows(payload: str) -> list[dict[str, Any]]:
+        reader = csv.DictReader(io.StringIO(payload.lstrip("\ufeff")), strict=True)
+        columns = {"Date": "date", "Home Storage": "home", "Industrial Storage": "industrial",
+                   "Large-Scale Storage": "grossspeicher", "Large-scale Storage": "grossspeicher"}
+        header = reader.fieldnames or []
+        if len(header) != 4 or any(name not in columns for name in header) or {
+            columns[name] for name in header
+        } != {"date", *BATTERY_SEGMENTS}:
+            raise StorageOnlineError("Battery-Charts CSV columns changed")
+        result = []
+        try:
+            for row in reader:
+                if None in row or any(value is None or not value.strip() for value in row.values()):
+                    raise StorageOnlineError("Battery-Charts CSV contains incomplete rows")
+                converted = {"date": row["Date"]}
+                for column in header:
+                    if column != "Date":
+                        # Public chart exports use GWh/GW; local JSON uses kWh/kW.
+                        converted[columns[column]] = float(row[column]) * 1_000_000
+                result.append(converted)
+        except (ValueError, csv.Error) as exc:
+            raise StorageOnlineError("Battery-Charts CSV contains invalid values") from exc
+        return result
 
     @staticmethod
     def _local_download(path: Path, endpoint: str) -> SourceDownload:

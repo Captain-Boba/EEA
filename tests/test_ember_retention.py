@@ -208,6 +208,10 @@ class EmberRetentionTests(unittest.TestCase):
                     stack.enter_context(patch("electricity_atlas.full_refresh.load_ember_api_key"))
                     stack.enter_context(patch("electricity_atlas.full_refresh.EmberImporter", side_effect=importer))
                     stack.enter_context(patch("electricity_atlas.full_refresh.run_refresh_lifecycle", side_effect=lifecycle))
+                    for browser_source, method in (("BatteryDashboardClient", "fetch_pair"),
+                                                    ("OnlineStorageUpdater", "update")):
+                        mock = stack.enter_context(patch(f"electricity_atlas.full_refresh.{browser_source}"))
+                        getattr(mock.return_value, method).side_effect = RuntimeError("offline fixture")
                     for cls, method in (("WholesalePriceImporter", "import_prices"),
                                         ("EurostatImporter", "import_years"),
                                         ("EurostatSupplementImporter", "import_years"),
