@@ -259,9 +259,24 @@ To roll back, stop the server, restore the previous Atlas snapshot, and start it
 
 It returns a non-success status when either database cannot be reached. A failed
 refresh alone does not make the serving database unhealthy. The refresh summary
-may add `target_month`, `completed_at` and `next_attempt_at`; these describe the
-last report, not proof that a worker is currently alive. It never exposes file
-paths, detailed errors, source payloads, request URLs or secrets.
+may add `target_month`, `completed_at`, `next_attempt_at`, `publication`, `sources`
+and `source_warnings`. These describe the last recorded attempt, not proof that
+a worker is alive or all upstream data is recent. It never exposes file paths,
+detailed errors, source payloads, request URLs or secrets.
+
+For example, `last_run_status=success`, `publication=published` and
+`sources.jrc_storage=failed_optional` means the core candidate was published
+while JRC kept its previous data. `refreshed_with_retention` identifies Ember
+updates containing explicitly retained historical months. Inspect the local
+monthly report for the details. A successful month does not retry optional
+sources automatically. If `publication=not_published`, even `refreshed` source
+steps belong only to the rejected attempt, not the serving database.
+
+`source_warnings` contains known source IDs with a status other than `refreshed`
+after a completed attempt, including `unknown` for incomplete legacy reports.
+The health contract is documented in `/openapi.json`. Do not turn these source
+warnings into service restart/HTTP-503 conditions; database availability and
+data freshness are different signals.
 
 ## Community backups and restore
 

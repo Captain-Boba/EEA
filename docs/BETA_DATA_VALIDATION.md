@@ -4,6 +4,10 @@ Prüfauftrag: `K4-BETA-DATA-001` / finaler vollständiger Datenrefresh
 
 Prüfdatum: 25. August 2026
 
+> Historische Abnahme des August-Beta-Snapshots, keine Bestätigung des aktuellen
+> Railway-Datenstands. Neu erzeugte Offline-Berichte haben einen eigenen
+> `REPORT_MANIFEST.generated.json`; siehe `docs/DATA_REFRESH.md`.
+
 Datengate: **READY FOR BETA – OWNER RISK ACCEPTED**
 
 ## Kurzentscheidung
@@ -128,7 +132,7 @@ Die zwei vom aktuellen CLI-Befehl unterstützten Reports wurden zuerst gegen den
 | `data/reports/COVERAGE.generated.md` | `DE65159043A161EF3EE045A5CD83DFF93502F3A4CD2546B0E97306286A3BBE20` | finaler 2025-Coverage-Bericht |
 | `data/reports/SUMMARY.generated.json` | `6E08FAAEAC0D6C85E23F7667FC9F51E0A5AD5E1688ED946E95519D85F194D213` | finaler 2025-Summary-Bericht |
 
-`data/reports/VALIDATION.generated.md` ist ausdrücklich als historischer Bericht der früheren Energy-Charts-Architektur gekennzeichnet, wird vom aktuellen `eea report` nicht erzeugt und gilt nicht als aktuelle Ember-Validierung.
+Der frühere `data/reports/VALIDATION.generated.md` ist unter `docs/history/ENERGY_CHARTS_VALIDATION_2025.md` archiviert und gilt nicht als Ember-Validierung. `eea report` erzeugt unter dem ursprünglichen Dateinamen jetzt einen reproduzierbaren Offline-Bericht des ausgewählten Atlas-Snapshots, ohne die historische Beta-Abnahme zu überschreiben.
 
 ## 6. Eigentümerentscheidungen und Grenzen
 

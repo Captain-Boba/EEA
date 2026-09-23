@@ -22,6 +22,8 @@ from electricity_atlas.monthly_refresh import (
     MonthlyRefreshRunner,
     MonthlyRefreshScheduler,
     PersistentRefreshLock,
+    PUBLIC_REFRESH_SOURCES,
+    monthly_refresh_health,
 )
 from electricity_atlas.refresh_lifecycle import RefreshLifecycleError, run_refresh_lifecycle
 from electricity_atlas.server import create_server
@@ -202,10 +204,91 @@ class MonthlyRefreshTests(unittest.TestCase):
         self.assertNotIn("error", result)
         self.assertNotIn("database", result)
         self.assertEqual(result["sources"], {"ember": "failed_critical"})
-        self.assertEqual(monthly_refresh_health(self.atlas), {"last_run_status": "failed"})
+        health = monthly_refresh_health(self.atlas)
+        self.assertEqual(health["last_run_status"], "failed")
+        self.assertEqual(health["sources"]["ember"], "failed_critical")
+        self.assertEqual(health["publication"], "unknown")
+        self.assertNotIn("secret", json.dumps(health))
         report.write_text(json.dumps({"status": "private/path", "target_month": "secret",
             "completed_at": "secret", "sources": {}}), encoding="utf-8")
         self.assertEqual(monthly_refresh_health(self.atlas), {"last_run_status": "unreadable_report"})
+
+    def test_public_source_status_is_allowlisted_and_retention_is_a_warning(self):
+        report = self.data / "reports" / MONTHLY_REPORT_NAME
+        report.parent.mkdir()
+        sources = {name: {"status": "refreshed"} for name in PUBLIC_REFRESH_SOURCES}
+        sources.update({"ember": {"status": "refreshed_with_retention"},
+                        "jrc_storage": {"status": "failed_optional", "error": "private-secret"},
+                        "cache_cleanup": {"status": "completed"},
+                        "private-secret": {"status": "private-secret"}})
+        report.write_text(json.dumps({"status": "success", "publication": "published", "sources": sources}), encoding="utf-8")
+        health = monthly_refresh_health(self.atlas)
+        self.assertEqual(health["source_warnings"], ["ember", "jrc_storage"])
+        self.assertEqual(health["publication"], "published")
+        self.assertEqual(set(health["sources"]), set(PUBLIC_REFRESH_SOURCES))
+        self.assertNotIn("private-secret", json.dumps(health))
+
+    def test_malformed_public_status_values_never_leak_or_crash(self):
+        report = self.data / "reports" / MONTHLY_REPORT_NAME
+        report.parent.mkdir()
+        for bad in (None, [], {}, 42, "private-secret"):
+            report.write_text(json.dumps({"status": "success", "publication": bad,
+                "sources": {"ember": {"status": bad}}, "completed_at": bad}), encoding="utf-8")
+            health = monthly_refresh_health(self.atlas)
+            self.assertEqual(health["sources"]["ember"], "unknown")
+            self.assertEqual(health["publication"], "unknown")
+            self.assertNotIn("private-secret", json.dumps(health))
+        report.write_text('{"status":"success","sources":[]}', encoding="utf-8")
+        self.assertEqual(monthly_refresh_health(self.atlas), {"last_run_status": "unreadable_report"})
+
+    def test_restart_and_december_rollover_do_not_repeat_successful_month(self):
+        report = self.data / "reports" / MONTHLY_REPORT_NAME
+        report.parent.mkdir()
+        report.write_text(json.dumps({"status": "success", "target_month": "2026-12"}), encoding="utf-8")
+        launches = []
+        for moment, due in ((datetime(2026, 12, 31, 23, tzinfo=UTC), False),
+                            (datetime(2027, 1, 2, 2, 59, tzinfo=UTC), False),
+                            (datetime(2027, 1, 2, 3, tzinfo=UTC), True)):
+            scheduler = MonthlyRefreshScheduler(self.atlas, self.community, self.config,
+                now=lambda: moment, popen=lambda *a, **k: launches.append(a) or FakeProcess())
+            self.assertEqual(scheduler.check(), due)
+        self.assertEqual(len(launches), 1)
+
+    def test_success_report_cannot_delay_next_month_with_a_stale_retry_field(self):
+        scheduler = MonthlyRefreshScheduler(self.atlas, self.community, self.config,
+            now=lambda: datetime(2026, 10, 2, 2, 59, tzinfo=UTC))
+        scheduler.report_path.parent.mkdir()
+        scheduler.report_path.write_text(json.dumps({"status": "success", "target_month": "2026-09",
+            "next_attempt_at": "2099-01-01T00:00:00+00:00"}), encoding="utf-8")
+        self.assertEqual(scheduler._wait_seconds(), 60)
+
+    def test_naive_invalid_and_overflow_retry_dates_do_not_depend_on_host_timezone(self):
+        moment = datetime(2026, 9, 2, 3, tzinfo=UTC)
+        scheduler = MonthlyRefreshScheduler(self.atlas, self.community, self.config, now=lambda: moment)
+        scheduler.report_path.parent.mkdir()
+        for retry in ("2099-01-01T00:00:00", "9999-12-31T23:00:00-12:00", {}, "bad"):
+            report = {"status": "failed", "next_attempt_at": retry}
+            scheduler.report_path.write_text(json.dumps(report), encoding="utf-8")
+            self.assertTrue(scheduler._is_due(moment, report))
+            self.assertEqual(scheduler._wait_seconds(), 1)
+
+    def test_february_and_utc_boundary_schedule(self):
+        from dataclasses import replace
+        from datetime import timezone
+        scheduler = MonthlyRefreshScheduler(self.atlas, self.community,
+            replace(self.config, day_utc=28), popen=lambda *a, **k: FakeProcess())
+        # Local February 28 is still February 27 in UTC.
+        self.assertFalse(scheduler.check(datetime(2028, 2, 28, 3, tzinfo=timezone(timedelta(hours=4)))))
+        self.assertTrue(scheduler.check(datetime(2028, 2, 28, 7, tzinfo=timezone(timedelta(hours=4)))))
+
+    def test_invalid_worker_month_is_rejected_before_any_file_write(self):
+        refresh = MagicMock()
+        runner = MonthlyRefreshRunner(self.atlas, self.community, self.config, refresh=refresh)
+        for month in ("", "2026-13", "secret/path", [], "2026-1"):
+            with self.assertRaises(MonthlyRefreshConfigurationError):
+                runner.run(target_month=month)
+        refresh.assert_not_called()
+        self.assertFalse(runner.report_path.parent.exists())
 
     def test_monthly_report_cannot_overwrite_database_or_sidecars(self):
         before = self.atlas.read_bytes()

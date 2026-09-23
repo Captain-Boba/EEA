@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "year": 2025,
+  "as_of": "2026-09-23",
+  "snapshot_sha256": "a6836eb87e543564768bd49a02aa1b2422260bb3bb962bc16fae710888465173",
+  "fingerprint_kind": "logical_sqlite_content_v1",
+  "status": "passed",
+  "files": {
+    "COVERAGE.generated.md": "686b8ccb7be0e1522c59fd921fd3d75c734905d3866228284c3d5e355cb518a0",
+    "SUMMARY.generated.json": "f51d4be8abc152c15aaefb158b235e626fa28c861f9b13ef7c6ea4d17f0ad585",
+    "VALIDATION.generated.md": "951f6fc89287bdd1278ddef840f745bdcbe8f5e8621e9ec497f84fc5a70c1d60",
+    "VALIDATION.generated.json": "2850252268fabe107259df43c48b94165adf81b3c268bb396613eeaff8072cd3"
+  }
+}

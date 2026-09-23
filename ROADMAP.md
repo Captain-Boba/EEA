@@ -1,12 +1,13 @@
 # European Electricity Atlas – Roadmap
 
-Stand: 26. August 2026
+Stand: 23. September 2026
 
-Betriebsnachtrag 22. September 2026: Monats-Refresh-Härtung lokal umgesetzt
-(Abdeckungsschutz, Betriebssystem-Sperren, Termin-/Retryplanung, begrenzte
-Ember-Cache-Bereinigung und Laufmeldungen). Produktionsaktivierung bleibt bis
-zum Deployment mit grüner Linux-CI und einem betreuten ersten Lauf offen;
-konkrete Schritte stehen in `docs/DEPLOYMENT.md`.
+Betriebsstand laut dokumentierter Abnahme vom 23. September 2026: Der
+Monats-Refresh ist in Railway aktiviert (Tag 2, 03:00 UTC). Der betreute
+September-Lauf wurde veröffentlicht; historische Ember-Quellenlücken blieben
+mit expliziter Qualitätskennzeichnung erhalten. Abdeckungsschutz,
+Betriebssystem-Sperren, Retryplanung und begrenzte Cache-Bereinigung sind aktiv.
+Die Abnahme ist ein datierter Befund, kein laufender Live-Status.
 
 Diese Roadmap trennt den aktuell umgesetzten Projektstand von offenen Produktentscheidungen. Historische K2-Arbeitsaufträge sind als solche gekennzeichnet und gelten nicht als aktuelle Spezifikation.
 
@@ -14,22 +15,30 @@ Betriebsnachtrag 23. September 2026: JRC-Speicherinventar und Battery-Charts
 sind als optionale Headless-Browser-Exporte in den Monatslauf integriert.
 Battery-Charts nutzt die öffentlichen CSV-Downloads; lokale JSONs bleiben
 explizite Overrides. Für Railway ist die offizielle Build-Variable
-`RAILPACK_PYTHON_PLAYWRIGHT_INSTALL=1` nötig. Lokale Headless-Abrufe funktionieren;
-Deployment und Linux-Live-Abnahme dieser Erweiterung stehen noch aus.
+`RAILPACK_PYTHON_PLAYWRIGHT_INSTALL=1` und die Installation der Python-Abhängigkeiten
+über `requirements.txt` nötig. Der Linux-Live-Test beider Quellen war auf einer
+flüchtigen Datenbankkopie erfolgreich; dabei wurden weder Atlas noch Community
+in Produktion verändert. Eine Veröffentlichung dieser Browserdaten durch den
+nächsten Monatslauf bleibt vom Akquisitionstest zu unterscheiden.
+
+Lokaler Folgeschritt: Quellenwarnungen im öffentlichen Health-Endpunkt,
+reproduzierbare Offline-Berichte und zusätzliche Monatswechsel-/Fehlertests.
+Diese Änderungen benötigen noch Commit, Push und Deployment; sie werden hier
+nicht als bereits produktiv ausgegeben.
 
 Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROADMAP.md](BETA_ROADMAP.md).
 
 ## Aktuelle Arbeitsprioritäten
 
-### 1. Finalen Beta-Datenstand pflegen – Datengate abgeschlossen
+### 1. Datenstände nachvollziehbar halten – August-Datengate historisch abgeschlossen
 
 - Der vollständige Refresh vom 25. August 2026 hat alle acht Datenpfade sequenziell aktualisiert und den validierten Kandidaten als `data/atlas.sqlite3` veröffentlicht.
-- Datenbankintegrität, 31-Länder-Katalog, Zeitabdeckung, Null-/Fehlwerttrennung, 140 Ember-Einzelstichproben und 15 Kreuznachrechnungen sind im aktuellen Validierungsbericht dokumentiert.
-- `COVERAGE.generated.md`, `SUMMARY.generated.json` und `BETA_DATA_VALIDATION.md` beziehen sich auf denselben veröffentlichten Datenstand mit SHA-256 `433CD46792264F366EC8DF51B52521B44034F7CAAE7C68DF289A704254A93B50`.
+- Datenbankintegrität, 31-Länder-Katalog, Zeitabdeckung, Null-/Fehlwerttrennung, 140 Ember-Einzelstichproben und 15 Kreuznachrechnungen sind in der historischen August-Abnahme dokumentiert.
+- `BETA_DATA_VALIDATION.md` beschreibt den damaligen Datei-SHA-256 `433CD46792264F366EC8DF51B52521B44034F7CAAE7C68DF289A704254A93B50`. Neue Coverage-/Summary-/Validierungsberichte sind durch `REPORT_MANIFEST.generated.json` ihrem eigenen logischen Snapshot zugeordnet. Lokale Berichte bestätigen nicht automatisch den inzwischen erneuerten Produktionsstand.
 - Der neue `refresh-all`-Ablauf erstellt Kandidat und Rückfallkopie nur noch unter `data/.refresh-work/<run-id>/`, schützt `community.sqlite3` und räumt temporäre Datenbanken sowie Sidecars nach Erfolg oder kontrolliertem Fehler wieder auf.
 - Die Türkei bleibt bewusst außerhalb des Atlas und ist kein Prüf- oder Erweiterungsziel.
 
-**Abnahme:** Der neue Datenbankhash, die acht Quellenpfade, die aktualisierten Berichte und die dokumentierten Stichproben bilden denselben akzeptierten Datenstand ab.
+**Abnahme:** Bei jedem neuen Berichtssatz stimmen alle Datei-Prüfsummen mit dem Manifest überein; geprüfter Snapshot, Auswertungsjahr und Aggregationskalender sind eindeutig. Historische Abnahmen bleiben datiert.
 
 ### 2. Öffentliche Beta betreiben und als Patch fortschreiben
 
@@ -39,8 +48,8 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 - Projekt-, Kontakt-, Datenschutz- und Cookieinformationen sind öffentlich erreichbar.
 - `ee-atlas.eu` ist per DNS und gültigem Railway-Zertifikat erreichbar. Die endgültige HTTPS-Origin ist aktiv; Startseite und `/api/health` antworten öffentlich erfolgreich.
 - `v0.4.0` mit dem Titel `Beta`, aktueller README, Vorschaubildern und geprüftem Datenbanksnapshot ist veröffentlicht.
-- Der nächste Patch erzwingt auf Mobilgeräten die vollständige 1920-Pixel-Desktoparbeitsfläche mit Pinch-Zoom und horizontaler Navigation. Für den maschinenlesbaren Datenzugriff ergänzt er den Leitfaden unter `/llms.txt` um ein lebendes Endpunktverzeichnis unter `/api/`, anklickbare Beispiele unter `/api.html` und eine OpenAPI-Beschreibung unter `/openapi.json`.
-- Datenupdates bleiben der kontrollierte Ablauf `Kandidat → Validierung → atomarer Datenbanktausch`. Ein standardmäßig deaktivierter, opt-in Monats-Scheduler im Webservice kann diesen Ablauf auf demselben `/data`-Volume auslösen; er veröffentlicht nur vollständig geprüfte Kandidaten und berührt `community.sqlite3` nie.
+- Die vollständige 1920-Pixel-Desktoparbeitsfläche auf Mobilgeräten mit Pinch-Zoom und horizontaler Navigation ist umgesetzt. Der maschinenlesbare Datenzugriff bietet `/llms.txt`, ein Endpunktverzeichnis unter `/api/`, anklickbare Beispiele unter `/api.html` und `/openapi.json`.
+- Datenupdates bleiben der kontrollierte Ablauf `Kandidat → Validierung → atomarer Datenbanktausch`. Der standardmäßig deaktivierte, in dieser Railway-Installation ausdrücklich aktivierte Monats-Scheduler nutzt dasselbe `/data`-Volume und berührt `community.sqlite3` nie. Optionale Quellfehler dürfen ältere Werte erhalten und müssen als solche sichtbar bleiben.
 
 **Abnahme:** `https://ee-atlas.eu`, Healthcheck, Kernnavigation, Exporte und öffentliche Abstimmung funktionieren über die endgültige Domain; CI ist auf dem finalen Release-Commit grün und der Release enthält ausschließlich die vorgesehenen Artefakte.
 
@@ -63,27 +72,28 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 **Abnahme:** Ausgewählte Länder lassen sich übersichtlich als Quartett vergleichen; jede Hervorhebung folgt einer dokumentierten Kennzahlenregel.
 
-### 5. Berichtskette nach dem Refresh konsolidieren
+### 5. Berichtskette – lokal konsolidiert, bei neuen Datenständen erneut ausführen
 
-- Die als historisch gekennzeichnete `data/reports/VALIDATION.generated.md` durch einen reproduzierbaren Validierungsbericht des aktuellen Ember-Datenkerns ablösen.
-- Den Vertrag des CLI-Befehls `report` bereinigen: Hilfe, tatsächlich erzeugte Dateien und Dokumentation müssen übereinstimmen.
-- Die bereits erfolgreiche Stichprobe für DE, FR, UK, ES und NO nach dem finalen Refresh erneut gegen die gespeicherten Ember-Quellen ausführen.
+- `eea report` erzeugt Coverage, Summary, Offline-Validierung (Markdown/JSON) und ein Prüfmanifest aus derselben lesenden SQLite-Transaktion. `--as-of` fixiert den Aggregationskalender.
+- Der frühere Energy-Charts-Bericht liegt unter `docs/history/ENERGY_CHARTS_VALIDATION_2025.md`; die August-Abnahme wird nicht umgeschrieben.
+- Gespeicherte monatliche und jährliche Ember-Beobachtungen für DE, FR, UK, ES und NO werden gegen den jeweils neuesten passenden Rohdaten-Cache geprüft. Erhaltene Altwerte und fehlende Caches sind nicht frisch bestätigt. Der Vergleich verwendet dieselbe Normalisierung wie der Import und ist keine unabhängige Quellenprüfung.
 - Coverage, YTD-/Vorläufigkeitsstatus, Quellen und fehlende Werte in Bericht, API und Oberfläche konsistent halten.
 - Datenlücken weiterhin als `null` behandeln; echte Nullwerte bleiben davon unterscheidbar.
 
-**Abnahme:** Kein als aktuell bezeichneter Bericht weist Energy Charts als Anwendungsquelle aus. Dokumentierte Ember-Stichproben sind nachvollziehbar, und Bericht, API sowie Oberfläche beschreiben denselben Datenbestand. Der historische Bericht kann anschließend entfallen.
+**Abnahme:** Nach jedem gewünschten Datenstand den Bericht ausdrücklich gegen diesen Snapshot ausführen. Manifest prüfen, Fehler und Warnungen unterscheiden; ein erfolgreicher lokaler Bericht ist keine Produktionsabnahme und kein Nachweis aktueller Quelldaten.
 
 ### 6. Speicherpflege und internationale Coverage stabilisieren
 
-- Den bewussten JRC-Dashboard-Refresh höchstens einmal pro Kalendermonat betreiben und die reale Abdeckung beobachten. Ein Lauf besteht aus einer sichtbaren, isolierten Browser-Sitzung mit vier gefilterten XLSX-Downloads (Operational Electrochemical sowie Operational Pumped Hydro Storage, jeweils Leistung und Energie).
-- Battery-Charts ausschließlich über den manuellen, atomaren Import der beiden JSON-Dateien aktualisieren. Der Atlas führt keinen automatischen Battery-Charts-Netzwerkzugriff aus.
-- Den opt-in Monats-Scheduler nach mehreren realen Produktionsläufen überwachen. Er aktualisiert die kritischen maschinenlesbaren Kernquellen, erhält JRC-Speicher ohne Browserlauf und bewahrt Battery-Charts ohne kontrollierte JSON-Eingaben.
+- JRC Storage im Monatslauf als isolierte Headless-Sitzung mit vier gefilterten XLSX-Downloads betreiben (Operational Electrochemical sowie Pumped Hydro Storage, jeweils Leistung und Energie). Ein erfolgreich abgeschlossener Monat wird nicht automatisch wiederholt; gescheiterte Gesamtläufe können erneut abrufen.
+- Battery-Charts über die beiden öffentlichen CSV-Exportknöpfe aktualisieren. Explizit konfigurierte lokale JSON-Dateien bleiben Overrides; unvollständige Overrides führen nicht stillschweigend zu Netzwerkzugriffen.
+- Reale Monatsläufe beobachten: Kritische Kernquellfehler verhindern die Veröffentlichung; optionale Browser-/Exportfehler erhalten Daten und Cache dieser Quelle. Ein insgesamt erfolgreicher Monat wiederholt optionale Fehler erst im nächsten Monat.
+- Der lokale Health-Ausbau weist genau diese Quellenwarnungen aus, ohne eine funktionierende Website wegen älterer Quelldaten auf HTTP 503 zu setzen.
 - Änderungen des nicht formal versionierten JRC-Dashboard-Exports und der Battery-Charts-Antworten sichtbar dokumentieren, statt die Validierung stillschweigend zu lockern.
 - Für Länder außerhalb Deutschlands transparent prüfen, welche stationären Batterieklassen im JRC-Projektbestand fehlen. Fehlende Heim- oder Gewerbespeicher nicht schätzen.
 - Mittelfristig bei Ember nach einem CC-BY-4.0-Datensatz für Batterie- und Pumpspeicherenergie sowie Entladeleistung fragen und bei Verfügbarkeit die Übergangsquellen ablösen.
 - Die weitergehende Rechteklärung des JRC-Projektbestands bleibt Post-Beta-Arbeit. Für die vorläufige nichtkommerzielle Beta hat der Projekteigentümer die Nutzung aggregierter Werte mit Attribution sowie Schätzungs- und Unvollständigkeitshinweisen akzeptiert; eine rechtliche Freigabe wird nicht behauptet.
 
-**Abnahme:** Mehrere reale Monatsaktualisierungen laufen mit genau einer JRC-Dashboard-Sitzung und vier gefilterten Downloads, ohne Battery-Charts-Netzwerkzugriff, ohne Duplikate und ohne Verlust des vorherigen Datenstands bei Fehlern.
+**Abnahme:** Mehrere reale Monatsaktualisierungen mit beiden Browserquellen, erhaltenen historischen Abdeckungen und eindeutigem Quellenstatus. Der erfolgreiche Linux-Akquisitionstest ersetzt diesen Langzeitnachweis nicht.
 
 ### 7. Zusätzliche Leistungs- und Wasserkraftkennzahlen evaluieren
 

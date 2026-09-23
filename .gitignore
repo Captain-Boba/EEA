@@ -20,6 +20,7 @@ data/reports/MONTHLY_REFRESH.generated.json
 data/reports/MONTHLY_LIFECYCLE.generated.json
 data/reports/REFRESH.generated.json
 data/reports/.monthly-report-*.json
+data/reports/.atlas-report-*.tmp
 data/reports/generated-*
 EMBER_API_KEY.txt
 BATTERY_CHARTS_API_KEY.txt

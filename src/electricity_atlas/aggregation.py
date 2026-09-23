@@ -52,12 +52,14 @@ def aggregate_country(
     year: int,
     month: int | None = None,
     source: str = EMBER_SOURCE_NAME,
+    *,
+    today: date | None = None,
 ) -> dict[str, Any]:
     if source != EMBER_SOURCE_NAME:
         raise ValueError("source must be 'ember'")
     from .ember_aggregation import aggregate_ember_country
 
-    return aggregate_ember_country(connection, country_code, year, month)
+    return aggregate_ember_country(connection, country_code, year, month, today=today)
 
 
 def aggregate_all(
@@ -65,8 +67,10 @@ def aggregate_all(
     year: int,
     month: int | None = None,
     source: str = EMBER_SOURCE_NAME,
+    *,
+    today: date | None = None,
 ) -> list[dict[str, Any]]:
-    return [aggregate_country(connection, code, year, month, source) for code in COUNTRIES]
+    return [aggregate_country(connection, code, year, month, source, today=today) for code in COUNTRIES]
 
 
 def map_metric_dataset(

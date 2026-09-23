@@ -479,7 +479,44 @@
         "properties": {
           "status": {"type": "string", "enum": ["ok", "unavailable"]},
           "atlas_database": {"type": "string", "enum": ["ok", "unavailable"]},
-          "community_database": {"type": "string", "enum": ["ok", "unavailable"]}
+          "community_database": {"type": "string", "enum": ["ok", "unavailable"]},
+          "monthly_refresh": {"$ref": "#/components/schemas/MonthlyRefreshHealth"}
+        },
+        "additionalProperties": false
+      },
+      "RefreshSourceStatus": {
+        "type": "string",
+        "enum": ["refreshed", "refreshed_with_retention", "failed_optional", "failed_critical", "preserved", "preserved_controlled_input", "unknown"]
+      },
+      "MonthlyRefreshHealth": {
+        "type": "object",
+        "description": "Latest recorded refresh attempt, not a freshness guarantee or process-liveness check. Source results from an unpublished attempt do not describe the serving database. Optional failures/retained data do not change service HTTP health. No paths, errors, credentials or raw source payloads are exposed.",
+        "required": ["last_run_status"],
+        "properties": {
+          "last_run_status": {"type": "string", "enum": ["not_run", "unreadable_report", "running", "success", "failed"]},
+          "target_month": {"type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"},
+          "completed_at": {"type": "string", "format": "date-time"},
+          "next_attempt_at": {"type": "string", "format": "date-time"},
+          "publication": {"type": "string", "enum": ["published", "not_published", "unknown"]},
+          "sources": {
+            "type": "object",
+            "properties": {
+              "ember": {"$ref": "#/components/schemas/RefreshSourceStatus"},
+              "wholesale_prices": {"$ref": "#/components/schemas/RefreshSourceStatus"},
+              "eurostat_core": {"$ref": "#/components/schemas/RefreshSourceStatus"},
+              "eurostat_supplement": {"$ref": "#/components/schemas/RefreshSourceStatus"},
+              "battery_charts": {"$ref": "#/components/schemas/RefreshSourceStatus"},
+              "jrc_storage": {"$ref": "#/components/schemas/RefreshSourceStatus"},
+              "jrc_hydro": {"$ref": "#/components/schemas/RefreshSourceStatus"},
+              "eea_ghg": {"$ref": "#/components/schemas/RefreshSourceStatus"}
+            },
+            "additionalProperties": false
+          },
+          "source_warnings": {
+            "type": "array",
+            "description": "Present for completed attempts. Includes retained, failed, unattempted and unknown source results; empty does not prove that source data is recent.",
+            "items": {"type": "string", "enum": ["ember", "wholesale_prices", "eurostat_core", "eurostat_supplement", "battery_charts", "jrc_storage", "jrc_hydro", "eea_ghg"]}
+          }
         },
         "additionalProperties": false
       },

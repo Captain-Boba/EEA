@@ -1,8 +1,8 @@
 # European Electricity Atlas – Fahrplan zur öffentlichen Beta
 
-Stand: 26. August 2026
+Historischer Beta-Fahrplan: 26. August 2026; Betriebsnachtrag: 23. September 2026
 Veröffentlichte Beta-Basis: `v0.4.0` auf `cc40d86` (`docs(beta): prepare public launch documentation and previews`)
-Aktueller Arbeitsstand: Die öffentliche Beta ist unter `https://ee-atlas.eu` erreichbar. Railway liefert Domain und Zertifikat aus; `/api/health` meldet Analyse- und Community-Datenbank als betriebsbereit. `v0.4.0` mit dem Titel `Beta` ist veröffentlicht. Für den nächsten Patch ist zusätzlich eine absichtlich skalierte 1920-Pixel-Desktoparbeitsfläche auf Mobilgeräten vorbereitet, damit keine Kernfunktion durch ein unvollständiges Mobile-Layout entfällt.
+Der ursprüngliche Beta-Start ist abgeschlossen. Desktopansicht auf Mobilgeräten und öffentliche API-Dokumentation sind inzwischen umgesetzt. Der Monats-Scheduler ist laut dokumentierter September-Abnahme aktiviert; die kritischen Quellen wurden aktualisiert und beide Browserquellen auf Linux separat erfolgreich getestet. Aktuelle Arbeitsprioritäten stehen in [ROADMAP.md](ROADMAP.md), Betriebsdetails in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Die folgenden Abnahmehaken dokumentieren den damaligen Stand und sind kein Live-Git-/Deployment-Status.
 
 ## Zielzustand
 
@@ -113,8 +113,8 @@ Die Beta ist ausdrücklich desktop-first. Smartphones erhalten deshalb dieselbe 
 
 ## Empfohlene Arbeitspakete
 
-1. **Patch `v0.4.1` veröffentlichen**
-   Die erzwungene Desktoparbeitsfläche auf Mobilgeräten, den maschinenlesbaren LLM-Leitfaden, das API-Endpunktverzeichnis, die anklickbare API-Dokumentation, die OpenAPI-Beschreibung und die aktualisierte Dokumentation committen, deployen und über die Produktionsdomain kurz prüfen.
+1. **Betriebsverbesserungen als nächsten Patch übernehmen**
+   Die bereits umgesetzten Mobile-/API-Einstiege nicht erneut als offene Aufgabe behandeln. Der lokale Folgepatch ergänzt Quellenstatus, reproduzierbare Offline-Berichte und Monatswechseltests; Commit, Push und Produktionsabnahme bleiben eigene Schritte. Keine neue Versionsnummer ist hier vorgegeben.
 
 2. **Verbliebene manuelle Beta-Abnahme kompakt nachholen**
    Exporte, Overload-Galerie, zwei Browserprofile und Firefox/Chromium bei Gelegenheit prüfen; keine weitere Hostingarchitektur aufbauen.
@@ -122,7 +122,7 @@ Die Beta ist ausdrücklich desktop-first. Smartphones erhalten deshalb dieselbe 
 3. **Post-Beta-Betrieb stabilisieren**
    Monatliche Datenpflege, externe Sicherung und Störungsreaktion als kleinen, nachvollziehbaren Betriebsablauf festhalten.
 
-Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Künftige Komplett-Refreshes verwenden ausschließlich den dokumentierten `refresh-all`-Lebenszyklus; lose `pre-refresh`, `refresh-candidate`, `attempt2` oder Testdatenbanken gehören nicht zum unterstützten Zustand.
+Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. `refresh-all` und `monthly-refresh-run` verwenden denselben dokumentierten Kandidat-/Rollback-Lebenszyklus mit unterschiedlicher Quellenpolitik; lose `pre-refresh`, `refresh-candidate`, `attempt2` oder Testdatenbanken gehören nicht zum unterstützten Zustand.
 
 ## Kein Beta-Blocker
 
@@ -130,7 +130,7 @@ Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Kü
 - Quartettvergleich auf Basis der Ländersteckbriefe
 - eigenständige native Mobile-Oberfläche; die vollständige Desktoparbeitsfläche bleibt auf Mobilgeräten erreichbar
 - Benutzerkonten oder ein manipulationssicheres Wahlsystem
-- automatische Datenimporte oder ein Scheduler im Atlas-Server
+- automatische Datenimporte waren kein Beta-Startblocker; der Monats-Scheduler ist inzwischen umgesetzt und aktiviert
 - weitere nationale Batteriequellen
 - Photovoltaik-Nennleistung in GWp
 - Energieinhalt konventioneller Wasserkraftreservoirs
@@ -142,7 +142,7 @@ Der veröffentlichte Datenstand bleibt von der Community-Datenbank getrennt. Kü
 ## Noch notwendige Produktentscheidungen
 
 - zuständige Person für Betrieb, Backups und Störungsreaktion
-- Termin und Umfang des nächsten Daten-Refreshs
+- Abweichungen vom aktivierten Monatsplan (Tag 2, 03:00 UTC) oder Änderungen der Quellenpolitik; für den regulären Lauf ist keine erneute Freigabe pro Monat erforderlich
 
 ## Definition of Done
 

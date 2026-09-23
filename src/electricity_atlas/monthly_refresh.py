@@ -150,16 +150,51 @@ def monthly_refresh_health(database_path: Path | str) -> dict[str, Any]:
         "not_run", "unreadable_report", "running", "success", "failed"
     ) else "unreadable_report"}
     month = status.get("target_month")
-    if isinstance(month, str) and re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):
+    if isinstance(month, str) and re.fullmatch(r"[0-9]{4}-(0[1-9]|1[0-2])", month):
         result["target_month"] = month
     for key in ("completed_at", "next_attempt_at"):
         try:
             timestamp = datetime.fromisoformat(str(status.get(key)))
             if timestamp.tzinfo is not None:
                 result[key] = timestamp.astimezone(UTC).isoformat()
-        except ValueError:
+        except (ValueError, OverflowError):
             pass
+    if result["last_run_status"] in ("running", "success", "failed"):
+        publication = status.get("publication")
+        result["publication"] = publication if publication in (
+            "published", "not_published"
+        ) else "unknown"
+        # Latest attempt, not necessarily the serving snapshot. Never expose
+        # arbitrary report keys or values, even if the report is malformed.
+        sources = status.get("sources", {})
+        allowed = ("refreshed", "refreshed_with_retention", "failed_optional",
+                   "failed_critical", "preserved", "preserved_controlled_input")
+        result["sources"] = {
+            name: sources.get(name) if sources.get(name) in allowed else "unknown"
+            for name in PUBLIC_REFRESH_SOURCES
+        }
+        if result["last_run_status"] != "running":
+            result["source_warnings"] = [
+                name for name, value in result["sources"].items() if value != "refreshed"
+            ]
     return result
+
+
+PUBLIC_REFRESH_SOURCES = (
+    "ember", "wholesale_prices", "eurostat_core", "eurostat_supplement",
+    "battery_charts", "jrc_storage", "jrc_hydro", "eea_ghg",
+)
+
+
+def _retry_deadline(report: dict[str, Any]) -> datetime | None:
+    """Only failed attempts with explicit timezone-aware timestamps delay a run."""
+    if report.get("status") != "failed":
+        return None
+    try:
+        value = datetime.fromisoformat(str(report.get("next_attempt_at")))
+        return value.astimezone(UTC) if value.tzinfo is not None else None
+    except (ValueError, OverflowError):
+        return None
 
 
 class PersistentRefreshLock(FileRefreshLock):
@@ -169,7 +204,7 @@ class PersistentRefreshLock(FileRefreshLock):
 
 
 class MonthlyRefreshRunner:
-    """One isolated planned refresh with a persistent lease and compact report."""
+    """One isolated planned refresh with an OS-owned lock and compact report."""
 
     def __init__(
         self,
@@ -205,8 +240,10 @@ class MonthlyRefreshRunner:
         )
 
     def run(self, *, target_month: str | None = None) -> dict[str, Any]:
-        started = self.now()
-        month = target_month or started.strftime("%Y-%m")
+        started = self.now().astimezone(UTC)
+        month = started.strftime("%Y-%m") if target_month is None else target_month
+        if not isinstance(month, str) or not re.fullmatch(r"[0-9]{4}-(0[1-9]|1[0-2])", month):
+            raise MonthlyRefreshConfigurationError("Target month must use YYYY-MM")
         self.lock.acquire()
         lifecycle_path = self.lifecycle_path
         before_hash = None
@@ -219,7 +256,7 @@ class MonthlyRefreshRunner:
                     and completed.get("run_id") == previous["attempt_id"]
                     and completed.get("status") == "success"):
                 # Recover a crash between lifecycle publication and monthly report.
-                previous = {**completed, "target_month": previous["target_month"],
+                previous = {**completed, "target_month": previous.get("target_month"),
                             "sources": completed.get("refresh", {}),
                             "publication": "published", "next_attempt_at": None}
                 _atomic_json_write(self.report_path, previous)
@@ -320,13 +357,9 @@ class MonthlyRefreshScheduler:
         target_month = current.strftime("%Y-%m")
         if report and report.get("status") == "success" and report.get("target_month") == target_month:
             return False
-        if report and report.get("status") == "failed":
-            retry_at = report.get("next_attempt_at")
-            try:
-                if retry_at and current < datetime.fromisoformat(str(retry_at)).astimezone(UTC):
-                    return False
-            except (TypeError, ValueError):
-                pass
+        retry_at = _retry_deadline(report or {})
+        if retry_at is not None and current < retry_at:
+            return False
         return (current.day, current.hour) >= (self.config.day_utc, self.config.hour_utc)
 
     def _command(self) -> list[str]:
@@ -361,12 +394,9 @@ class MonthlyRefreshScheduler:
         report = self._report() or {}
         if report.get("status") == "success" and report.get("target_month") == current.strftime("%Y-%m"):
             scheduled = (scheduled.replace(day=28) + timedelta(days=4)).replace(day=self.config.day_utc)
-        retry = report.get("next_attempt_at")
-        if retry:
-            try:
-                scheduled = max(scheduled, datetime.fromisoformat(str(retry)).astimezone(UTC))
-            except (ValueError, TypeError):
-                pass
+        retry = _retry_deadline(report)
+        if retry is not None:
+            scheduled = max(scheduled, retry)
         if self._launch_not_before:
             scheduled = max(scheduled, self._launch_not_before)
         if self._process is not None:

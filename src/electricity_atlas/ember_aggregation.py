@@ -146,13 +146,15 @@ def _price_summary(
 
 
 def aggregate_ember_country(
-    connection: sqlite3.Connection, country_code: str, year: int, month: int | None = None
+    connection: sqlite3.Connection, country_code: str, year: int, month: int | None = None,
+    *, today: date | None = None,
 ) -> dict[str, Any]:
     code = country_code.upper()
     if code not in COUNTRIES:
         raise ValueError(f"Unsupported pilot country: {country_code}")
     start, end = period_bounds(year, month)
-    is_current_ytd = month is None and year == date.today().year
+    current = today or date.today()
+    is_current_ytd = month is None and year == current.year
     if is_current_ytd:
         rows = list(
             connection.execute(
@@ -300,7 +302,7 @@ def aggregate_ember_country(
                 "details": "Current Ember year is aggregated from available monthly values and is YTD.",
             }
         )
-    price = _price_summary(connection, code, year, month)
+    price = _price_summary(connection, code, year, month, today=current)
     population = None
     gdp_current_billion_eur = None
     gdp_per_capita_pps = None
@@ -370,7 +372,7 @@ def aggregate_ember_country(
     )
     previous_carbon = (
         _yearly_carbon_intensity(connection, code, year - 1)
-        if month is None and year < date.today().year
+        if month is None and year < current.year
         else None
     )
     decarbonization_rate = (
@@ -453,7 +455,7 @@ def aggregate_ember_country(
         "retained_source_metrics": sorted(retained_metrics),
         "country_name": COUNTRIES[code].name,
         "period": f"{year:04d}-{month:02d}" if month else str(year),
-        "period_status": reporting_period_status(year, month),
+        "period_status": reporting_period_status(year, month, today=current),
         "source": EMBER_SOURCE_NAME,
         "source_label": EMBER_SOURCE_LABEL,
         "generation_twh": generation_twh,
@@ -537,7 +539,7 @@ def aggregate_ember_country(
             "complete"
             if available_groups == 3
             and price["price_coverage"] == "complete"
-            and reporting_period_status(year, month) == "closed"
+            and reporting_period_status(year, month, today=current) == "closed"
             else ("partial" if any_data else "missing")
         ),
     }

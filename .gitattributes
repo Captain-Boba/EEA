@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Report manifest hashes must survive Windows/Linux checkouts unchanged.
+data/reports/*.generated.md text eol=lf
+data/reports/*.generated.json text eol=lf

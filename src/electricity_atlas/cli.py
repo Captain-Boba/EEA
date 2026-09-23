@@ -5,13 +5,12 @@ import json
 import logging
 import sqlite3
 import sys
+from datetime import date
 from pathlib import Path
 
-from .aggregation import aggregate_all
 from .community_backup import backup_community_database
 from .config import DEFAULT_DB, EMBER_COUNTRIES
-from .coverage import coverage_markdown
-from .db import database, migrate_atlas_catalog, read_database, reset
+from .db import database, migrate_atlas_catalog, reset
 from .ember_client import EmberKeyError, load_ember_api_key
 from .ember_importer import EmberImporter
 from .eurostat_importer import EurostatImporter
@@ -21,6 +20,7 @@ from .full_refresh import run_full_refresh
 from .hydro_importer import JrcHydroImporter
 from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshRunner, monthly_refresh_status
 from .refresh_safety import safe_error
+from .reporting import write_reports
 from .price_importer import WholesalePriceImporter
 from .server import serve
 from .runtime import resolve_community_db, resolve_server_config
@@ -109,6 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
     backup_parser.add_argument("--force", action="store_true", help="Replace an existing backup file")
 
     report_parser = subparsers.add_parser("report", help="Generate coverage, summary and validation reports")
+    report_parser.add_argument("--as-of", type=date.fromisoformat, help="Aggregation calendar date (YYYY-MM-DD); does not reconstruct historical data")
     report_parser.add_argument("--year", type=int, default=2025)
     report_parser.add_argument("--output", type=Path, default=Path("data/reports"))
 
@@ -348,15 +349,13 @@ def main(argv: list[str] | None = None) -> int:
                     exit_code = 1
         return exit_code
     if args.command == "report":
-        args.output.mkdir(parents=True, exist_ok=True)
-        with read_database(args.db) as connection:
-            (args.output / "COVERAGE.generated.md").write_text(coverage_markdown(connection, args.year), encoding="utf-8")
-            (args.output / "SUMMARY.generated.json").write_text(
-                json.dumps(aggregate_all(connection, args.year), ensure_ascii=False, indent=2, allow_nan=False),
-                encoding="utf-8",
-            )
-        print(f"Reports written to {args.output}")
-        return 0
+        try:
+            result = write_reports(args.db, args.output, args.year, as_of=args.as_of)
+        except (OSError, ValueError, sqlite3.Error) as exc:
+            print(f"Report generation failed: {safe_error(exc)}", file=sys.stderr)
+            return 1
+        print(f"Reports written to {args.output}: {result['status']} ({result['errors']} errors, {result['warnings']} warnings)")
+        return 1 if result["errors"] else 0
     return 2
 
 

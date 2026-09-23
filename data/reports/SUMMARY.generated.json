@@ -1,6 +1,8 @@
 [
   {
     "country_code": "AT",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Österreich",
     "period": "2025",
     "period_status": "closed",
@@ -125,6 +127,8 @@
   },
   {
     "country_code": "BE",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Belgien",
     "period": "2025",
     "period_status": "closed",
@@ -249,6 +253,8 @@
   },
   {
     "country_code": "BG",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Bulgarien",
     "period": "2025",
     "period_status": "closed",
@@ -373,6 +379,8 @@
   },
   {
     "country_code": "CH",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Schweiz",
     "period": "2025",
     "period_status": "closed",
@@ -491,6 +499,8 @@
   },
   {
     "country_code": "CZ",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Tschechien",
     "period": "2025",
     "period_status": "closed",
@@ -617,6 +627,8 @@
   },
   {
     "country_code": "DE",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Deutschland",
     "period": "2025",
     "period_status": "closed",
@@ -743,6 +755,8 @@
   },
   {
     "country_code": "DK",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Dänemark",
     "period": "2025",
     "period_status": "closed",
@@ -867,6 +881,8 @@
   },
   {
     "country_code": "ES",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Spanien",
     "period": "2025",
     "period_status": "closed",
@@ -993,6 +1009,8 @@
   },
   {
     "country_code": "EE",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Estland",
     "period": "2025",
     "period_status": "closed",
@@ -1117,6 +1135,8 @@
   },
   {
     "country_code": "FI",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Finnland",
     "period": "2025",
     "period_status": "closed",
@@ -1241,6 +1261,8 @@
   },
   {
     "country_code": "FR",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Frankreich",
     "period": "2025",
     "period_status": "closed",
@@ -1365,6 +1387,8 @@
   },
   {
     "country_code": "UK",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Vereinigtes Königreich",
     "period": "2025",
     "period_status": "closed",
@@ -1479,6 +1503,8 @@
   },
   {
     "country_code": "GR",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Griechenland",
     "period": "2025",
     "period_status": "closed",
@@ -1603,6 +1629,8 @@
   },
   {
     "country_code": "HR",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Kroatien",
     "period": "2025",
     "period_status": "closed",
@@ -1729,6 +1757,8 @@
   },
   {
     "country_code": "HU",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Ungarn",
     "period": "2025",
     "period_status": "closed",
@@ -1853,6 +1883,8 @@
   },
   {
     "country_code": "IE",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Irland",
     "period": "2025",
     "period_status": "closed",
@@ -1977,6 +2009,8 @@
   },
   {
     "country_code": "IT",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Italien",
     "period": "2025",
     "period_status": "closed",
@@ -2101,6 +2135,8 @@
   },
   {
     "country_code": "LT",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Litauen",
     "period": "2025",
     "period_status": "closed",
@@ -2225,6 +2261,8 @@
   },
   {
     "country_code": "LU",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Luxemburg",
     "period": "2025",
     "period_status": "closed",
@@ -2349,6 +2387,8 @@
   },
   {
     "country_code": "LV",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Lettland",
     "period": "2025",
     "period_status": "closed",
@@ -2475,6 +2515,8 @@
   },
   {
     "country_code": "ME",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Montenegro",
     "period": "2025",
     "period_status": "closed",
@@ -2605,6 +2647,8 @@
   },
   {
     "country_code": "MK",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Nordmazedonien",
     "period": "2025",
     "period_status": "closed",
@@ -2734,6 +2778,8 @@
   },
   {
     "country_code": "NL",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Niederlande",
     "period": "2025",
     "period_status": "closed",
@@ -2858,6 +2904,8 @@
   },
   {
     "country_code": "NO",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Norwegen",
     "period": "2025",
     "period_status": "closed",
@@ -2982,6 +3030,8 @@
   },
   {
     "country_code": "PL",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Polen",
     "period": "2025",
     "period_status": "closed",
@@ -3106,6 +3156,8 @@
   },
   {
     "country_code": "PT",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Portugal",
     "period": "2025",
     "period_status": "closed",
@@ -3230,6 +3282,8 @@
   },
   {
     "country_code": "RO",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Rumänien",
     "period": "2025",
     "period_status": "closed",
@@ -3354,6 +3408,8 @@
   },
   {
     "country_code": "RS",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Serbien",
     "period": "2025",
     "period_status": "closed",
@@ -3478,6 +3534,8 @@
   },
   {
     "country_code": "SK",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Slowakei",
     "period": "2025",
     "period_status": "closed",
@@ -3602,6 +3660,8 @@
   },
   {
     "country_code": "SI",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Slowenien",
     "period": "2025",
     "period_status": "closed",
@@ -3728,6 +3788,8 @@
   },
   {
     "country_code": "SE",
+    "retained_source_periods": [],
+    "retained_source_metrics": [],
     "country_name": "Schweden",
     "period": "2025",
     "period_status": "closed",

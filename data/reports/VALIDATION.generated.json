@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "year": 2025,
+  "as_of": "2026-09-23",
+  "snapshot_sha256": "a6836eb87e543564768bd49a02aa1b2422260bb3bb962bc16fae710888465173",
+  "fingerprint_kind": "logical_sqlite_content_v1",
+  "status": "passed",
+  "errors": 0,
+  "warnings": 0,
+  "integrity": "ok",
+  "scope": "Offline stored Ember observation/cache consistency for DE, FR, UK, ES, NO; shared importer normalization. Not an independent source audit or live freshness check. Cache-only records not imported are not audited.",
+  "missing_core_summary_countries": [],
+  "missing_catalog_countries": [],
+  "unexpected_catalog_countries": [],
+  "summary_status_counts": {
+    "complete": 28,
+    "partial": 3
+  },
+  "summary_period_status_counts": {
+    "closed": 31
+  },
+  "summary_quality_issue_counts": {
+    "incomplete_wholesale_price_year": 3,
+    "negative_source_residual_treated_as_missing": 6
+  },
+  "source_inventory": [
+    {
+      "source": "battery_charts",
+      "quality_status": "derived",
+      "observations": 556,
+      "first_period": "2015-01-01",
+      "last_period": "2026-07-31"
+    },
+    {
+      "source": "battery_charts",
+      "quality_status": "derived_provisional",
+      "observations": 4,
+      "first_period": "2026-08-01",
+      "last_period": "2026-08-25"
+    },
+    {
+      "source": "battery_charts",
+      "quality_status": "observed",
+      "observations": 1112,
+      "first_period": "2015-01-01",
+      "last_period": "2026-07-31"
+    },
+    {
+      "source": "battery_charts",
+      "quality_status": "provisional_current_month",
+      "observations": 8,
+      "first_period": "2026-08-01",
+      "last_period": "2026-08-25"
+    },
+    {
+      "source": "eea",
+      "quality_status": "observed_including_public_heat",
+      "observations": 270,
+      "first_period": "2015-01-01",
+      "last_period": "2024-12-31"
+    },
+    {
+      "source": "ember",
+      "quality_status": "observed",
+      "observations": 114070,
+      "first_period": "2015-01-01",
+      "last_period": "2026-07-31"
+    },
+    {
+      "source": "ember",
+      "quality_status": "provisional_current_month",
+      "observations": 31,
+      "first_period": "2026-08-01",
+      "last_period": "2026-08-31"
+    },
+    {
+      "source": "eurostat",
+      "quality_status": "observed",
+      "observations": 5624,
+      "first_period": "2015-01-01",
+      "last_period": "2026-12-31"
+    },
+    {
+      "source": "jrc",
+      "quality_status": "derived_from_jrc_power_and_energy",
+      "observations": 80,
+      "first_period": "2026-08-11",
+      "last_period": "2026-08-25"
+    },
+    {
+      "source": "jrc",
+      "quality_status": "source_inventory_incomplete",
+      "observations": 67,
+      "first_period": "2023-10-25",
+      "last_period": "2023-10-25"
+    },
+    {
+      "source": "jrc",
+      "quality_status": "source_reported_including_estimates",
+      "observations": 160,
+      "first_period": "2026-08-11",
+      "last_period": "2026-08-25"
+    }
+  ],
+  "ember_cache_checks": [
+    {
+      "country": "DE",
+      "observations": 363,
+      "counts": {
+        "matched": 363
+      },
+      "errors": 0,
+      "issues": [],
+      "cache_evidence": [
+        {
+          "endpoint": "carbon-intensity/monthly",
+          "target": "DEU",
+          "fetched_at": "2026-08-25T04:17:21.042301+00:00",
+          "sha256": "4fee8c6126b395a127a2a228964ad762cecdc7ddbf250c5ba54f4f9ff7cb0dff"
+        },
+        {
+          "endpoint": "carbon-intensity/yearly",
+          "target": "DEU",
+          "fetched_at": "2026-08-25T04:17:21.324991+00:00",
+          "sha256": "9a5d1240e400e9575ce7c5f2e34a36f60b6113372bfb09061b3a9795f456ba71"
+        },
+        {
+          "endpoint": "electricity-demand/monthly",
+          "target": "DEU",
+          "fetched_at": "2026-08-25T04:17:20.438951+00:00",
+          "sha256": "4942fe6f8741f3daf91ebac74a1fe29239c02e267981260d05ff6fde20e2c220"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "DEU|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:18.321927+00:00",
+          "sha256": "9e42cbdab88441ab7bf598f5b2265b1af3c7d0cdeef4c27eaefa6698461ae8d4"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "DEU|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:17.776711+00:00",
+          "sha256": "673ca483abfe5fc22ba893d3ec5d2e7332f5bb395fba9a704c52afa75eeb7b42"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "DEU|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:19.177799+00:00",
+          "sha256": "db63f5438ab05cdbf9a60f3faa582e6631cf9fe79c4fb9b30fec8903d765af59"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "DEU|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:18.733271+00:00",
+          "sha256": "06d2144645ca92d94aa0fdf101324833249890dc223f2e8d785f3c67ad7c71cf"
+        }
+      ]
+    },
+    {
+      "country": "FR",
+      "observations": 339,
+      "counts": {
+        "matched": 339
+      },
+      "errors": 0,
+      "issues": [],
+      "cache_evidence": [
+        {
+          "endpoint": "carbon-intensity/monthly",
+          "target": "FRA",
+          "fetched_at": "2026-08-25T04:17:43.136582+00:00",
+          "sha256": "0a179f3f3c6a6c0925d181db76e70344a761d4fdc8ed86ca810be271ff3765a1"
+        },
+        {
+          "endpoint": "carbon-intensity/yearly",
+          "target": "FRA",
+          "fetched_at": "2026-08-25T04:17:43.423893+00:00",
+          "sha256": "446b25ce9d4a92bff27c37fac995ae6ec55378aa1c07e60f9173cac42fd2a89c"
+        },
+        {
+          "endpoint": "electricity-demand/monthly",
+          "target": "FRA",
+          "fetched_at": "2026-08-25T04:17:42.531341+00:00",
+          "sha256": "41cae61fe26251a4cbb7cf9e0b0777d1f8d8b74aa3dffc189548f88e4b1ff71d"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "FRA|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:40.526081+00:00",
+          "sha256": "32b87eade7ecc278a46a84cc1d2e3cea2c6720b0c9a7889254da5deee5540204"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "FRA|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:39.923683+00:00",
+          "sha256": "d111f5a40ba9622a63ca59629e5fb37efc2a7a6249fc11a40ccd521d4479cd99"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "FRA|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:41.327824+00:00",
+          "sha256": "cd7d2689763a20ee4d32d12d07d567d6cfb6898dfe6f5c78309733848aa7156a"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "FRA|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:40.944217+00:00",
+          "sha256": "b6f5649343f150227c29e7d22a863f208a73591d42da3d2c65b3446a4aa788c8"
+        }
+      ]
+    },
+    {
+      "country": "UK",
+      "observations": 339,
+      "counts": {
+        "matched": 339
+      },
+      "errors": 0,
+      "issues": [],
+      "cache_evidence": [
+        {
+          "endpoint": "carbon-intensity/monthly",
+          "target": "GBR",
+          "fetched_at": "2026-08-25T04:17:47.576603+00:00",
+          "sha256": "e1758289ae204cfe0a8d5c897f393726aee01a998fb798a1300be377a2fb1e1a"
+        },
+        {
+          "endpoint": "carbon-intensity/yearly",
+          "target": "GBR",
+          "fetched_at": "2026-08-25T04:17:47.838040+00:00",
+          "sha256": "5c79b0fc1ebb56038ac2b86e65578e3064c268946e8c5c6782cc21f0cf256573"
+        },
+        {
+          "endpoint": "electricity-demand/monthly",
+          "target": "GBR",
+          "fetched_at": "2026-08-25T04:17:46.984691+00:00",
+          "sha256": "37a878e51bbfa952c2ae5c17b79b705b691e7b843e5ce483947ad797637020ab"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "GBR|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:44.785682+00:00",
+          "sha256": "297277af55606b64a2a977c9608e97603c868df788415673e47847d5c59cc9cb"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "GBR|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:44.253019+00:00",
+          "sha256": "7c0421320479177e546988c9d56a4b897f701cbbe22b0a6d6b9d56d2fced943d"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "GBR|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:45.645102+00:00",
+          "sha256": "5fd68fd8593caa108756748656d87a57b2f190831f3ca0945b27b6cc49921db5"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "GBR|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:45.261051+00:00",
+          "sha256": "7114cb637032e2ac66f4afed2b440edf77eae700c0ea82485e8538002598c824"
+        }
+      ]
+    },
+    {
+      "country": "ES",
+      "observations": 363,
+      "counts": {
+        "matched": 363
+      },
+      "errors": 0,
+      "issues": [],
+      "cache_evidence": [
+        {
+          "endpoint": "carbon-intensity/monthly",
+          "target": "ESP",
+          "fetched_at": "2026-08-25T04:17:29.855283+00:00",
+          "sha256": "e180a32be73030eb38e1061bc8186da453e63080baaefe3f53ab6b84c02005c5"
+        },
+        {
+          "endpoint": "carbon-intensity/yearly",
+          "target": "ESP",
+          "fetched_at": "2026-08-25T04:17:30.135217+00:00",
+          "sha256": "9f6b1f202d5c5aebb3e1a2d6c94f9139e164b16be076bd08fdc401dfcc457754"
+        },
+        {
+          "endpoint": "electricity-demand/monthly",
+          "target": "ESP",
+          "fetched_at": "2026-08-25T04:17:29.254185+00:00",
+          "sha256": "6f7eee16fdf2505f49b6c4d574613e98c0c7360130f5a106359d26fe0419ae9d"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "ESP|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:27.245098+00:00",
+          "sha256": "4fa93659f6bd0f3f3f834b24c268c6481cac63f4aefd38069c0ac0256df624a8"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "ESP|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:26.717253+00:00",
+          "sha256": "ecfee0e090511ff00f5e1164c5369b925bb84e960f112d1409e64445729130ab"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "ESP|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:17:28.037545+00:00",
+          "sha256": "4f29d37d0f54c7ac13cee07e74adab64ed969fc903bf1abde4e5d912fe5452cb"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "ESP|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:17:27.657030+00:00",
+          "sha256": "aa8cc0ee059f6973fcc29df035ba56320794f2720ecf4ecd30ff81db75c8f809"
+        }
+      ]
+    },
+    {
+      "country": "NO",
+      "observations": 315,
+      "counts": {
+        "matched": 315
+      },
+      "errors": 0,
+      "issues": [],
+      "cache_evidence": [
+        {
+          "endpoint": "carbon-intensity/monthly",
+          "target": "NOR",
+          "fetched_at": "2026-08-25T04:18:39.759912+00:00",
+          "sha256": "db36b1fd8dcc49b1ec3a767b4eca36cf2c6d11906f9847f5dce1600bfb2236ec"
+        },
+        {
+          "endpoint": "carbon-intensity/yearly",
+          "target": "NOR",
+          "fetched_at": "2026-08-25T04:18:40.045417+00:00",
+          "sha256": "a328a365045a6d20131f4e66d2888f9a243e8b3245ca010002f65188d3ab05bf"
+        },
+        {
+          "endpoint": "electricity-demand/monthly",
+          "target": "NOR",
+          "fetched_at": "2026-08-25T04:18:39.160247+00:00",
+          "sha256": "35a3439d3b72d9b7dd38712d9019f570c360d9de53c034518c7a0d33adb28ce3"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "NOR|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:18:36.979238+00:00",
+          "sha256": "0b4e7e7d7c93935ddaf11e5c27d1e722aa2f193c118a65d6ac93477c47d48a8c"
+        },
+        {
+          "endpoint": "electricity-generation/monthly",
+          "target": "NOR|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:18:36.380921+00:00",
+          "sha256": "c924fcb5ea9af277b1b8b8e0d82468421db3c7d9cb2e00f922b7d0b49bbbbeb9"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "NOR|is_aggregate_series=true",
+          "fetched_at": "2026-08-25T04:18:37.904094+00:00",
+          "sha256": "51499e513fa71eab64c1d9e52715ca52910bf5cf05887664bc3fe2af95d622f2"
+        },
+        {
+          "endpoint": "electricity-generation/yearly",
+          "target": "NOR|is_aggregate_series=false",
+          "fetched_at": "2026-08-25T04:18:37.537660+00:00",
+          "sha256": "a0be6a40ccba0c7ac79f88b3c21dcb8f2b0623f3d99804efad1f7373db40f453"
+        }
+      ]
+    }
+  ]
+}

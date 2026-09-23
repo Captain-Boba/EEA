@@ -172,6 +172,20 @@ chromium`. This neither controls nor changes an installed Firefox profile.
 
 Germany uses only the national Battery-Charts total for batteries. Other countries use the project inventory recorded by JRC, while pumped storage comes from JRC for every country. Values from different sources are never added together. The existing `import-storage` command remains available as a deprecated offline fallback for reviewed JRC CSV/XLSX files. See [JRC_STORAGE_IMPORT.md](docs/JRC_STORAGE_IMPORT.md) for details.
 
+### Offline data reports
+
+```powershell
+.\.venv\Scripts\eea.exe --db data\atlas.sqlite3 report --year 2025 --output data\reports
+```
+
+Creates coverage, summary, stored Ember/cache validation (Markdown and JSON),
+and a checksum manifest from one read-only SQLite snapshot. No downloads or
+credentials are needed. `--as-of YYYY-MM-DD` fixes the aggregation calendar for
+reproducibility, not a historical database reconstruction. Retained values and
+missing verification data are explicitly marked. These checks do not certify
+live freshness or independently validate Ember's data. See
+[DATA_REFRESH.md](docs/DATA_REFRESH.md#reproducible-offline-report-bundle).
+
 ### Complete data refresh
 
 Use `refresh-all` for a controlled refresh of the complete analytical database. The command builds and validates an isolated candidate below the Git-ignored `data/.refresh-work/`, publishes it only after all source imports succeed, and removes temporary candidate, rollback, and SQLite sidecar files afterwards. It never replaces or writes to the separate community vote database.

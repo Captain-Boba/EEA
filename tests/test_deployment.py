@@ -69,6 +69,27 @@ class DeploymentHttpTests(unittest.TestCase):
             self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
             self.assertEqual(response.headers["X-Frame-Options"], "DENY")
 
+    def test_refresh_warning_or_failure_does_not_make_serving_databases_unhealthy(self):
+        from electricity_atlas.monthly_refresh import MONTHLY_REPORT_NAME
+        report = self.atlas.parent / "reports" / MONTHLY_REPORT_NAME
+        report.parent.mkdir()
+        for state, publication in (("success", "published"), ("failed", "not_published")):
+            report.write_text(json.dumps({"status": state, "publication": publication,
+                "sources": {"jrc_storage": {"status": "failed_optional", "error": "private-secret"}}}), encoding="utf-8")
+            with urlopen(self.base + "/api/health", timeout=5) as response:
+                self.assertEqual(response.status, 200)
+                payload = json.load(response)
+            self.assertEqual(payload["status"], "ok")
+            self.assertIn("jrc_storage", payload["monthly_refresh"]["source_warnings"])
+            self.assertEqual(payload["monthly_refresh"]["publication"], publication)
+            self.assertNotIn("private-secret", json.dumps(payload))
+            schemas = json.loads((Path(__file__).resolve().parents[1] / "web" / "openapi.json").read_text(encoding="utf-8"))["components"]["schemas"]
+            self.assertTrue(set(payload) <= set(schemas["Health"]["properties"]))
+            refresh_schema = schemas["MonthlyRefreshHealth"]["properties"]
+            self.assertTrue(set(payload["monthly_refresh"]) <= set(refresh_schema))
+            self.assertEqual(set(payload["monthly_refresh"]["sources"]), set(refresh_schema["sources"]["properties"]))
+            self.assertTrue(set(payload["monthly_refresh"]["sources"].values()) <= set(schemas["RefreshSourceStatus"]["enum"]))
+
     def test_health_returns_non_success_when_a_database_is_unavailable(self):
         self.community.unlink()
         with self.assertRaises(HTTPError) as unavailable:

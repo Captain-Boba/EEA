@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import sqlite3
+from datetime import date
 from typing import Any
 
 from .aggregation import aggregate_country
 from .config import COUNTRIES, EMBER_SOURCE_NAME
 
 
-def coverage_rows(connection: sqlite3.Connection, year: int) -> list[dict[str, Any]]:
+def coverage_rows(connection: sqlite3.Connection, year: int, *, today: date | None = None) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for code, country in COUNTRIES.items():
-        summary = aggregate_country(connection, code, year)
+        summary = aggregate_country(connection, code, year, today=today)
         earliest = connection.execute(
             """SELECT MIN(substr(period_start,1,4))
                FROM period_observation WHERE source=? AND country_code=?""",
@@ -34,14 +35,14 @@ def coverage_rows(connection: sqlite3.Connection, year: int) -> list[dict[str, A
     return rows
 
 
-def coverage_markdown(connection: sqlite3.Connection, year: int) -> str:
+def coverage_markdown(connection: sqlite3.Connection, year: int, *, today: date | None = None) -> str:
     lines = [
         f"# Ember coverage {year}",
         "",
         "| Country | Generation | Demand | CO2 intensity | Wholesale price | Status | Earliest year |",
         "|---|---|---|---|---|---|---:|",
     ]
-    for row in coverage_rows(connection, year):
+    for row in coverage_rows(connection, year, today=today):
         lines.append(
             f"| {row['country_code']} | {row['generation']} | {row['demand']} | "
             f"{row['carbon_intensity']} | {row['wholesale_price']} | {row['data_status']} | "

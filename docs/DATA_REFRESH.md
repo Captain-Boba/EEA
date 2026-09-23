@@ -40,7 +40,58 @@ The success sequence is:
 9. remove the empty per-run directory and empty `.refresh-work` root;
 10. write the compact `data/reports/REFRESH.generated.json` lifecycle report.
 
-Existing files in `data/reports/` are preserved. Coverage and summary reports remain separate products of `eea report`.
+Existing files in `data/reports/` are preserved. Coverage, summary and offline validation reports remain separate products of `eea report`; a refresh does not silently regenerate checked-in reports.
+
+## Reproducible offline report bundle
+
+Run locally against the exact database you want to inspect (no API key, browser
+or network access is used):
+
+```powershell
+$env:PYTHONPATH = 'src'
+.\.venv\Scripts\python.exe -m electricity_atlas.cli --db .\data\atlas.sqlite3 report --year 2025 --as-of 2026-09-23 --output .\data\reports
+```
+
+Omit `--as-of` for today's aggregation calendar. An explicit date makes the
+closed-year/YTD and price classification reproducible; it does **not** recreate
+an older database or filter out observations acquired after that date. Use a
+matching archived database if you need an actual historical snapshot.
+
+The command produces:
+
+- `COVERAGE.generated.md`: country coverage using the same aggregation rules as the API.
+- `SUMMARY.generated.json`: the existing array-shaped annual summary; missing values stay `null`, genuine zero remains zero.
+- `VALIDATION.generated.md` and `.json`: SQLite integrity, source/quality inventory, summary status counts and stored Ember observation/cache comparisons for DE, FR, UK, ES and NO in the requested year (monthly and yearly).
+- `REPORT_MANIFEST.generated.json`: year, calendar date, logical snapshot fingerprint and SHA-256 of each of the four report files.
+
+All reads share one read-only SQLite transaction, including committed WAL
+content. The fingerprint hashes logical database content, **not** just the
+main `.sqlite3` file, and is not interchangeable with lifecycle file hashes.
+The cache check reuses importer normalization; it detects stored-value/cache
+disagreements, not shared parser errors or incorrect source data. It does not
+audit cache-only records absent from SQLite, other countries' raw records,
+auxiliary-source transformations or independent official national statistics.
+No raw payloads, request URLs or API keys are copied into the reports.
+
+The newest covering successful cached response is used; an older response
+cannot hide a withdrawn or revised value. Retained source-gap observations and
+missing caches are explicitly warnings/unverifiable, never newly verified
+values. Period end dates in the inventory are not fetch/freshness timestamps.
+Incomplete coverage is visible, not filled with zeros. A clean cache comparison
+does not certify that the database is current or ready for production.
+
+Exit code `1` signals detected consistency errors or report-generation failure;
+`0` allows documented coverage/retention warnings. All files are prepared before
+replacement; each replacement is atomic and the manifest is written last. The
+directory is not a multi-file atomic transaction: if interrupted during
+replacement, compare **all four hashes** with the manifest and rerun the command
+if any differ. Do not accept a mixed report set. Temporary staging files are
+removed on controlled failure. Run only one report writer per output directory.
+
+The former Energy-Charts validation is archived under
+`docs/history/ENERGY_CHARTS_VALIDATION_2025.md`. The August beta acceptance in
+`docs/BETA_DATA_VALIDATION.md` remains historical evidence; newly generated local
+reports must not be presented as checks of the newer Railway database.
 
 ## Failure and rollback
 
@@ -113,9 +164,16 @@ eea --db data/atlas.sqlite3 monthly-refresh-status
 ```
 
 The status command reports `not_run` or `unreadable_report` explicitly. The
-public `/api/health` includes only last-run state, target month and valid
-completion/retry timestamps; it is not a refresh control endpoint and exposes
-no errors, paths or source payloads. A `running` report after an abrupt exit is the last recorded
+public `/api/health` includes last-run state, target month, valid completion/retry
+timestamps, publication status and allowlisted statuses for all eight sources.
+`source_warnings` lists retained, failed, unattempted or unknown source results
+after a completed attempt; it is absent while running. It is not a refresh
+control endpoint and exposes no errors, paths or source payloads. These source
+statuses describe the **latest attempt**, not necessarily the serving database:
+`not_published` means even successful source steps did not reach production.
+`unknown` is used for missing/invalid fields in older reports. `refreshed` means
+the importer succeeded, not that the upstream dataset has recent observations.
+A `running` report after an abrupt exit is the last recorded
 state, not proof that a process is still alive; kernel locks remain authoritative.
 
 ### Planned source policy
