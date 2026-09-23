@@ -1,3 +1,4 @@
+const {t, locale, language, apiFetch} = window.AtlasI18n;
 const TABLE_METRIC_IDS = [
   "generation_twh",
   "consumption_twh",
@@ -62,27 +63,27 @@ const MAP_PALETTES = {
   "pumped-storage": ["#c6e5e2", "#b2dfdc", "#72c4bf", "#39a19d", "#1f716f"],
 };
 const MAP_PALETTE_BY_FAMILY = {
-  "Erzeugung": "generation",
-  "Verbrauch": "consumption",
-  "Erneuerbare gesamt": "renewables",
-  "Wind": "wind",
-  "Solar": "solar",
-  "Wasserkraft": "hydro",
-  "Bioenergie": "bioenergy",
-  "Sonstige Erneuerbare": "other-renewables",
-  "Fossile gesamt": "fossil",
-  "Kohle": "coal",
-  "Gas": "gas",
-  "Sonstige Fossile": "other-fossil",
-  "Kernenergie": "nuclear",
-  "Nettoimporte": "trade",
-  "Großhandelspreis": "price",
-  "CO₂-Intensität": "carbon",
-  "Bevölkerung": "population",
-  "BIP": "gdp",
-  "BIP pro Kopf": "gdp-per-capita",
-  "Batteriespeicher": "battery",
-  "Pumpspeicher": "pumped-storage",
+  "generation": "generation",
+  "consumption": "consumption",
+  "total-renewables": "renewables",
+  "wind": "wind",
+  "solar": "solar",
+  "hydropower": "hydro",
+  "bioenergy": "bioenergy",
+  "other-renewables": "other-renewables",
+  "total-fossil-fuels": "fossil",
+  "coal": "coal",
+  "gas": "gas",
+  "other-fossil-fuels": "other-fossil",
+  "nuclear": "nuclear",
+  "net-imports": "trade",
+  "wholesale-price": "price",
+  "carbon-intensity": "carbon",
+  "population": "population",
+  "gdp": "gdp",
+  "gdp-per-capita": "gdp-per-capita",
+  "battery-storage": "battery",
+  "pumped-storage": "pumped-storage",
 };
 
 let metricCatalog = new Map();
@@ -148,7 +149,7 @@ function periodQuery() {
 function format(value) {
   if (value === null || value === undefined) return '<span class="missing">—</span>';
   if (typeof value === "number") {
-    return new Intl.NumberFormat("de-DE", {maximumFractionDigits: 2}).format(value);
+    return new Intl.NumberFormat(locale, {maximumFractionDigits: 2}).format(value);
   }
   return escapeHtml(value);
 }
@@ -156,7 +157,7 @@ function format(value) {
 function formatTableValue(value, metricId) {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) return '<span class="missing">—</span>';
   const decimals = metricDefinition(metricId)?.map_config?.decimals ?? 2;
-  return new Intl.NumberFormat("de-DE", {
+  return new Intl.NumberFormat(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(Number(value));
@@ -166,12 +167,12 @@ function formatMetricValue(value, metric, compact = false) {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) return "—";
   const decimals = metric?.map_config?.decimals ?? 2;
   if (compact && Math.abs(value) >= 1_000_000) {
-    return `${new Intl.NumberFormat("de-DE", {
+    return `${new Intl.NumberFormat(locale, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(value / 1_000_000)} Mio.`;
+    }).format(value / 1_000_000)} ${t("million")}`;
   }
-  return new Intl.NumberFormat("de-DE", {
+  return new Intl.NumberFormat(locale, {
     maximumFractionDigits: decimals,
     minimumFractionDigits: decimals,
     notation: compact && Math.abs(value) >= 10000 ? "compact" : "standard",
@@ -182,9 +183,9 @@ function metricDefinition(id) {
   return metricCatalog.get(id) || {
     id,
     label_de: id,
-    group: "Kennzahl",
+    group: t("Metric"),
     unit: "",
-    display_topic: "Kennzahl",
+    display_topic: t("Metric"),
     display_metric: id,
     display_basis: "",
     map: false,
@@ -193,8 +194,8 @@ function metricDefinition(id) {
 
 function metricLabels(metric) {
   return {
-    topic: metric.display_topic || metric.group || "Kennzahl",
-    metric: metric.display_metric || metric.label_de || metric.id,
+    topic: metric.display_topic || metric.group || t("Metric"),
+    metric: metric.display_metric || (metric.label || metric.label_de) || metric.id,
     basis: metric.display_basis || metric.representation || metric.unit || "",
   };
 }
@@ -233,17 +234,17 @@ function metricHeader(id, activeKey, direction, allowMap = true) {
   // Table columns need a concise, unique domain label.  The three-level
   // presentation labels belong to selectors and detail views; using only
   // their middle line here would turn several columns into just "Anteil".
-  const label = tableHeaderText(metric.label_de);
+  const label = tableHeaderText((metric.label || metric.label_de));
   const unitLabel = tableHeaderText(metric.unit);
   const unit = unitLabel ? `<span class="unit">${escapeHtml(unitLabel)}</span>` : "";
   const mapAction = allowMap && metric.map
-    ? `<button type="button" class="map-column-action${mapMetricId === id ? " active" : ""}" data-map-metric="${id}" aria-label="${escapeAttribute(label)} auf Karte anzeigen">Karte</button>`
+    ? `<button type="button" class="map-column-action${mapMetricId === id ? " active" : ""}" data-map-metric="${id}" aria-label="${escapeAttribute(t("Show {{label}} on the map", {label}))}">${t("Map")}</button>`
     : "";
-  const descending = `<button type="button" class="sort-indicator${activeSort && direction < 0 ? " active" : ""}" data-sort-key="${id}" data-sort-direction="-1" aria-label="${escapeAttribute(label)} absteigend sortieren" aria-pressed="${activeSort && direction < 0}">↓</button>`;
-  const ascending = `<button type="button" class="sort-indicator${activeSort && direction > 0 ? " active" : ""}" data-sort-key="${id}" data-sort-direction="1" aria-label="${escapeAttribute(label)} aufsteigend sortieren" aria-pressed="${activeSort && direction > 0}">↑</button>`;
+  const descending = `<button type="button" class="sort-indicator${activeSort && direction < 0 ? " active" : ""}" data-sort-key="${id}" data-sort-direction="-1" aria-label="${escapeAttribute(t("Sort {{label}} descending", {label}))}" aria-pressed="${activeSort && direction < 0}">↓</button>`;
+  const ascending = `<button type="button" class="sort-indicator${activeSort && direction > 0 ? " active" : ""}" data-sort-key="${id}" data-sort-direction="1" aria-label="${escapeAttribute(t("Sort {{label}} ascending", {label}))}" aria-pressed="${activeSort && direction > 0}">↑</button>`;
   const headerActions = `<span class="table-header-actions">${descending}${mapAction}${ascending}</span>`;
   return `<th scope="col" data-key="${id}"${ariaSort} class="${activeSort ? "sort-column-active" : ""}">
-    <button type="button" class="sort-action" data-sort-key="${id}" aria-label="${escapeAttribute(label)} sortieren">
+    <button type="button" class="sort-action" data-sort-key="${id}" aria-label="${escapeAttribute(t("Sort {{label}}", {label}))}">
       <span class="table-header-copy"><span class="sort-label">${escapeHtml(label)}</span>${unit}</span>
     </button>
     ${headerActions}
@@ -277,15 +278,15 @@ function tableHeaderText(value) {
 
 function leadingTableHeader(withSelection = false) {
   const label = withSelection
-    ? "Rang, Land und Länder für den Zeitvergleich auswählen"
-    : "Rang und Land";
+    ? t("Rank, country and country selection for the time comparison")
+    : t("Rank and country");
   return `<th scope="colgroup" colspan="2" class="table-leading-spacer"><span class="sr-only">${label}</span></th>`;
 }
 
 function tableCountry(row) {
-  return `<button type="button" class="table-country profile-open" data-country-profile="${row.country_code}" aria-label="Steckbrief für ${escapeAttribute(row.country_name)} öffnen">
+  return `<button type="button" class="table-country profile-open" data-country-profile="${row.country_code}" aria-label="${escapeAttribute(t("Open the country profile for {{country}}", {country: row.country_name}))}">
     <img src="/assets/flags/${flagCode(row.country_code)}.svg" alt="" loading="lazy">
-    <span class="table-country-copy"><span class="country-name">${escapeHtml(row.country_name)}</span><small>${escapeHtml(row.country_code)}</small>${row.retained_source_periods?.length ? '<small title="Einige Ember-Kennzahlen enthalten wegen einer Quellenlücke beibehaltene Monatsdaten. Details im Steckbrief.">Ember: teils älterer Stand</small>' : ""}</span>
+    <span class="table-country-copy"><span class="country-name">${escapeHtml(row.country_name)}</span><small>${escapeHtml(row.country_code)}</small>${row.retained_source_periods?.length ? `<small title="${t("Some Ember metrics contain monthly data retained due to a source gap. See the country profile for details.")}">${t("Ember: some older data retained")}</small>` : ""}</span>
   </button>`;
 }
 
@@ -307,10 +308,10 @@ function updateTableDisclosure(kind, expanded, total) {
   button.hidden = total <= TABLE_PREVIEW_LIMIT;
   button.setAttribute("aria-expanded", String(expanded));
   button.querySelector(".table-toggle-label").textContent = expanded
-    ? "Auf Top 10 reduzieren"
-    : `Alle ${total} Länder anzeigen`;
-  if (state) state.textContent = expanded ? "Vollständige Rangliste" : "Top 10 nach aktueller Sortierung";
-  if (count) count.textContent = `${expanded ? total : Math.min(TABLE_PREVIEW_LIMIT, total)} von ${total} Ländern`;
+    ? t("Show top 10")
+    : t("Show all {{count}} countries", {count: total});
+  if (state) state.textContent = expanded ? t("Full ranking") : t("Top 10 in the current sort order");
+  if (count) count.textContent = t("{{shown}} of {{total}} countries", {shown: expanded ? total : Math.min(TABLE_PREVIEW_LIMIT, total), total});
 }
 
 function syncStickyHeaderOffset() {
@@ -380,7 +381,7 @@ function sortRows(rows, key, direction) {
     if (av == null && bv == null) return 0;
     if (av == null) return 1;
     if (bv == null) return -1;
-    return (typeof av === "string" ? av.localeCompare(bv, "de") : av - bv) * direction;
+    return (typeof av === "string" ? av.localeCompare(bv, locale) : av - bv) * direction;
   });
 }
 
@@ -450,7 +451,7 @@ function render() {
   $("summary-body").innerHTML = visibleRows.map((row, index) => {
     const isSelected = selected.has(row.country_code);
     return `<tr data-country-row="${row.country_code}" style="--row-index:${index}">
-    <td class="selection-cell${isSelected ? " is-selected" : ""}"><button type="button" class="table-rank selection-toggle${isSelected ? " is-selected" : ""}" aria-label="${escapeAttribute(row.country_name)} ${isSelected ? "abwählen" : "auswählen"}" aria-pressed="${isSelected}" data-country="${row.country_code}">${index + 1}</button></td>
+    <td class="selection-cell${isSelected ? " is-selected" : ""}"><button type="button" class="table-rank selection-toggle${isSelected ? " is-selected" : ""}" aria-label="${escapeAttribute(isSelected ? t("Deselect {{country}}", {country: row.country_name}) : t("Select {{country}}", {country: row.country_name}))}" aria-pressed="${isSelected}" data-country="${row.country_code}">${index + 1}</button></td>
     <th scope="row">${tableCountry(row)}</th>
     ${TABLE_METRIC_IDS.map(id => `<td data-metric="${id}" class="${sortKey === id ? "sort-column-active" : ""}">${formatTableValue(row[id], id)}</td>`).join("")}
   </tr>`;
@@ -484,7 +485,7 @@ function renderStorage() {
   const visibleRows = storageExpanded ? sorted : sorted.slice(0, TABLE_PREVIEW_LIMIT);
   $("storage-body").innerHTML = visibleRows.map((row, index) => `<tr data-storage-row="${row.country_code}" style="--row-index:${index}">
     <td class="rank-column"><span class="table-rank${selected.has(row.country_code) ? " is-selected" : ""}" data-country="${row.country_code}">${index + 1}</span></td>
-    <th scope="row">${tableCountry(row)}${row.quality_status === "missing" ? '<span class="status-badge missing">fehlend</span>' : ""}</th>
+    <th scope="row">${tableCountry(row)}${row.quality_status === "missing" ? `<span class="status-badge missing">${t("missing")}</span>` : ""}</th>
     ${STORAGE_METRIC_IDS.map(id => storageCell(row, id, storageSortKey === id)).join("")}
   </tr>`).join("");
   updateTableDisclosure("storage", storageExpanded, sorted.length);
@@ -510,14 +511,14 @@ function renderElectromobility() {
     region.hidden = true;
     toggle.hidden = true;
     toggle.setAttribute("aria-expanded", "false");
-    if (state) state.textContent = "Nur in der Jahresansicht verfügbar";
-    if (count) count.textContent = "Jahresansicht erforderlich";
-    $("ev-note").textContent = "Elektromobilitätswerte sind jährliche Eurostat-Daten. In der Monatsansicht werden keine Jahreswerte eingeblendet.";
+    if (state) state.textContent = t("Available in the annual view only");
+    if (count) count.textContent = t("Annual view required");
+    $("ev-note").textContent = t("Electric mobility figures are annual Eurostat data. Annual values are not shown in the monthly view.");
     return;
   }
 
   region.hidden = false;
-  $("ev-note").textContent = `Eurostat-Jahreswerte für ${selectedYear()}. Fehlende Land-Jahr-Werte bleiben leer und werden nicht aus Vorjahren fortgeschrieben.`;
+  $("ev-note").textContent = `${t("Annual Eurostat values for")} ${selectedYear()}. ${t("Missing country-year values remain blank and are not carried forward from previous years.")}`;
   head.innerHTML = leadingTableHeader()
     + EV_METRIC_IDS.map(id => metricHeader(id, evSortKey, evSortDirection, true)).join("");
   bindSort("#ev-head .sort-action", key => {
@@ -551,30 +552,30 @@ function storageCell(row, metricId, isSortColumn = false) {
     return `<td>${formatTableValue(null, metricId)}</td>`;
   }
   const coverageLabels = {
-    national_registry_total: "nationaler Register-Gesamtbestand",
-    tracked_project_inventory: "erfasster Projektbestand",
+    national_registry_total: t("national register total"),
+    tracked_project_inventory: t("recorded project inventory"),
   };
   const qualityLabel = storageQualityLabel(provenance.quality_status);
-  const quality = qualityLabel === "vorhanden" ? "" : ` · ${qualityLabel}`;
-  const title = `${provenance.source_label} · Stichtag ${provenance.date} · ${coverageLabels[provenance.coverage_type] || provenance.coverage_type}${quality}`;
+  const quality = qualityLabel === t("available") ? "" : ` · ${qualityLabel}`;
+  const title = `${provenance.source_label} · ${t("As of")} ${provenance.date} · ${coverageLabels[provenance.coverage_type] || provenance.coverage_type}${quality}`;
   if (isSortColumn) return `<td class="${activeClass}" title="${escapeAttribute(title)}">${formatTableValue(row[metricId], metricId)}</td>`;
   return `<td title="${escapeAttribute(title)}">${formatTableValue(row[metricId], metricId)}</td>`;
 }
 
 function storageQualityLabel(quality) {
   return {
-    observed: "vorhanden",
-    derived: "abgeleitet",
-    provisional_current_month: "vorläufig",
-    derived_provisional: "abgeleitet, vorläufig",
-    observed_with_estimates: "mit Schätzwerten",
-    derived_with_estimates: "abgeleitet, mit Schätzwerten",
-  }[quality] || quality || "vorhanden";
+    observed: t("available"),
+    derived: t("derived"),
+    provisional_current_month: t("provisional"),
+    derived_provisional: t("derived, provisional"),
+    observed_with_estimates: t("includes estimates"),
+    derived_with_estimates: t("derived, includes estimates"),
+  }[quality] || quality || t("available");
 }
 
 function toggleCountry(code, shouldSelect = !selected.has(code)) {
   if (shouldSelect && !selected.has(code) && selected.size >= 10) {
-    $("status").textContent = "Maximal zehn Länder können gleichzeitig im Zeitvergleich ausgewählt werden.";
+    $("status").textContent = t("You can select up to ten countries in the time comparison.");
     return false;
   }
   shouldSelect ? selected.add(code) : selected.delete(code);
@@ -589,7 +590,7 @@ function toggleCountry(code, shouldSelect = !selected.has(code)) {
   updateSelection();
   if (shouldSelect) animateSelectionToCompare(code);
   if (timeseriesData && selected.size) void loadTimeseries({scroll: false, updateUrl: true});
-  else if (timeseriesData) $("comparison-status").textContent = "Mindestens ein Land auswählen.";
+  else if (timeseriesData) $("comparison-status").textContent = t("Select at least one country.");
   return true;
 }
 
@@ -598,9 +599,9 @@ function clearSelection() {
   selected.clear();
   updateSelection();
   if (timeseriesData) {
-    $("comparison-status").textContent = "Länderauswahl aufgehoben. Neue Länder wählen.";
+    $("comparison-status").textContent = t("Country selection cleared. Select new countries.");
   }
-  $("status").textContent = "Gesamte Länderauswahl aufgehoben.";
+  $("status").textContent = t("All countries deselected.");
 }
 
 function updateSelection() {
@@ -622,7 +623,7 @@ function updateSelection() {
     button.closest(".selection-cell")?.classList.toggle("is-selected", isSelected);
     button.setAttribute("aria-pressed", String(isSelected));
     const country = countryName(button.dataset.country);
-    button.setAttribute("aria-label", `${country} ${isSelected ? "abwählen" : "auswählen"}`);
+    button.setAttribute("aria-label", isSelected ? t("Deselect {{country}}", {country}) : t("Select {{country}}", {country}));
   });
   renderCountryControls();
 }
@@ -673,8 +674,8 @@ function metricVariantRank(metric) {
   const storageRank = STORAGE_VARIANT_ORDER.get(metric.id);
   if (storageRank !== undefined) return storageRank;
   if (metric.id.includes("_gdp_") || metric.id === "household_wholesale_price_gap_ct_kwh") return 30;
-  if (metric.id.includes("_per_capita") || metric.representation.includes("je Einwohner")) return 20;
-  if (metric.unit === "%" || metric.representation.startsWith("Anteil")) return 10;
+  if (metric.id.includes("_per_capita")) return 20;
+  if (metric.unit === "%") return 10;
   return 0;
 }
 
@@ -682,7 +683,7 @@ function familyKey(metric) {
   // The first selector is the user-facing category.  Keep the technical
   // family for internal grouping elsewhere, but never expose its abbreviated
   // legacy wording (for example "Erzeugung") as the category label.
-  return `${metric.group}::${metricLabels(metric).topic}`;
+  return `${metric.group_id}::${metric.category_id}`;
 }
 
 function usesLatestAvailableMapYear(metric) {
@@ -729,20 +730,20 @@ function renderMapControls() {
 
   if (usesLatestAvailableMapYear(activeMetric) && mapDataContext?.metric_id === activeMetric.id) {
     $("map-availability").textContent = mapDataContext.data_year === null
-      ? `Ausgewähltes Jahr ${mapDataContext.requested_year}: kein Leistungsdatenstand verfügbar.`
+      ? `${t("Selected year")} ${mapDataContext.requested_year}: ${t("no capacity data available.")}`
       : mapDataContext.data_year === mapDataContext.requested_year
-        ? `Datenstand ${mapDataContext.data_year}.`
-        : `Ausgewähltes Jahr ${mapDataContext.requested_year} ohne Werte · angezeigt wird Datenstand ${mapDataContext.data_year}.`;
+        ? `${t("Data as of")} ${mapDataContext.data_year}.`
+        : `${t("Selected year")} ${mapDataContext.requested_year} ${t("has no values · showing data from")} ${mapDataContext.data_year}.`;
   } else if (metricAvailable(activeMetric)) {
     $("map-availability").textContent = activeMetric.temporal_availability.snapshot
-      ? "Snapshot-Kennzahlen verwenden ihren jeweils ausgewiesenen Datenstand; Jahr und Monat gelten hier nicht."
+      ? t("Snapshot metrics use their own reporting dates; the year and month controls do not apply.")
       : "";
   } else if (activeMetric.temporal_availability.yearly && isMonthView()) {
-    $("map-availability").textContent = "Nur in der Jahresansicht verfügbar.";
+    $("map-availability").textContent = t("Available in the annual view only.");
   } else if (activeMetric.temporal_availability.snapshot) {
-    $("map-availability").textContent = "Noch kein Speichersnapshot verfügbar.";
+    $("map-availability").textContent = t("No storage snapshot available yet.");
   } else {
-    $("map-availability").textContent = "Für diese Darstellung und diesen Zeitraum nicht verfügbar.";
+    $("map-availability").textContent = t("Not available for this representation and period.");
   }
   highlightMapColumn();
   syncEnhancedSelectMenus(["map-family", "map-representation"]);
@@ -762,7 +763,7 @@ async function selectMapMetricForPeriod(metricId) {
   $("period-type").value = "year";
   syncPeriodControls();
   await loadSummary();
-  $("map-availability").textContent = "Jahresansicht für diese Kennzahl automatisch aktiviert.";
+  $("map-availability").textContent = t("Annual view activated automatically for this metric.");
 }
 
 async function setMapMetric(metricId, scrollToMap = false) {
@@ -806,7 +807,7 @@ async function loadMapData(metric = metricDefinition(mapMetricId)) {
     };
     return;
   }
-  const response = await fetch(`/api/map-data?metric=${encodeURIComponent(metric.id)}&year=${selectedYear()}`);
+  const response = await apiFetch(`/api/map-data?metric=${encodeURIComponent(metric.id)}&year=${selectedYear()}`);
   if (!response.ok) throw new Error((await response.json()).error || response.statusText);
   const payload = await response.json();
   if (payload.metric_id !== metric.id || payload.requested_year !== selectedYear()) return;
@@ -823,27 +824,27 @@ function countryName(code) {
 function periodLabel(metric, row = null) {
   if (metric.temporal_availability.snapshot) {
     const date = row?.metric_provenance?.[metric.id]?.date || storageSnapshot;
-    return date ? `Snapshot ${date}` : "Kein Snapshot";
+    return date ? `Snapshot ${date}` : t("No snapshot");
   }
   if (usesLatestAvailableMapYear(metric) && mapDataContext?.metric_id === metric.id) {
-    if (mapDataContext.data_year === null) return `Ausgewähltes Jahr ${mapDataContext.requested_year} · kein Datenstand verfügbar`;
-    if (mapDataContext.data_year !== mapDataContext.requested_year) return `Ausgewähltes Jahr ${mapDataContext.requested_year} · Datenstand ${mapDataContext.data_year}`;
+    if (mapDataContext.data_year === null) return `${t("Selected year")} ${mapDataContext.requested_year} · ${t("no data available")}`;
+    if (mapDataContext.data_year !== mapDataContext.requested_year) return `${t("Selected year")} ${mapDataContext.requested_year} · ${t("Data as of")} ${mapDataContext.data_year}`;
   }
   const period = row?.period || (isMonthView() ? `${selectedYear()}-${String($("month").value).padStart(2, "0")}` : String(selectedYear()));
-  const status = row?.period_status === "ytd" ? " · YTD" : (row?.period_status === "provisional_current_month" ? " · vorläufig" : "");
+  const status = row?.period_status === "ytd" ? " · YTD" : (row?.period_status === "provisional_current_month" ? ` · ${t("provisional")}` : "");
   return `${period}${status}`;
 }
 
 function statusLabel(row, metric) {
-  if (!row) return "fehlend";
+  if (!row) return t("missing");
   const value = row[metric.id];
-  if (value === null || value === undefined) return "fehlend";
-  if (row.retained_source_metrics?.includes(metric.id)) return "älterer Datenstand · wegen Quellenlücke beibehalten";
+  if (value === null || value === undefined) return t("missing");
+  if (row.retained_source_metrics?.includes(metric.id)) return t("older data retained due to a source gap");
   if (metric.temporal_availability.snapshot) {
     const quality = row.metric_provenance?.[metric.id]?.quality_status || row.quality_status;
     return storageQualityLabel(quality);
   }
-  return {complete: "vollständig", partial: "teilweise", missing: "fehlend"}[row.data_status] || row.data_status || "vorhanden";
+  return {complete: t("complete"), partial: t("partial"), missing: t("missing")}[row.data_status] || row.data_status || t("available");
 }
 
 function countryDetail(code, metric) {
@@ -860,11 +861,11 @@ function countryDetail(code, metric) {
       ${metricLabelHtml(metric, "metric-labeling detail-metric-labeling")}
       <b>${escapeHtml(formatted + unit)}</b>
       <span>${escapeHtml(periodLabel(metric, row))}</span>
-      <span>Datenstatus: ${escapeHtml(statusLabel(row, metric))}</span>
+      <span>${t("Data status")}: ${escapeHtml(statusLabel(row, metric))}</span>
       ${coverage}
-      <span>Quelle: ${escapeHtml(source)}</span>
-      <button type="button" class="profile-open map-profile-open" data-country-profile="${escapeAttribute(code)}">Steckbrief öffnen</button>`,
-    label: `${countryName(code)}, ${labels.topic}: ${labels.metric}, ${labels.basis}; ${formatted}${unit}, ${periodLabel(metric, row)}, Datenstatus ${statusLabel(row, metric)}, Quelle ${source}`,
+      <span>${t("Source")}: ${escapeHtml(source)}</span>
+      <button type="button" class="profile-open map-profile-open" data-country-profile="${escapeAttribute(code)}">${t("Open country profile")}</button>`,
+    label: `${countryName(code)}, ${labels.topic}: ${labels.metric}, ${labels.basis}; ${formatted}${unit}, ${periodLabel(metric, row)}, ${t("Data status")} ${statusLabel(row, metric)}, ${t("Source")} ${source}`,
   };
 }
 
@@ -888,7 +889,7 @@ function paletteColor(palette, position) {
 }
 
 function mapPaletteName(metric) {
-  const familyPalette = MAP_PALETTE_BY_FAMILY[metric?.family];
+  const familyPalette = MAP_PALETTE_BY_FAMILY[metric?.family_id];
   if (familyPalette && MAP_PALETTES[familyPalette]) return familyPalette;
   const configuredPalette = metric?.map_config?.palette;
   return MAP_PALETTES[configuredPalette] ? configuredPalette : "generation";
@@ -943,7 +944,7 @@ function mapLegendCountrySummary(label, row, metric) {
 
 function renderLegend(metric, scale) {
   if (!scale) {
-    $("map-legend").innerHTML = "<p>Keine Werte für den ausgewählten Datenstand verfügbar.</p>";
+    $("map-legend").innerHTML = `<p>${t("No values available for the selected reporting date.")}</p>`;
     $("map-sign-note").hidden = true;
     return;
   }
@@ -955,13 +956,13 @@ function renderLegend(metric, scale) {
     ${mapLegendCountrySummary("Minimum", summaries.minimum, metric)}
     ${mapLegendCountrySummary("Maximum", summaries.maximum, metric)}
     <div class="map-legend-summary map-legend-average">
-      <span class="map-legend-summary-label">Atlas-Durchschnitt</span>
+      <span class="map-legend-summary-label">${t("Atlas average")}</span>
       <b>${formatMetricValue(summaries.average, metric)}</b>
     </div>
   </div>` : "";
   $("map-legend").innerHTML = `<div class="legend-ramp" style="background:${gradient}" aria-hidden="true"></div>
     <div class="legend-values"><span>${escapeHtml(formatMetricValue(scale.min, metric))}</span>${midpoint !== null && midpoint !== undefined ? `<span>${escapeHtml(formatMetricValue(midpoint, metric))}</span>` : ""}<span>${escapeHtml(formatMetricValue(scale.max, metric))}</span></div>
-    <p>${escapeHtml(metric.unit || "ohne Einheit")} · Grau = kein Wert</p>${summaryMarkup}`;
+    <p>${escapeHtml(metric.unit || t("no unit"))} · ${t("Grey = no value")}</p>${summaryMarkup}`;
   if (motionAllowed()) {
     const legend = $("map-legend");
     legend.classList.remove("legend-morph");
@@ -1039,7 +1040,7 @@ function clearMapCountryFocus(syncUrl = true) {
   if (!focusedMapCountry) return;
   focusedMapCountry = null;
   mapSvg?.querySelectorAll(".atlas-country.selected").forEach(country => country.classList.remove("selected"));
-  $("map-detail").textContent = "Ein Land fokussieren, um Details anzuzeigen.";
+  $("map-detail").textContent = t("Focus a country to see details.");
   hideMapTooltip();
   if (syncUrl && mapUrlState()) writeMapUrl();
 }
@@ -1114,8 +1115,9 @@ async function loadMapAsset() {
     const response = await fetch("/assets/europe.svg");
     if (!response.ok) throw new Error(response.statusText);
     const documentNode = new DOMParser().parseFromString(await response.text(), "image/svg+xml");
-    if (documentNode.querySelector("parsererror")) throw new Error("Ungültiges SVG");
+    if (documentNode.querySelector("parsererror")) throw new Error(t("Invalid SVG"));
     mapSvg = document.importNode(documentNode.documentElement, true);
+    mapSvg.setAttribute("aria-label", t("Map of European countries"));
     mapSvg.id = "atlas-map";
     mapSvg.classList.add("atlas-map");
     $("map-canvas").replaceChildren(mapSvg);
@@ -1126,12 +1128,12 @@ async function loadMapAsset() {
     renderMap();
   } catch (error) {
     $("map-frame").setAttribute("aria-busy", "false");
-    $("map-canvas").innerHTML = `<p class="error">Kartengrundlage konnte nicht geladen werden: ${escapeHtml(error.message)}</p>`;
+    $("map-canvas").innerHTML = `<p class="error">${t("Could not load the base map")}: ${escapeHtml(t(error.message))}</p>`;
   }
 }
 
 async function loadMetricCatalog() {
-  const response = await fetch("/api/metrics");
+  const response = await apiFetch("/api/metrics");
   if (!response.ok) throw new Error((await response.json()).error || response.statusText);
   metricCatalog = new Map((await response.json()).map(metric => [metric.id, metric]));
   renderMapControls();
@@ -1139,11 +1141,11 @@ async function loadMetricCatalog() {
 }
 
 async function loadSummary() {
-  $("status").textContent = "Daten werden geladen …";
+  $("status").textContent = t("Loading data …");
   $("status").className = "";
   try {
     if (!metricCatalog.size) await loadMetricCatalog();
-    const response = await fetch(`/api/summary?${periodQuery()}`);
+    const response = await apiFetch(`/api/summary?${periodQuery()}`);
     if (!response.ok) throw new Error((await response.json()).error || response.statusText);
     data = await response.json();
     await loadMapData();
@@ -1155,12 +1157,12 @@ async function loadSummary() {
     if (activeProfileCountry) await refreshActiveCountryProfile();
     const periodStatus = data[0]?.period_status;
     const periodNote = periodStatus === "provisional_current_month"
-      ? " Laufender Monat: vorläufig."
-      : (periodStatus === "ytd" ? " Laufendes Jahr: YTD." : "");
+      ? ` ${t("Current month: provisional.")}`
+      : (periodStatus === "ytd" ? ` ${t("Current year: YTD.")}` : "");
     const hasSummaryValues = data.some(row => Object.values(row).some(value => typeof value === "number"));
-    $("status").textContent = hasSummaryValues ? "" : `Noch keine Daten importiert.${periodNote}`;
+    $("status").textContent = hasSummaryValues ? "" : `${t("No data imported yet.")}${periodNote}`;
   } catch (error) {
-    $("status").textContent = `Fehler: ${error.message}`;
+    $("status").textContent = `${t("Error")}: ${t(error.message)}`;
     $("status").className = "error";
   }
 }
@@ -1253,15 +1255,15 @@ function chartColor(countryCode, index) {
 
 function renderCountryControls() {
   if (!$("compare-country-add")) return;
-  const rows = [...data].sort((a, b) => a.country_name.localeCompare(b.country_name, "de"));
-  $("compare-country-add").innerHTML = '<option value="">Land auswählen …</option>'
+  const rows = [...data].sort((a, b) => a.country_name.localeCompare(b.country_name, locale));
+  $("compare-country-add").innerHTML = `<option value="">${t("Select a country …")}</option>`
     + rows.map(row => `<option value="${row.country_code}"${selected.has(row.country_code) ? " disabled" : ""}>${escapeHtml(row.country_name)} (${row.country_code})</option>`).join("");
   $("compare-chips").innerHTML = [...selected].map(code => {
     const name = countryName(code);
     return `<span class="country-chip">
       <img src="/assets/flags/${flagCode(code)}.svg" alt="" width="24" height="18">
       <b>${escapeHtml(code)}</b>
-      <button type="button" data-remove-country="${code}" aria-label="${escapeAttribute(name)} entfernen"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
+      <button type="button" data-remove-country="${code}" aria-label="${escapeAttribute(name)} ${t("remove")}"><img class="europe-star" src="/assets/europe-star.svg" alt=""></button>
     </span>`;
   }).join("");
   document.querySelectorAll("[data-remove-country]").forEach(button => button.addEventListener("click", () => {
@@ -1315,7 +1317,7 @@ function renderComparisonFamilyPicker(groups, activeFamily) {
     return `<section class="metric-family-group" aria-label="${escapeAttribute(group)}"><h3>${escapeHtml(group)}</h3><div class="metric-family-options">${options}</div></section>`;
   }).join("");
   triggerValue.innerHTML = `<span class="metric-family-selected-group">${escapeHtml(activeGroup)}</span><span class="metric-family-selected-label">${escapeHtml(activeLabel)}</span>`;
-  menu.innerHTML = `<p class="metric-family-menu-intro">Kennzahlenfamilie wählen</p><div class="metric-family-groups">${menuGroups}</div>`;
+  menu.innerHTML = `<p class="metric-family-menu-intro">${t("Choose a metric family")}</p><div class="metric-family-groups">${menuGroups}</div>`;
   menu.querySelectorAll("[data-comparison-family]").forEach(button => button.addEventListener("click", () => {
     if (button.disabled) return;
     menu.querySelectorAll("[data-comparison-family]").forEach(option => {
@@ -1353,7 +1355,7 @@ const ENHANCED_SELECT_IDS = Object.freeze([
 function selectControlLabel(select) {
   return select.closest(".select-field")?.querySelector(".field-label")?.textContent.trim()
     || select.getAttribute("aria-label")
-    || "Auswahl";
+    || t("Selection");
 }
 
 function enhancedSelectControl(select) {
@@ -1366,7 +1368,7 @@ function renderEnhancedSelectMenu(select) {
   const trigger = control.querySelector(".enhanced-select-trigger");
   const menu = control.querySelector(".enhanced-select-menu");
   const selectedOption = select.selectedOptions[0];
-  trigger.querySelector(".enhanced-select-value").textContent = selectedOption?.textContent.trim() || "Auswählen …";
+  trigger.querySelector(".enhanced-select-value").textContent = selectedOption?.textContent.trim() || t("Select …");
   trigger.disabled = select.disabled;
   const grouped = [...select.children].filter(child => child.tagName === "OPTGROUP");
   const optionButton = option => {
@@ -1432,12 +1434,12 @@ function configureEnhancedSelectMenus() {
     control.className = "enhanced-select";
     trigger.type = "button";
     trigger.className = "enhanced-select-trigger";
-    trigger.setAttribute("aria-label", `${caption} auswählen`);
+    trigger.setAttribute("aria-label", t("Select {{label}}", {label: caption}));
     trigger.setAttribute("aria-haspopup", "dialog");
     trigger.setAttribute("aria-expanded", "false");
     menu.className = "enhanced-select-menu";
     menu.setAttribute("role", "dialog");
-    menu.setAttribute("aria-label", `${caption} auswählen`);
+    menu.setAttribute("aria-label", t("Select {{label}}", {label: caption}));
     menu.hidden = true;
     trigger.innerHTML = '<span class="enhanced-select-value"></span><span class="enhanced-select-chevron" aria-hidden="true"></span>';
     control.append(trigger, menu);
@@ -1462,7 +1464,7 @@ function renderComparisonMetricOptions(family, metricId = null) {
   $("compare-metric").innerHTML = variants.map(metric => {
     const availability = metric.temporal_availability;
     const available = availability.monthly || availability.yearly;
-    const suffix = available ? "" : " · kein Zeitverlauf";
+    const suffix = available ? "" : ` · ${t("no time series")}`;
     return `<option value="${metric.id}"${available ? "" : " disabled"}>${escapeHtml(compactMetricLabel(metric) + suffix)}</option>`;
   }).join("");
   const next = variants.find(metric => metric.id === metricId && (metric.temporal_availability.monthly || metric.temporal_availability.yearly))
@@ -1490,13 +1492,11 @@ function configureComparisonAxisMode(metric) {
   const boundedPercentage = isBoundedPercentagePlotMetric(metric);
   const diverging = metric?.map_config?.scale === "diverging";
   options.find(option => option.value === "full").textContent = boundedPercentage
-    ? "0 bis 100 %"
+    ? t("0 to 100 %")
     : diverging
-      ? "Symmetrisch um 0"
-      : "0 bis Maximum";
-  options.find(option => option.value === "data-range").textContent = boundedPercentage
-    ? "Minimum bis Maximum"
-    : "Minimum bis Maximum";
+      ? t("Symmetric around 0")
+      : t("0 to maximum");
+  options.find(option => option.value === "data-range").textContent = t("Minimum to maximum");
 }
 
 function configureComparisonRange(metric) {
@@ -1654,6 +1654,7 @@ function writeMapUrl() {
   const metric = metricDefinition(mapMetricId);
   const url = new URL(window.location.href);
   url.search = "";
+  url.searchParams.set("lang", language);
   url.searchParams.set("view", "map");
   url.searchParams.set("year", String(selectedYear()));
   url.searchParams.set("period", isMonthView() ? "month" : "year");
@@ -1678,7 +1679,7 @@ async function restoreMapState() {
   if (!state) return false;
   const metric = metricCatalog.get(state.metric);
   if (!metric?.map) {
-    $("status").textContent = "Der Karten-Direktlink enthält eine ungültige Kennzahl und wurde nicht vollständig übernommen.";
+    $("status").textContent = t("The map link contains an invalid metric and was not fully applied.");
     return false;
   }
   mapMetricId = metric.id;
@@ -1697,6 +1698,7 @@ async function restoreMapState() {
 function writeComparisonUrl() {
   const url = new URL(window.location.href);
   url.search = "";
+  url.searchParams.set("lang", language);
   url.searchParams.set("view", "compare");
   for (const [key, value] of comparisonQuery()) url.searchParams.set(key, value);
   history.replaceState(null, "", url);
@@ -1737,7 +1739,7 @@ async function restoreComparisonState() {
   if (parsed === null) return false;
   if (!parsed.valid) {
     $("comparison").hidden = false;
-    $("comparison-status").textContent = "Der Direktlink enthält ungültige Vergleichswerte und wurde nicht übernommen.";
+    $("comparison-status").textContent = t("The link contains invalid comparison parameters and was not applied.");
     return false;
   }
   selected.clear();
@@ -1771,14 +1773,14 @@ async function compare() {
 
 async function loadTimeseries({scroll = false, updateUrl = true, availabilityPreset = null, availabilityAdjusted = false} = {}) {
   if (!selected.size) {
-    $("comparison-status").textContent = "Mindestens ein Land auswählen.";
+    $("comparison-status").textContent = t("Select at least one country.");
     return;
   }
-  $("comparison-status").textContent = "Zeitreihe wird geladen …";
-  const response = await fetch(`/api/timeseries?${comparisonQuery()}`);
+  $("comparison-status").textContent = t("Loading time series …");
+  const response = await apiFetch(`/api/timeseries?${comparisonQuery()}`);
   const payload = await response.json();
   if (!response.ok) {
-    $("comparison-status").textContent = `Fehler: ${payload.error}`;
+    $("comparison-status").textContent = `${t("Error")}: ${t(payload.error)}`;
     return;
   }
   const payloadAvailableRange = availableComparisonRange(payload);
@@ -1809,7 +1811,7 @@ async function loadTimeseries({scroll = false, updateUrl = true, availabilityPre
   animateChartNextRender = true;
   renderTimeseriesChart();
   for (const id of ["export-csv", "export-svg", "export-png", "copy-link"]) $(id).disabled = false;
-  $("comparison-status").textContent = `${payload.countries.length} Länder · ${payload.granularity === "monthly" ? "Monatswerte" : "Jahreswerte"} · fehlende Werte bleiben als Linienlücken sichtbar.${retainedComparisonNotice(payload)}`;
+  $("comparison-status").textContent = `${payload.countries.length} ${t("Countries")} · ${payload.granularity === "monthly" ? t("Monthly values") : t("Annual values")} · ${t("missing values remain visible as gaps in the lines.")}${retainedComparisonNotice(payload)}`;
   syncComparisonPresetFromFields(payload.metric);
   if (updateUrl) writeComparisonUrl();
   if (scroll) $("comparison").scrollIntoView({behavior: "smooth"});
@@ -1954,10 +1956,10 @@ function renderTimeseriesChart() {
   const labels = metricLabels(metric);
   svg.appendChild(svgElement("text", {class: "chart-title", x: geometry.left, y: 30}, labels.topic));
   const axisNote = $("compare-axis-mode")?.value === "data-range"
-    ? ` · Y-Achse ${formatMetricValue(scale.minimum, metric)} bis ${formatMetricValue(scale.maximum, metric)}${metric.unit ? ` ${metric.unit}` : ""}`
+    ? ` · ${t("Y-axis")} ${t("{{start}} to {{end}}", {start: formatMetricValue(scale.minimum, metric), end: formatMetricValue(scale.maximum, metric)})}${metric.unit ? ` ${metric.unit}` : ""}`
     : "";
   svg.appendChild(svgElement("text", {class: "chart-subtitle", x: geometry.left, y: 51}, `${labels.metric} · ${labels.basis}`));
-  svg.appendChild(svgElement("text", {class: "chart-period", x: geometry.left, y: 71}, `${payload.start} bis ${payload.end}${axisNote}`));
+  svg.appendChild(svgElement("text", {class: "chart-period", x: geometry.left, y: 71}, `${t("{{start}} to {{end}}", {start: payload.start, end: payload.end})}${axisNote}`));
 
   for (let tick = 0; tick <= 5; tick += 1) {
     const value = scale.minimum + (scale.maximum - scale.minimum) * tick / 5;
@@ -2016,7 +2018,7 @@ function renderTimeseriesChart() {
         class: `average-endpoint-tag${animateThisRender ? " chart-enter" : ""}`,
         x: geometry.flagX,
         y: endpoint.y + 5,
-      }, "Atlas Ø"));
+      }, t("Atlas avg.")));
       return;
     }
     const color = chartColor(endpoint.country.country_code, endpoint.countryIndex);
@@ -2035,7 +2037,7 @@ function renderTimeseriesChart() {
     }));
     svg.appendChild(svgElement("text", {class: `endpoint-tag${animateThisRender ? " chart-enter" : ""}`, x: geometry.tagX, y: endpoint.y + 5, fill: color}, endpoint.country.country_code));
   });
-  [...payload.countries.map((country, index) => ({label: country.country_code, color: chartColor(country.country_code, index)})), {label: "Atlas-Durchschnitt", color: "#edf3fb", average: true}]
+  [...payload.countries.map((country, index) => ({label: country.country_code, color: chartColor(country.country_code, index)})), {label: t("Atlas average"), color: "#edf3fb", average: true}]
     .forEach((item, index) => {
       const column = index % geometry.legendColumns;
       const row = Math.floor(index / geometry.legendColumns);
@@ -2147,8 +2149,8 @@ function rankingFallbackDetails(country, index) {
   const baselinePoint = comparisonBaselinePoint(country, period, granularity, baselineYear);
   const incomplete = country.values.some(point => !Number.isFinite(point.value));
   const reasons = [];
-  if (incomplete) reasons.push("Datenreihe unvollständig");
-  if (!Number.isFinite(baselinePoint?.value)) reasons.push(`Vergleichswert ${baselineYear} fehlt`);
+  if (incomplete) reasons.push(t("Incomplete data series"));
+  if (!Number.isFinite(baselinePoint?.value)) reasons.push(`${t("Comparison value")} ${baselineYear} fehlt`);
   return {
     active: reasons.length > 0,
     text: reasons.length ? `${country.country_name}: ${reasons.join("; ")}` : "",
@@ -2166,7 +2168,7 @@ function relativeBaselineChange(country, index, granularity, baselineYear = MIN_
 function rankingChange(country, index) {
   const change = relativeBaselineChange(country, index, timeseriesData.granularity, comparisonBaselineYear());
   if (!Number.isFinite(change)) return "—";
-  return `${change >= 0 ? "+" : ""}${new Intl.NumberFormat("de-DE", {maximumFractionDigits: 1}).format(change)} %`;
+  return `${change >= 0 ? "+" : ""}${new Intl.NumberFormat(locale, {maximumFractionDigits: 1}).format(change)} %`;
 }
 
 function renderRanking(index) {
@@ -2182,10 +2184,10 @@ function renderRanking(index) {
     const fallback = rankingFallbackDetails(country, index);
     return {country, countryIndex, value: country.values[index]?.value, fallback};
   }).sort((a, b) => {
-    if (!Number.isFinite(a.value) && !Number.isFinite(b.value)) return a.country.country_name.localeCompare(b.country.country_name, "de");
+    if (!Number.isFinite(a.value) && !Number.isFinite(b.value)) return a.country.country_name.localeCompare(b.country.country_name, locale);
     if (!Number.isFinite(a.value)) return 1;
     if (!Number.isFinite(b.value)) return -1;
-    return b.value - a.value || a.country.country_name.localeCompare(b.country.country_name, "de");
+    return b.value - a.value || a.country.country_name.localeCompare(b.country.country_name, locale);
   });
   let rank = 0;
   let previousValue = null;
@@ -2195,19 +2197,19 @@ function renderRanking(index) {
     previousValue = entry.value;
   });
   const periodStatus = timeseriesData.atlas_average.values[index].period_status;
-  $("ranking-period").textContent = `${period}${periodStatus === "ytd" ? " · YTD" : periodStatus === "provisional_current_month" ? " · vorläufig" : ""}`;
+  $("ranking-period").textContent = `${period}${periodStatus === "ytd" ? " · YTD" : periodStatus === "provisional_current_month" ? ` · ${t("provisional")}` : ""}`;
   const average = timeseriesData.atlas_average.values[index].value;
   $("atlas-average-value").dataset.numeric = Number.isFinite(average) ? String(average) : "";
-  $("atlas-average-value").innerHTML = `Atlas-Durchschnitt · <span class="ranking-average-number" data-numeric="${Number.isFinite(average) ? average : ""}">${formatMetricValue(average, timeseriesData.metric)}</span> ${escapeHtml(timeseriesData.metric.unit)}`;
+  $("atlas-average-value").innerHTML = `${t("Atlas average")} · <span class="ranking-average-number" data-numeric="${Number.isFinite(average) ? average : ""}">${formatMetricValue(average, timeseriesData.metric)}</span> ${escapeHtml(timeseriesData.metric.unit)}`;
   const baselineYear = comparisonBaselineYear();
   $("ranking-baseline-note").textContent = timeseriesData.granularity === "monthly"
-    ? `Veränderung gegenüber demselben Kalendermonat ${baselineYear}`
-    : `Veränderung gegenüber dem Jahreswert ${baselineYear}`;
+    ? `${t("Change from the same calendar month in")} ${baselineYear}`
+    : `${t("Change from the annual value in")} ${baselineYear}`;
   $("ranking-list").innerHTML = entries.map(entry => {
     return `<li data-country="${entry.country.country_code}" class="ranking-item${Number.isFinite(entry.value) ? "" : " missing-value"}">
       <span class="ranking-rank">${entry.rank || "—"}</span>
       <img src="/assets/flags/${flagCode(entry.country.country_code)}.svg" alt="" width="24" height="18">
-      <span class="ranking-country"><b>${entry.country.country_code}${SHOW_RANKING_DATA_QUALITY_NOTICES && entry.fallback.active ? '<sup class="ranking-fallback-marker" aria-label="Hinweis">*</sup>' : ""}</b><small>${escapeHtml(entry.country.country_name)}</small></span>
+      <span class="ranking-country"><b>${entry.country.country_code}${SHOW_RANKING_DATA_QUALITY_NOTICES && entry.fallback.active ? `<sup class="ranking-fallback-marker" aria-label="${t("Note")}">*</sup>` : ""}</b><small>${escapeHtml(entry.country.country_name)}</small></span>
       <span class="ranking-value"><span class="ranking-number" data-numeric="${Number.isFinite(entry.value) ? entry.value : ""}">${formatMetricValue(entry.value, timeseriesData.metric)}</span><small>${Number.isFinite(entry.value) ? timeseriesData.metric.unit : ""}</small></span>
       <span class="ranking-change">${rankingChange(entry.country, index)}</span>
     </li>`;
@@ -2216,9 +2218,9 @@ function renderRanking(index) {
     ? entries.filter(entry => entry.fallback.active).map(entry => `<span class="ranking-footnote-star" aria-hidden="true">*</span> ${escapeHtml(entry.fallback.text)}`)
     : [];
   entries.filter(entry => entry.country.values[index]?.quality_status === "retained_source_gap")
-    .forEach(entry => fallbackNotes.push(`${escapeHtml(entry.country.country_name)}: älterer Monatsstand wegen Ember-Quellenlücke beibehalten.`));
+    .forEach(entry => fallbackNotes.push(`${escapeHtml(entry.country.country_name)}: ${t("older monthly data retained due to an Ember source gap.")}`));
   if (timeseriesData.atlas_average.values[index]?.quality_status === "retained_source_gap") {
-    fallbackNotes.push("Atlas-Durchschnitt enthält beibehaltene ältere Monatsdaten.");
+    fallbackNotes.push(t("The Atlas average includes retained older monthly data."));
   }
   $("ranking-footnotes").hidden = fallbackNotes.length === 0;
   $("ranking-footnotes").innerHTML = fallbackNotes.join("<br>");
@@ -2264,8 +2266,8 @@ function retainedComparisonNotice(payload) {
     .some(point => point.quality_status === "retained_source_gap")).map(country => country.country_code);
   const averageAffected = payload.atlas_average.values.some(point => point.quality_status === "retained_source_gap");
   if (!affected.length && !averageAffected) return "";
-  const subjects = [...affected, ...(averageAffected ? ["Atlas-Durchschnitt"] : [])];
-  return ` Hinweis: ${subjects.join(", ")} enthalten ältere Monatsdaten, die wegen einer Ember-Quellenlücke beibehalten wurden (ggf. auch Vergleichsbasis).`;
+  const subjects = [...affected, ...(averageAffected ? [t("Atlas average")] : [])];
+  return ` ${t("Note")}: ${subjects.join(", ")} ${t("include older monthly data retained due to an Ember source gap (possibly also in the comparison baseline).")}`;
 }
 
 function buildComparisonCsv(payload) {
@@ -2362,10 +2364,10 @@ function appendExportCard(root, x, y, width, height, attributes = {}) {
 }
 
 function exportCreationTimestamp(now = new Date()) {
-  const formatted = new Intl.DateTimeFormat("de-DE", {
+  const formatted = new Intl.DateTimeFormat(locale, {
     day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
   }).format(now);
-  return `Erstellt am ${formatted} Uhr`;
+  return t("Created on {{date}}", {date: formatted});
 }
 
 function createMidnightExportRoot(width, height, ariaLabel) {
@@ -2404,7 +2406,7 @@ function appendExportBranding(root, metric, period, width, {includeMetricHeading
   exportText(root, 108, 68, "European Electricity Atlas", {class: "export-brand"});
   if (includeMetricHeading) {
     exportText(root, 108, 94, labels.topic, {class: "export-label"});
-    exportText(root, 108, 115, `${labels.metric} · ${labels.basis || "ohne Einheit"} · ${period}`, {class: "export-subtitle"});
+    exportText(root, 108, 115, `${labels.metric} · ${labels.basis || t("no unit")} · ${period}`, {class: "export-subtitle"});
   }
   exportText(root, width - 34, 54, exportCreationTimestamp(), {class: "export-small", "font-weight": 700, "text-anchor": "end"});
   const ruleY = includeMetricHeading ? 132 : 118;
@@ -2414,7 +2416,7 @@ function appendExportBranding(root, metric, period, width, {includeMetricHeading
 function exportSvgDimensions(source) {
   const root = new DOMParser().parseFromString(source, "image/svg+xml").documentElement;
   const values = root.getAttribute("viewBox")?.trim().split(/\s+/).map(Number) || [];
-  if (values.length !== 4 || !values.every(Number.isFinite)) throw new Error("Export-SVG hat keine gültige ViewBox.");
+  if (values.length !== 4 || !values.every(Number.isFinite)) throw new Error(t("The exported SVG has no valid viewBox."));
   return {width: values[2], height: values[3]};
 }
 
@@ -2503,8 +2505,9 @@ async function serializedComparisonExportSvg() {
   const rootHeight = headerHeight + panelHeight + padding;
   const panelX = padding + chartCardWidth + gap;
   const contentY = headerHeight;
-  const root = createMidnightExportRoot(rootWidth, rootHeight, `Zeitvergleich: ${compactMetricLabel(timeseriesData.metric)}, ${timeseriesData.start} bis ${timeseriesData.end}`);
-  appendExportBranding(root, timeseriesData.metric, `${timeseriesData.start} bis ${timeseriesData.end}`, rootWidth, {includeMetricHeading: false});
+  const rangeLabel = t("{{start}} to {{end}}", {start: timeseriesData.start, end: timeseriesData.end});
+  const root = createMidnightExportRoot(rootWidth, rootHeight, `${t("Time comparison")}: ${compactMetricLabel(timeseriesData.metric)}, ${rangeLabel}`);
+  appendExportBranding(root, timeseriesData.metric, rangeLabel, rootWidth, {includeMetricHeading: false});
   appendExportCard(root, padding, contentY, chartCardWidth, panelHeight);
   appendExportCard(root, panelX, contentY, panelWidth, panelHeight);
   const chartCopy = document.importNode(chart, true);
@@ -2514,7 +2517,7 @@ async function serializedComparisonExportSvg() {
   chartCopy.setAttribute("height", chartHeight);
   chartCopy.setAttribute("preserveAspectRatio", "xMidYMid meet");
   root.appendChild(chartCopy);
-  exportText(root, panelX + 22, contentY + 35, "Live-Ranking", {class: "export-title"});
+  exportText(root, panelX + 22, contentY + 35, t("Live ranking"), {class: "export-title"});
   exportText(root, panelX + panelWidth - 22, contentY + 35, $("ranking-period").textContent.trim(), {class: "export-small", "font-weight": 700, "text-anchor": "end"});
   root.appendChild(svgElement("rect", {class: "export-ranking-average", x: panelX + 18, y: contentY + 52, width: panelWidth - 36, height: 42, rx: 8}));
   exportText(root, panelX + 30, contentY + 78, $("atlas-average-value").textContent.trim(), {fill: EXPORT_THEME.text, "font-size": 14, "font-weight": 750});
@@ -2557,7 +2560,7 @@ function mapIsFullscreen() {
 function updateMapFullscreenButton() {
   const active = mapIsFullscreen();
   const button = $("map-fullscreen");
-  button.textContent = active ? "Vollbild verlassen" : "Vollbild";
+  button.textContent = active ? t("Exit fullscreen") : t("Fullscreen");
   button.setAttribute("aria-pressed", String(active));
 }
 
@@ -2569,21 +2572,21 @@ async function toggleMapFullscreen() {
     setDocumentTitle("map");
     await stage.requestFullscreen();
   } else {
-    $("map-availability").textContent = "Dieser Browser unterstützt die Vollbildansicht nicht.";
+    $("map-availability").textContent = t("This browser does not support fullscreen mode.");
   }
 }
 
 const PROFILE_SECTION_ORDER = Object.freeze([
-  "Stromsystem", "Erneuerbare", "Fossile", "Kernenergie", "Installierte Leistung",
-  "Handel", "Preise", "Endkundenpreise", "Klima", "Sozioökonomie", "Elektromobilität",
-  "Kapazitäten und Speicher", "Wasserkraftinventar",
+  "electricity-system", "renewables", "fossil-fuels", "nuclear", "installed-capacity",
+  "trade-and-prices", "climate", "socioeconomics", "electric-mobility",
+  "capacity-and-storage", "hydropower-inventory",
 ]);
 const PROFILE_SECTION_LABELS = Object.freeze({
-  Handel: "Stromhandel und Preise", Preise: "Stromhandel und Preise", Endkundenpreise: "Stromhandel und Preise",
-  "Kapazitäten und Speicher": "Speicher", Wasserkraftinventar: "JRC-Wasserkraftinventar",
+  "trade-and-prices": t("Electricity trade and prices"),
+  "capacity-and-storage": t("Storage"), "hydropower-inventory": t("JRC hydropower inventory"),
 });
 const PROFILE_SECTION_MERGES = Object.freeze({
-  Handel: "Stromhandel und Preise", Preise: "Stromhandel und Preise", Endkundenpreise: "Stromhandel und Preise",
+  trade: "trade-and-prices", prices: "trade-and-prices", "retail-prices": "trade-and-prices",
 });
 let activeProfileCountry = null;
 
@@ -2619,7 +2622,7 @@ function profileUrl(code) {
 function profileMetricSort(first, second) {
   const firstRank = STORAGE_VARIANT_ORDER.get(first.id) ?? metricVariantRank(first);
   const secondRank = STORAGE_VARIANT_ORDER.get(second.id) ?? metricVariantRank(second);
-  return first.family.localeCompare(second.family, "de") || firstRank - secondRank || first.label.localeCompare(second.label, "de");
+  return first.family.localeCompare(second.family, locale) || firstRank - secondRank || first.label.localeCompare(second.label, locale);
 }
 
 function profileSourceYear(metric) {
@@ -2645,7 +2648,7 @@ function profileMetricCard(metric) {
 function profileSectionHtml(section) {
   const families = new Map();
   [...section.metrics].sort(profileMetricSort).forEach(metric => {
-    const key = section.id === "Kapazitäten und Speicher" ? metric.family : "";
+    const key = section.id === "capacity-and-storage" ? metric.family : "";
     if (!families.has(key)) families.set(key, []);
     families.get(key).push(metric);
   });
@@ -2663,7 +2666,7 @@ function renderCountryProfile(profile) {
   const highlights = highlightIds.map(id => metrics.get(id)).filter(Boolean);
   const mergedSections = new Map();
   profile.sections.forEach(section => {
-    const id = PROFILE_SECTION_MERGES[section.id] || section.id;
+    const id = PROFILE_SECTION_MERGES[section.group_id] || section.group_id;
     const existing = mergedSections.get(id);
     if (existing) existing.metrics.push(...section.metrics);
     else mergedSections.set(id, {id, label: PROFILE_SECTION_LABELS[id] || section.label, metrics: [...section.metrics]});
@@ -2671,10 +2674,10 @@ function renderCountryProfile(profile) {
   const sections = [...mergedSections.values()].sort((first, second) => PROFILE_SECTION_ORDER.indexOf(first.id) - PROFILE_SECTION_ORDER.indexOf(second.id));
   $("country-profile").innerHTML = `<header class="country-profile-header">
     <div class="country-profile-title"><img src="/assets/flags/${flagCode(country.code)}.svg" alt="" width="44" height="33"><div><h2 id="country-profile-title">${escapeHtml(country.name)} <small>${escapeHtml(country.code)}</small></h2></div></div>
-    <div class="profile-actions tool-actions"><button id="profile-back" type="button">Zurück zum Atlas</button><button id="profile-compare" type="button">Im Zeitvergleich öffnen</button></div>
+    <div class="profile-actions tool-actions"><button id="profile-back" type="button">${t("Back to the Atlas")}</button><button id="profile-compare" type="button">${t("Open in time comparison")}</button></div>
   </header>
-  <section class="profile-highlights" aria-label="Hauptkennzahlen">${highlights.map(profileMetricCard).join("")}</section>
-  <p class="profile-time-note">Monats-, Jahres- und Snapshotwerte sind anhand von Zeitbasis und tatsächlichem Datenstand getrennt ausgewiesen. Fehlende Werte bleiben leer.</p>
+  <section class="profile-highlights" aria-label="${t("Key metrics")}">${highlights.map(profileMetricCard).join("")}</section>
+  <p class="profile-time-note">${t("Monthly, annual and snapshot values are distinguished by their time basis and actual reporting date. Missing values remain blank.")}</p>
   <div class="profile-sections">${sections.map(profileSectionHtml).join("")}</div>`;
   $("profile-back").addEventListener("click", () => leaveCountryProfile(true));
   $("profile-compare").addEventListener("click", openProfileInComparison);
@@ -2687,15 +2690,15 @@ async function loadCountryProfile({scroll = true} = {}) {
   activeProfileCountry = code;
   $("atlas-content").hidden = true;
   $("country-profile").hidden = false;
-  $("country-profile").innerHTML = `<p class="hint" role="status">Steckbrief wird geladen …</p>`;
+  $("country-profile").innerHTML = `<p class="hint" role="status">${t("Loading country profile …")}</p>`;
   if (scroll) $("country-profile").scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
   setDocumentTitle("country");
   try {
-    const response = await fetch(`/api/country-profile?country=${encodeURIComponent(code)}&${periodQuery()}`);
+    const response = await apiFetch(`/api/country-profile?country=${encodeURIComponent(code)}&${periodQuery()}`);
     if (!response.ok) throw new Error((await response.json()).error || response.statusText);
     renderCountryProfile(await response.json());
   } catch (error) {
-    $("country-profile").innerHTML = `<p class="error">Steckbrief konnte nicht geladen werden: ${escapeHtml(error.message)}</p><button id="profile-back" type="button">Zurück zum Atlas</button>`;
+    $("country-profile").innerHTML = `<p class="error">${t("Could not load the country profile")}: ${escapeHtml(t(error.message))}</p><button id="profile-back" type="button">${t("Back to the Atlas")}</button>`;
     $("profile-back").addEventListener("click", () => leaveCountryProfile(true));
   }
 }
@@ -2735,7 +2738,7 @@ async function openProfileInComparison() {
   const code = activeProfileCountry;
   if (!code) return;
   if (!selected.has(code) && selected.size >= 10) {
-    $("country-profile").querySelector(".profile-time-note").textContent = "Maximal zehn Länder können gleichzeitig im Zeitvergleich ausgewählt werden.";
+    $("country-profile").querySelector(".profile-time-note").textContent = t("You can select up to ten countries in the time comparison.");
     return;
   }
   selected.add(code);
@@ -2762,12 +2765,12 @@ function configureCountryProfileNavigation() {
 }
 
 const TITLE_BY_SECTION = Object.freeze({
-  map: "EEA · Karte",
-  comparison: "EEA · Zeitvergleich",
-  summary: "EEA · Stromsysteme",
-  electromobility: "EEA · E-Mobilität",
-  storage: "EEA · Speicher",
-  sources: "EEA · Quellen",
+  map: t("EEA · Map"),
+  comparison: t("EEA · Time comparison"),
+  summary: t("EEA · Electricity systems"),
+  electromobility: t("EEA · Electric mobility"),
+  storage: t("EEA · Storage"),
+  sources: t("EEA · Sources"),
   country: "EEA",
 });
 let activeTitleSection = null;
@@ -2863,7 +2866,7 @@ function appendMapExportSummary(root, x, y, width, label, value, metric, country
 }
 
 async function serializedMapSvg() {
-  if (!mapSvg) throw new Error("Karte ist noch nicht geladen.");
+  if (!mapSvg) throw new Error(t("The map has not loaded yet."));
   const metric = metricDefinition(mapMetricId);
   const values = [...mapSvg.querySelectorAll(".atlas-country")]
     .map(path => mapRow(path.dataset.countryCode, metric)?.[metric.id])
@@ -2878,7 +2881,7 @@ async function serializedMapSvg() {
   const panelX = 1170;
   const panelWidth = 400;
   const panelHeight = 830;
-  const root = createMidnightExportRoot(width, height, `Europakarte: ${compactMetricLabel(metric)}, ${periodLabel(metric)}`);
+  const root = createMidnightExportRoot(width, height, `${t("European map")}: ${compactMetricLabel(metric)}, ${periodLabel(metric)}`);
   root.appendChild(svgElement("style", {}, `
     .map-country{vector-effect:non-scaling-stroke;stroke:#52657a;stroke-width:1}.background-country{fill:#182638;opacity:.84}
     .background-country[data-clipped=true]{stroke:transparent}.atlas-country{stroke:#94b0c9;stroke-width:1.35}
@@ -2897,7 +2900,7 @@ async function serializedMapSvg() {
   mapClone.removeAttribute("tabindex");
   mapClone.querySelectorAll("[tabindex]").forEach(element => element.removeAttribute("tabindex"));
   root.appendChild(mapClone);
-  exportText(root, panelX + 28, contentY + 42, "Legende", {class: "export-title"});
+  exportText(root, panelX + 28, contentY + 42, t("Legend"), {class: "export-title"});
   exportText(root, panelX + 28, contentY + 67, compactMetricLabel(metric), {class: "export-small"});
   let detailY = contentY + 210;
   if (scale) {
@@ -2910,7 +2913,7 @@ async function serializedMapSvg() {
     exportText(root, legendX, legendY + 42, formatMetricValue(scale.min, metric), {class: "export-small"});
     if (scale.midpoint !== null && scale.midpoint !== undefined) exportText(root, legendX + legendWidth / 2, legendY + 42, formatMetricValue(scale.midpoint, metric), {class: "export-small", "text-anchor": "middle"});
     exportText(root, legendX + legendWidth, legendY + 42, formatMetricValue(scale.max, metric), {class: "export-small", "text-anchor": "end"});
-    exportText(root, legendX, legendY + 68, `${metric.unit || "ohne Einheit"} · Grau = kein Wert`, {class: "export-small"});
+    exportText(root, legendX, legendY + 68, `${metric.unit || t("no unit")} · ${t("Grey = no value")}`, {class: "export-small"});
     const summaries = mapLegendSummaries(metric);
     if (summaries) {
       const summaryX = panelX + 28;
@@ -2918,29 +2921,29 @@ async function serializedMapSvg() {
       const summaryY = legendY + 92;
       appendMapExportSummary(root, summaryX, summaryY, summaryWidth, "Minimum", summaries.minimum.value, metric, summaries.minimum);
       appendMapExportSummary(root, summaryX, summaryY + 52, summaryWidth, "Maximum", summaries.maximum.value, metric, summaries.maximum);
-      appendMapExportSummary(root, summaryX, summaryY + 104, summaryWidth, "Atlas-Durchschnitt", summaries.average, metric);
+      appendMapExportSummary(root, summaryX, summaryY + 104, summaryWidth, t("Atlas average"), summaries.average, metric);
       detailY = summaryY + 164;
     }
   } else {
-    exportText(root, panelX + 28, contentY + 118, "Keine Werte für den ausgewählten Datenstand verfügbar.", {class: "export-small"});
+    exportText(root, panelX + 28, contentY + 118, t("No values available for the selected reporting date."), {class: "export-small"});
   }
   if (focusedMapCountry) {
     const focusY = detailY;
     root.appendChild(svgElement("rect", {class: "export-ranking-average", x: panelX + 24, y: focusY, width: panelWidth - 48, height: 124, rx: 12}));
-    exportText(root, panelX + 42, focusY + 30, "Länderfokus", {class: "export-label"});
+    exportText(root, panelX + 42, focusY + 30, t("Country focus"), {class: "export-label"});
     exportText(root, panelX + 42, focusY + 61, countryName(focusedMapCountry), {class: "export-title", "font-size": 20});
     const row = mapRow(focusedMapCountry, metric);
     const value = row?.[metric.id];
     exportText(root, panelX + 42, focusY + 94, `${formatMetricValue(value, metric)} ${Number.isFinite(value) ? metric.unit : ""}`.trim(), {class: "export-label"});
   }
-  exportText(root, panelX + 28, contentY + panelHeight - 28, "Lokaler, eigenständiger Export", {class: "export-small"});
+  exportText(root, panelX + 28, contentY + panelHeight - 28, t("Local, self-contained export"), {class: "export-small"});
   await inlineSvgImages(root);
   return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(root)}`;
 }
 
 async function exportMapSvg() {
   downloadBlob(new Blob([await serializedMapSvg()], {type: "image/svg+xml;charset=utf-8"}), mapFilename("svg"));
-  $("map-availability").textContent = "SVG-Kartenexport mit Legende wurde erstellt.";
+  $("map-availability").textContent = t("SVG map export with legend created.");
   pulseExportFrame($("map-stage"));
 }
 
@@ -2950,7 +2953,7 @@ async function buildMapPngBlob() {
 
 async function exportMapPng() {
   downloadBlob(await buildMapPngBlob(), mapFilename("png"));
-  $("map-availability").textContent = "PNG-Kartenexport mit Legende wurde erstellt.";
+  $("map-availability").textContent = t("PNG map export with legend created.");
   pulseExportFrame($("map-stage"));
 }
 
@@ -2986,7 +2989,7 @@ function configureInfoPanels() {
 async function loadStorage() {
   try {
     if (!metricCatalog.size) await loadMetricCatalog();
-    const response = await fetch("/api/storage");
+    const response = await apiFetch("/api/storage");
     if (!response.ok) throw new Error((await response.json()).error || response.statusText);
     const storage = await response.json();
     storageSnapshot = storage.snapshot_date;
@@ -2996,21 +2999,21 @@ async function loadStorage() {
     renderMap();
     if (!storage.snapshot_date) return;
     const missingNote = storage.countries_missing?.length
-      ? ` Ohne Speicherwert: ${storage.countries_missing.join(", ")}.`
+      ? ` ${t("Without storage value")}: ${storage.countries_missing.join(", ")}.`
       : "";
     const dates = storage.snapshot_dates?.length ? storage.snapshot_dates.join(", ") : storage.snapshot_date;
-    $("storage-note").textContent = `Datenstände ${dates} · ${storage.countries_with_values}/${storage.countries.length} Länder · ${storageSourceLabel}.${missingNote}`;
+    $("storage-note").textContent = `${t("Reporting dates")} ${dates} · ${storage.countries_with_values}/${storage.countries.length} ${t("Countries")} · ${storageSourceLabel}.${missingNote}`;
     $("storage").hidden = false;
     renderStorage();
   } catch (error) {
     $("storage").hidden = false;
-    $("storage-note").textContent = `Speicherdaten konnten nicht geladen werden: ${error.message}`;
+    $("storage-note").textContent = `${t("Could not load storage data")}: ${t(error.message)}`;
     $("storage-note").className = "error";
   }
 }
 
 function loadCoverage() {
-  $("coverage").innerHTML = "<p>Fehlende Werte bleiben leer. Jahreswerte pro Kopf kombinieren ausschließlich Ember-Stromdaten und Eurostat-Bevölkerung desselben Kalenderjahres.</p>";
+  $("coverage").innerHTML = `<p>${t("Missing values remain blank. Annual per-capita figures only combine Ember electricity data with Eurostat population data from the same calendar year.")}</p>`;
 }
 
 function syncPeriodControls() {
@@ -3026,7 +3029,7 @@ function syncPeriodControls() {
 function updateComparisonFullscreenButton() {
   const active = comparisonIsFullscreen();
   const button = $("comparison-fullscreen");
-  button.textContent = active ? "Vollbild verlassen" : "Vollbild";
+  button.textContent = active ? t("Exit fullscreen") : t("Fullscreen");
   button.setAttribute("aria-pressed", String(active));
 }
 
@@ -3038,7 +3041,7 @@ async function toggleComparisonFullscreen() {
     setDocumentTitle("comparison");
     await stage.requestFullscreen();
   } else {
-    $("comparison-status").textContent = "Dieser Browser unterstützt die Vollbildansicht nicht.";
+    $("comparison-status").textContent = t("This browser does not support fullscreen mode.");
   }
 }
 
@@ -3131,7 +3134,7 @@ $("export-png").addEventListener("click", exportPng);
 $("copy-link").addEventListener("click", async () => {
   const url = writeComparisonUrl();
   await navigator.clipboard.writeText(url);
-  $("comparison-status").textContent = "Direktlink wurde kopiert.";
+  $("comparison-status").textContent = t("Link copied.");
 });
 $("map-family").addEventListener("change", async event => {
   const variants = orderedMetricVariants(mapMetrics().filter(metric => familyKey(metric) === event.target.value));
@@ -3150,7 +3153,7 @@ $("map-values").addEventListener("change", () => {
 $("map-copy-link").addEventListener("click", async () => {
   const url = writeMapUrl();
   await navigator.clipboard.writeText(url);
-  $("map-availability").textContent = "Karten-Direktlink wurde kopiert.";
+  $("map-availability").textContent = t("Map link copied.");
 });
 $("map-fullscreen").addEventListener("click", toggleMapFullscreen);
 $("map-export-svg").addEventListener("click", exportMapSvg);
@@ -3195,11 +3198,74 @@ window.__atlasCompareTest = {
   buildChartPngBlob,
 };
 
+const languageRestoreState = window.AtlasI18n.restoreState?.();
+const LANGUAGE_STATE_CONTROLS = ["year", "period-type", "month", "compare-start", "compare-end", "compare-axis-mode"];
+window.AtlasI18n.captureState = () => ({
+  controls: Object.fromEntries(LANGUAGE_STATE_CONTROLS.map(id => [id, $(id).value])),
+  countries: [...selected], comparisonMetric: $("compare-metric").value,
+  mapMetric: mapMetricId, mapValues: $("map-values").checked, focusedMapCountry,
+  sortKey, sortDirection, storageSortKey, storageSortDirection, evSortKey, evSortDirection,
+  summaryExpanded, storageExpanded, evExpanded, chartPinnedIndex,
+  scrollY: window.scrollY, titleSection: activeTitleSection,
+  openDetails: [...document.querySelectorAll("details")].map(details => details.open),
+  gallery: window.__atlasWallpaper?.captureState(),
+});
+
+function restoreLanguageControls() {
+  if (!languageRestoreState) return;
+  for (const id of LANGUAGE_STATE_CONTROLS) {
+    if (typeof languageRestoreState.controls?.[id] === "string") $(id).value = languageRestoreState.controls[id];
+  }
+  if (typeof languageRestoreState.mapValues === "boolean") $("map-values").checked = languageRestoreState.mapValues;
+}
+
+async function restoreLanguageView() {
+  const state = languageRestoreState;
+  if (!state) return false;
+  if (metricCatalog.has(state.mapMetric)) mapMetricId = state.mapMetric;
+  selected.clear();
+  (Array.isArray(state.countries) ? state.countries : []).slice(0, 10).forEach(code => {
+    if (data.some(row => row.country_code === code)) selected.add(code);
+  });
+  if (TABLE_METRIC_IDS.includes(state.sortKey)) sortKey = state.sortKey;
+  if (STORAGE_METRIC_IDS.includes(state.storageSortKey)) storageSortKey = state.storageSortKey;
+  if (EV_METRIC_IDS.includes(state.evSortKey)) evSortKey = state.evSortKey;
+  sortDirection = state.sortDirection === 1 ? 1 : -1;
+  storageSortDirection = state.storageSortDirection === 1 ? 1 : -1;
+  evSortDirection = state.evSortDirection === 1 ? 1 : -1;
+  summaryExpanded = Boolean(state.summaryExpanded);
+  storageExpanded = Boolean(state.storageExpanded);
+  evExpanded = Boolean(state.evExpanded);
+  renderComparisonControls(metricCatalog.has(state.comparisonMetric) ? state.comparisonMetric : null);
+  restoreLanguageControls();
+  syncPeriodControls();
+  updateSelection(); render(); renderStorage(); renderElectromobility();
+  await loadMapData(); renderMapControls(); renderMap();
+  if (state.focusedMapCountry && data.some(row => row.country_code === state.focusedMapCountry)) {
+    const path = mapSvg?.querySelector(`[data-country-code="${state.focusedMapCountry}"]`);
+    if (path) focusMapCountry(path, false);
+  }
+  if (selected.size) await loadTimeseries({updateUrl: false});
+  if (Number.isInteger(state.chartPinnedIndex) && state.chartPinnedIndex >= 0 && state.chartPinnedIndex < (timeseriesData?.atlas_average?.values.length || 0)) {
+    chartPinnedIndex = state.chartPinnedIndex;
+    renderTimeseriesChart();
+  }
+  if (profileUrlState()) await loadCountryProfile({scroll: false});
+  [...document.querySelectorAll("details")].forEach((details, index) => { details.open = Boolean(state.openDetails?.[index]); });
+  await window.__atlasWallpaper?.restoreState(state.gallery);
+  requestAnimationFrame(() => {
+    window.scrollTo({top: Number.isFinite(state.scrollY) ? state.scrollY : 0, behavior: "instant"});
+    setDocumentTitle(state.titleSection);
+  });
+  return true;
+}
+
 if (typeof window.addEventListener === "function") configureCountryProfileNavigation();
 else {
   syncControlsFromMapUrl();
   syncControlsFromProfileUrl();
 }
+restoreLanguageControls();
 syncPeriodControls();
 configureEnhancedSelectMenus();
 loadCoverage();
@@ -3211,6 +3277,7 @@ if (typeof document.querySelector === "function") {
 loadMetricCatalog()
   .then(() => Promise.all([loadMapAsset(), loadSummary(), loadStorage()]))
   .then(async () => {
+    if (await restoreLanguageView()) return;
     // A country profile is a self-contained direct view.  Do not let the
     // comparison initializer replace its URL with the default plot state.
     if (profileUrlState()) {
@@ -3222,6 +3289,6 @@ loadMetricCatalog()
     if (!restored) await initializeDefaultComparison();
   })
   .catch(error => {
-    $("status").textContent = `Fehler: ${error.message}`;
+    $("status").textContent = `${t("Error")}: ${t(error.message)}`;
     $("status").className = "error";
   });

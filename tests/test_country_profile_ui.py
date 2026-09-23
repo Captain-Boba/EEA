@@ -1,10 +1,11 @@
+from electricity_atlas.pages import render_page
 from pathlib import Path
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 APP = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
-HTML = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+HTML = render_page("index.html", "de", "/").decode("utf-8")
 STYLE = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
 
 
@@ -46,7 +47,7 @@ class CountryProfileUiContractTests(unittest.TestCase):
         self.assertNotIn('class="profile-meta"', APP)
         self.assertNotIn('class="profile-warning"', APP)
         self.assertIn("PROFILE_SECTION_MERGES", APP)
-        self.assertIn("Stromhandel und Preise", APP)
+        self.assertIn("Electricity trade and prices", APP)
         self.assertIn("setDocumentTitle(\"country\")", APP)
 
     def test_direct_profile_view_cannot_be_replaced_by_default_comparison_initialization(self):

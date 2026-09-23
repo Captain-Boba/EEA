@@ -1,3 +1,4 @@
+from electricity_atlas.pages import render_page
 import json
 import re
 import unittest
@@ -68,7 +69,7 @@ class MapAssetTests(unittest.TestCase):
 
 class MapCatalogAndUiContractTests(unittest.TestCase):
     def test_midnight_grid_logo_is_local_and_self_contained(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         logo = LOGO_PATH.read_text(encoding="utf-8")
         ET.fromstring(logo)
         self.assertIn('href="/assets/eea-mark.svg"', html)
@@ -77,7 +78,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertNotRegex(logo, r"<(?:image|script)\b")
 
     def test_europe_night_clear_action_is_local_and_wired(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
         icon = EUROPE_STAR_PATH.read_text(encoding="utf-8")
@@ -104,7 +105,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertEqual(icon.count("<path"), 1)
 
     def test_header_keeps_only_logo_and_atlas_name(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         header = re.search(r'<header class="site-header">(.*?)</header>', html, re.DOTALL)
         self.assertIsNotNone(header)
         markup = header.group(1)
@@ -118,18 +119,18 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
         self.assertIn('const hasSummaryValues = data.some(', app)
-        self.assertIn('$("status").textContent = hasSummaryValues ? "" : `Noch keine Daten importiert.${periodNote}`;', app)
+        self.assertIn('$("status").textContent = hasSummaryValues ? "" : `${t("No data imported yet.")}${periodNote}`;', app)
         self.assertNotIn('`Atlas-Daten geladen.${periodNote}`', app)
         self.assertIn("#status:empty { min-height: 1lh; }", style)
 
     def test_header_adds_the_opt_in_overload_toggle_and_short_dynamic_title(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn("<title>European Electricity Atlas</title>", html)
         self.assertIn('id="europe-overload"', html)
         self.assertIn('aria-pressed="false"', html)
         self.assertIn("const TITLE_BY_SECTION", app)
-        for title in ("EEA · Karte", "EEA · Zeitvergleich", "EEA · Stromsysteme", "EEA · E-Mobilität", "EEA · Speicher", "EEA · Quellen"):
+        for title in ("EEA · Map", "EEA · Time comparison", "EEA · Electricity systems", "EEA · Electric mobility", "EEA · Storage", "EEA · Sources"):
             self.assertIn(title, app)
         self.assertIn("new IntersectionObserver", app)
         self.assertIn('window.addEventListener("scroll", scheduleDynamicDocumentTitle, {passive: true});', app)
@@ -142,7 +143,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("updateDynamicDocumentTitle();", app)
 
     def test_sticky_controls_and_accessible_hidden_selection_heading(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
         self.assertRegex(style, r"\.controls\s*\{[^}]*position:\s*sticky")
@@ -152,7 +153,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('aria-label="Zeitraum"', html)
 
     def test_expanded_table_headers_follow_controls_header(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
         self.assertIn("table-card.table-card-expanded thead th", style)
@@ -164,12 +165,12 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("syncStickyHeaderOffset", app)
         self.assertIn("function tableHeaderText(value)", app)
         self.assertNotIn('<th scope="col">Auswahl</th>', app)
-        self.assertIn("Länder für den Zeitvergleich auswählen", app)
+        self.assertIn('t("Rank, country and country selection for the time comparison")', app)
         self.assertIn('class="sr-only"', app)
         self.assertIn('aria-label="Zeitraum"', html)
 
     def test_map_fullscreen_exports_are_wired_without_a_map_help_popover(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
         for element_id in ("map-stage", "map-fullscreen", "map-export-svg", "map-export-png", "map-copy-link"):
@@ -183,8 +184,8 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn('Länder vergleichen (<span id="selected-count">0</span>)', html)
         self.assertIn('<h2 id="comparison-title">Zeitvergleich</h2>', html)
         self.assertIn('aria-label="Zeitvergleich steuern"', html)
-        self.assertIn("Im Zeitvergleich öffnen", app)
-        self.assertIn("Maximal zehn Länder können gleichzeitig im Zeitvergleich ausgewählt werden.", app)
+        self.assertIn("Open in time comparison", app)
+        self.assertIn("You can select up to ten countries in the time comparison.", app)
         self.assertIn('border-radius: .9rem;', style)
         self.assertIn("#map-fullscreen", style)
         self.assertIn("#comparison-fullscreen", style)
@@ -198,9 +199,9 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("function appendMapExportSummary", app)
         self.assertIn('appendMapExportSummary(root, summaryX, summaryY, summaryWidth, "Minimum"', app)
         self.assertIn('appendMapExportSummary(root, summaryX, summaryY + 52, summaryWidth, "Maximum"', app)
-        self.assertIn('appendMapExportSummary(root, summaryX, summaryY + 104, summaryWidth, "Atlas-Durchschnitt"', app)
+        self.assertIn('appendMapExportSummary(root, summaryX, summaryY + 104, summaryWidth, t("Atlas average")', app)
 
-        self.assertIn('"Legende"', app)
+        self.assertIn('"Legend"', app)
         self.assertNotIn('querySelector("#map-tooltip")', app)
         self.assertNotIn('data-info-target="map-info"', html)
         self.assertNotIn('id="map-info"', html)
@@ -210,7 +211,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("closeInfoPanel", app)
 
     def test_map_direct_link_captures_and_restores_current_map_state(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn('id="map-copy-link"', html)
         self.assertIn("function mapUrlState()", app)
@@ -234,7 +235,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("function clearMapCountryFocus(syncUrl = true)", app)
         self.assertIn('mapSvg.addEventListener("click", event => {', app)
         self.assertIn('event.target.closest?.(".map-country")', app)
-        self.assertIn('$("map-detail").textContent = "Ein Land fokussieren, um Details anzuzeigen.";', app)
+        self.assertIn('$("map-detail").textContent = t("Focus a country to see details.");', app)
 
     def test_compact_map_labels_keep_two_decimal_places_for_millions(self):
         app = APP_PATH.read_text(encoding="utf-8")
@@ -242,7 +243,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("value / 1_000_000", app)
         self.assertIn("minimumFractionDigits: 2", app)
         self.assertIn("maximumFractionDigits: 2", app)
-        self.assertIn("Mio.", app)
+        self.assertIn("million", app)
 
     def test_map_legend_includes_country_extremes_and_atlas_average(self):
         app = APP_PATH.read_text(encoding="utf-8")
@@ -250,11 +251,11 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("function mapLegendSummaries(metric)", app)
         self.assertIn('mapLegendCountrySummary("Minimum", summaries.minimum, metric)', app)
         self.assertIn('mapLegendCountrySummary("Maximum", summaries.maximum, metric)', app)
-        self.assertIn("Atlas-Durchschnitt", app)
+        self.assertIn("Atlas average", app)
         self.assertIn("map-legend-summary", style)
 
     def test_motion_contract_preserves_reduced_motion_and_v2_structure(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
         self.assertIn("prefers-reduced-motion", style)
@@ -272,7 +273,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn("rankingFallbackDetails", app)
         self.assertIn("latestCompleteComparisonIndex", app)
         self.assertIn("latestCompleteComparisonPeriod", app)
-        self.assertIn("Veränderung gegenüber demselben Kalendermonat ${baselineYear}", app)
+        self.assertIn("Change from the same calendar month in", app)
         self.assertNotIn("RANGE_BASELINE_FALLBACK_COUNTRIES", app)
         self.assertNotIn("getScreenCTM", app)
         self.assertIn("const SHOW_RANKING_DATA_QUALITY_NOTICES = false", app)
@@ -316,7 +317,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
             self.assertRegex(palette_block.group(1), rf'(?:^|\n)\s*(?:"{re.escape(palette)}"|{re.escape(palette)}):\s*\[')
         self.assertIn("const MAP_PALETTE_BY_FAMILY", app)
         self.assertIn("function mapPaletteName(metric)", app)
-        self.assertIn("MAP_PALETTE_BY_FAMILY[metric?.family]", app)
+        self.assertIn("MAP_PALETTE_BY_FAMILY[metric?.family_id]", app)
         self.assertIn("paletteColor(mapPaletteName(metric), position)", app)
         self.assertIn('generation: ["#cadbf0"', app)
         self.assertIn('renewables: ["#c6e0c8"', app)
@@ -362,7 +363,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertFalse(per_capita["temporal_availability"]["monthly"])
         self.assertTrue(per_capita["temporal_availability"]["yearly"])
         app = APP_PATH.read_text(encoding="utf-8")
-        self.assertIn('return `${metric.group}::${metricLabels(metric).topic}`;', app)
+        self.assertIn('return `${metric.group_id}::${metric.category_id}`;', app)
         self.assertIn("renderComparisonMetricOptions", app)
 
     def test_each_generation_source_family_has_per_capita_as_third_variant(self):
@@ -397,7 +398,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
             self.assertTrue(variants[2]["temporal_availability"]["yearly"])
 
     def test_page_order_and_runtime_catalog_driven_selection(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         self.assertLess(html.index('id="atlas-map-section"'), html.index('id="comparison"'))
         self.assertLess(html.index('id="comparison"'), html.index('id="summary-table"'))
         self.assertLess(html.index('id="summary-table"'), html.index('id="storage"'))
@@ -409,7 +410,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertTrue(all(url.startswith("/") for _, url in external_fetches))
 
     def test_both_data_tables_use_collapsible_top_ten_rankings(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         style = STYLE_PATH.read_text(encoding="utf-8")
         for table in ("summary", "storage"):
@@ -430,7 +431,7 @@ class MapCatalogAndUiContractTests(unittest.TestCase):
         self.assertIn(".table-card tbody td { color: #f7f5f0; font-size: .98rem", style)
 
     def test_timeseries_ui_replaces_placeholder_table_and_uses_local_flags(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         self.assertIn('id="timeseries-chart"', html)
         self.assertIn('id="ranking-list"', html)

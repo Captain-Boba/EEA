@@ -7,6 +7,7 @@ from typing import Any, Iterable
 
 from .aggregation import period_bounds, renewable_share, reporting_period_status, weighted_mean
 from .ember_retention import RETAINED_SOURCE_GAP
+from .localization import RETAINED_DETAILS_PREFIX
 from .metrics import METRICS
 from .config import (
     COUNTRIES,
@@ -444,9 +445,7 @@ def aggregate_ember_country(
         quality_issues.append({
             "issue_type": RETAINED_SOURCE_GAP,
             "severity": "warning",
-            "details": "Älterer Datenstand: Ember liefert zuvor vorhandene Monatswerte nicht mehr. "
-                       "Zusammengehörige Monatsdaten wurden beibehalten (keine Null-Ersetzung): "
-                       + ", ".join(sorted(retained_periods)) + ".",
+            "details": RETAINED_DETAILS_PREFIX["en"] + ", ".join(sorted(retained_periods)) + ".",
         })
 
     return {

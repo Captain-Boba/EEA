@@ -12,8 +12,12 @@ CSV- oder URL-Parameter.
 
 Karte, Zeitvergleich, Ländersteckbrief und SVG-/PNG-Export verwenden diese drei
 Felder. Tabellen und Auswahllisten verwenden daraus abgeleitete Kurzformen.
-`group`, `family`, `representation`, `label_de` und `unit` behalten ihre
-bisherige technische Bedeutung für Gruppierung, Auswahl und Berechnung.
+`group`, `family`, `representation`, `label` und `unit` sind lokalisierte
+Anzeigefelder. Technische Gruppierung und Farbauswahl verwenden `group_id`,
+`family_id` und `category_id`. `label_de` bleibt immer Deutsch, `label_en`
+immer Englisch. Ohne `lang` bleiben die API-Anzeigen Deutsch; mit `lang=en`
+werden englische Beschriftungen geliefert. Zahlen, Kennzahl-IDs und gespeicherte
+Einheiten werden nicht verändert. Siehe [Lokalisierung](LOCALIZATION.md).
 
 ## Vollständige Matrix
 

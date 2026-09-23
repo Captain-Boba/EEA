@@ -69,7 +69,10 @@ def _metric_payload(
             quality_status = "retained_source_gap"
     return {
         "id": metric["id"],
-        "label": metric["label_de"],
+        "label": metric["label"],
+        "group_id": metric["group_id"],
+        "family_id": metric["family_id"],
+        "category_id": metric["category_id"],
         "group": metric["group"],
         "family": metric["family"],
         "representation": metric["representation"],
@@ -107,7 +110,7 @@ def build_country_profile(
     )
 
     sections: OrderedDict[str, list[dict[str, Any]]] = OrderedDict()
-    for metric in metric_catalog():
+    for metric in metric_catalog("en"):
         availability = metric["temporal_availability"]
         metric_id = metric["id"]
         if availability["snapshot"]:
@@ -120,7 +123,7 @@ def build_country_profile(
                 actual_period=provenance.get("date") if provenance else None,
                 provenance=provenance,
             )
-        elif metric["group"] == "Installierte Leistung":
+        elif metric["group_id"] == "installed-capacity":
             payload = _metric_payload(
                 metric,
                 capacity_row,
@@ -156,7 +159,7 @@ def build_country_profile(
         },
         "coverage": selected_row["data_status"],
         "sections": [
-            {"id": group, "label": group, "metrics": metrics}
+            {"id": group, "label": group, "group_id": metrics[0]["group_id"], "metrics": metrics}
             for group, metrics in sections.items()
         ],
     }

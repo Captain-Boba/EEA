@@ -60,6 +60,7 @@
     },
     "/api/countries": {
       "get": {
+        "parameters": [{"$ref": "#/components/parameters/Language"}],
         "tags": ["Discovery"],
         "summary": "List supported countries",
         "operationId": "listCountries",
@@ -80,6 +81,7 @@
     },
     "/api/metrics": {
       "get": {
+        "parameters": [{"$ref": "#/components/parameters/Language"}],
         "tags": ["Discovery"],
         "summary": "List authoritative metric definitions",
         "operationId": "listMetrics",
@@ -108,6 +110,7 @@
         "summary": "Get a complete country ranking for one period",
         "operationId": "getSummary",
         "parameters": [
+          {"$ref": "#/components/parameters/Language"},
           {"$ref": "#/components/parameters/Year"},
           {"$ref": "#/components/parameters/Month"}
         ],
@@ -133,6 +136,7 @@
         "summary": "Get a bundled country profile",
         "operationId": "getCountryProfile",
         "parameters": [
+          {"$ref": "#/components/parameters/Language"},
           {"$ref": "#/components/parameters/Country"},
           {"$ref": "#/components/parameters/Year"},
           {"$ref": "#/components/parameters/Month"}
@@ -159,6 +163,7 @@
         "summary": "Compare two to four countries directly",
         "operationId": "compareCountries",
         "parameters": [
+          {"$ref": "#/components/parameters/Language"},
           {"$ref": "#/components/parameters/CountriesCompare"},
           {"$ref": "#/components/parameters/Year"},
           {"$ref": "#/components/parameters/Month"}
@@ -187,6 +192,7 @@
         "summary": "Get one metric as a monthly or yearly time series",
         "operationId": "getTimeseries",
         "parameters": [
+          {"$ref": "#/components/parameters/Language"},
           {"$ref": "#/components/parameters/Metric"},
           {"$ref": "#/components/parameters/CountriesTimeseries"},
           {"$ref": "#/components/parameters/Start"},
@@ -214,6 +220,7 @@
         "summary": "Get map-compatible values for one metric and year",
         "operationId": "getMapData",
         "parameters": [
+          {"$ref": "#/components/parameters/Language"},
           {"$ref": "#/components/parameters/Metric"},
           {"$ref": "#/components/parameters/Year"}
         ],
@@ -239,6 +246,7 @@
         "summary": "Inspect per-country data coverage",
         "operationId": "getCoverage",
         "parameters": [
+          {"$ref": "#/components/parameters/Language"},
           {"$ref": "#/components/parameters/Year"}
         ],
         "responses": {
@@ -262,6 +270,7 @@
     },
     "/api/storage": {
       "get": {
+        "parameters": [{"$ref": "#/components/parameters/Language"}],
         "tags": ["Analysis"],
         "summary": "Get the latest storage inventories",
         "operationId": "getStorage",
@@ -367,6 +376,13 @@
   },
   "components": {
     "parameters": {
+      "Language": {
+        "name": "lang",
+        "in": "query",
+        "required": false,
+        "description": "Presentation language only. Numbers, nulls, IDs, dates and status codes do not change. Browser cookies do not affect API language. label_de and label_en retain their respective language; label follows this parameter.",
+        "schema": {"type": "string", "enum": ["de", "en"], "default": "de"}
+      },
       "Year": {
         "name": "year",
         "in": "query",

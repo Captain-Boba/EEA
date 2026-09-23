@@ -1,34 +1,40 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ language }}">
 <head>
   <meta charset="utf-8">
   <meta id="viewport-meta" name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070d18">
-  <meta name="description" content="Europas Stromsysteme auf einen Blick. Vergleiche 31 europäische Länder nach Erzeugung, Strommix, Preisen, Emissionen, Leistung, Handel, Speichern und Elektromobilität – mit historischen Daten und interaktiven Auswertungen.">
+  <meta name="description" content="{{ t("Europe’s electricity systems at a glance. Compare 31 European countries by generation, electricity mix, prices, emissions, capacity, trade, storage and electric mobility – with historical data and interactive analysis.") }}">
   <title>European Electricity Atlas</title>
-  <link rel="canonical" href="https://ee-atlas.eu/">
+  <link rel="canonical" href="{{ canonical_url }}">
   <link rel="icon" href="/assets/eea-mark.svg" type="image/svg+xml">
-  <link rel="help" href="/llms.txt" type="text/plain" title="Datenzugriff für KI und LLMs">
-  <link rel="service-desc" href="/openapi.json" type="application/vnd.oai.openapi+json" title="OpenAPI-Beschreibung">
+  <link rel="help" href="/llms.txt" type="text/plain" title="{{ t("Data access for AI and LLMs") }}">
+  <link rel="service-desc" href="/openapi.json" type="application/vnd.oai.openapi+json" title="{{ t("OpenAPI description") }}">
   <meta property="og:type" content="website">
-  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale" content="{{ og_locale }}">
   <meta property="og:site_name" content="European Electricity Atlas">
-  <meta property="og:title" content="Europas Stromsysteme auf einen Blick.">
-  <meta property="og:description" content="Vergleiche 31 europäische Länder nach Erzeugung, Strommix, Preisen, Emissionen, Leistung, Handel, Speichern und Elektromobilität – mit historischen Daten und interaktiven Auswertungen.">
-  <meta property="og:url" content="https://ee-atlas.eu/">
+  <meta property="og:title" content="{{ t("Europe’s electricity systems at a glance.") }}">
+  <meta property="og:description" content="{{ t("Compare 31 European countries by generation, electricity mix, prices, emissions, capacity, trade, storage and electric mobility – with historical data and interactive analysis.") }}">
+  <meta property="og:url" content="{{ canonical_url }}">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Europas Stromsysteme auf einen Blick.">
-  <meta name="twitter:description" content="Vergleiche 31 europäische Länder nach Erzeugung, Strommix, Preisen, Emissionen, Leistung, Handel, Speichern und Elektromobilität – mit historischen Daten und interaktiven Auswertungen.">
+  <meta name="twitter:title" content="{{ t("Europe’s electricity systems at a glance.") }}">
+  <meta name="twitter:description" content="{{ t("Compare 31 European countries by generation, electricity mix, prices, emissions, capacity, trade, storage and electric mobility – with historical data and interactive analysis.") }}">
   <script src="/mobile-viewport.js?v=desktop-workspace-v1"></script>
   <link rel="stylesheet" href="/style.css">
+  <script src="/vendor/i18next/i18next-26.0.0.min.js"></script>
+  <script src="/locales/resources.js?v=bilingual-v1"></script>
+  <script src="/i18n.js?v=bilingual-v1"></script>
+  <link rel="alternate" hreflang="de" href="{{ alternate_de }}">
+  <link rel="alternate" hreflang="en" href="{{ alternate_en }}">
+  <link rel="alternate" hreflang="x-default" href="{{ alternate_de }}">
 </head>
 <body>
-  <aside id="mobile-desktop-notice" class="mobile-desktop-notice" aria-label="Hinweis zur mobilen Bedienung" hidden>
+  <aside id="mobile-desktop-notice" class="mobile-desktop-notice" aria-label="{{ t("Mobile usage notice") }}" hidden>
     <div>
-      <strong>Desktopansicht aktiviert</strong>
-      <span>Der Atlas verwendet auf Smartphones bewusst die vollständige Desktopbreite. Für die beste Bedienung das Gerät quer halten, mit zwei Fingern zoomen und die Ansicht horizontal verschieben.</span>
+      <strong>{{ t("Desktop view enabled") }}</strong>
+      <span>{{ t("The Atlas deliberately uses the full desktop width on smartphones. For the best experience, hold your device horizontally, pinch to zoom and pan sideways.") }}</span>
     </div>
-    <button id="mobile-desktop-notice-close" type="button">Atlas öffnen</button>
+    <button id="mobile-desktop-notice-close" type="button">{{ t("Open Atlas") }}</button>
   </aside>
   <div id="wallpaper-stream" class="wallpaper-stream" aria-hidden="true"></div>
   <main>
@@ -42,74 +48,75 @@
       <button id="europe-overload" class="secondary-action overload-toggle" type="button" aria-pressed="false">
         <img class="europe-star" src="/assets/europe-star.svg" alt=""> Europa Overload
       </button>
+      {% include "language-switch.html" %}
     </header>
 
-    <section class="controls" aria-label="Zeitraum">
-      <input id="year" type="number" min="2015" value="2025" aria-label="Jahr">
+    <section class="controls" aria-label="{{ t("Period") }}">
+      <input id="year" type="number" min="2015" value="2025" aria-label="{{ t("Year") }}">
       <div class="select-field">
-        <select id="period-type" aria-label="Zeitraum">
-          <option value="year">Jahr</option>
-          <option value="month">Monat</option>
+        <select id="period-type" aria-label="{{ t("Period") }}">
+          <option value="year">{{ t("Year") }}</option>
+          <option value="month">{{ t("Month") }}</option>
         </select>
       </div>
       <div id="month-label" class="select-field" hidden>
-        <select id="month" aria-label="Monat">
-          <option value="1">Januar</option><option value="2">Februar</option>
-          <option value="3">März</option><option value="4">April</option>
-          <option value="5">Mai</option><option value="6">Juni</option>
-          <option value="7" selected>Juli</option><option value="8">August</option>
-          <option value="9">September</option><option value="10">Oktober</option>
-          <option value="11">November</option><option value="12">Dezember</option>
+        <select id="month" aria-label="{{ t("Month") }}">
+          <option value="1">{{ t("January") }}</option><option value="2">{{ t("February") }}</option>
+          <option value="3">{{ t("March") }}</option><option value="4">April</option>
+          <option value="5">{{ t("May") }}</option><option value="6">{{ t("June") }}</option>
+          <option value="7" selected>{{ t("July") }}</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">{{ t("October") }}</option>
+          <option value="11">November</option><option value="12">{{ t("December") }}</option>
         </select>
       </div>
-      <button id="load">Auswerten</button>
-      <button id="compare" disabled>Länder vergleichen (<span id="selected-count">0</span>)</button>
-      <button id="clear-selection" class="europe-clear-action" type="button" disabled aria-label="Gesamte Länderauswahl aufheben">
+      <button id="load">{{ t("Apply") }}</button>
+      <button id="compare" disabled>{{ t("Compare countries (") }}<span id="selected-count">0</span>)</button>
+      <button id="clear-selection" class="europe-clear-action" type="button" disabled aria-label="{{ t("Clear all selected countries") }}">
         <img class="europe-star" src="/assets/europe-star.svg" alt="">
-        <span>Auswahl aufheben</span>
+        <span>{{ t("Clear selection") }}</span>
       </button>
     </section>
 
     <section id="country-profile" class="country-profile" aria-labelledby="country-profile-title" hidden></section>
 
     <div id="atlas-content">
-    <p id="status" role="status">Daten werden geladen …</p>
+    <p id="status" role="status">{{ t("Loading data …") }}</p>
 
     <section id="atlas-map-section" aria-labelledby="atlas-map-title">
       <header class="tool-card-header">
         <div class="table-card-title">
-          <h2 id="atlas-map-title">Europakarte</h2>
+          <h2 id="atlas-map-title">{{ t("European map") }}</h2>
         </div>
       </header>
         <div id="map-stage" class="map-stage">
-          <div class="map-controls" aria-label="Kartenkennzahl">
+          <div class="map-controls" aria-label="{{ t("Map metric") }}">
           <div class="select-field">
-            <select id="map-family" aria-controls="atlas-map" aria-label="Kennzahl"></select>
+            <select id="map-family" aria-controls="atlas-map" aria-label="{{ t("Metric") }}"></select>
           </div>
           <div class="select-field">
-            <select id="map-representation" aria-controls="atlas-map" aria-label="Darstellung"></select>
+            <select id="map-representation" aria-controls="atlas-map" aria-label="{{ t("Representation") }}"></select>
           </div>
-          <label class="value-toggle"><input id="map-values" type="checkbox" checked> Werte anzeigen</label>
+          <label class="value-toggle"><input id="map-values" type="checkbox" checked> {{ t("Show values") }}</label>
         </div>
         <p id="map-availability" class="hint" role="status"></p>
-        <div class="map-actions tool-actions" aria-label="Karte anzeigen und exportieren">
+        <div class="map-actions tool-actions" aria-label="{{ t("View and export map") }}">
           <button id="map-export-svg" type="button" disabled>SVG</button>
           <button id="map-export-png" type="button" disabled>PNG</button>
-          <button id="map-copy-link" type="button">Link kopieren</button>
-          <button id="map-fullscreen" type="button" aria-pressed="false">Vollbild</button>
+          <button id="map-copy-link" type="button">{{ t("Copy link") }}</button>
+          <button id="map-fullscreen" type="button" aria-pressed="false">{{ t("Fullscreen") }}</button>
         </div>
         <div class="map-layout">
           <div id="map-frame" class="map-frame" aria-busy="true">
             <div id="map-canvas"></div>
             <div id="map-tooltip" class="map-tooltip" hidden></div>
           </div>
-          <aside class="map-panel" aria-label="Kartenlegende und Länderwert">
-            <h3 id="map-metric-title">Karte wird geladen …</h3>
+          <aside class="map-panel" aria-label="{{ t("Map legend and country value") }}">
+            <h3 id="map-metric-title">{{ t("Loading map …") }}</h3>
             <p id="map-period" class="hint"></p>
             <div id="map-legend" class="map-legend"></div>
-            <p id="map-sign-note" class="hint" hidden>Negativ = Exportüberschuss · Positiv = Importüberschuss</p>
+            <p id="map-sign-note" class="hint" hidden>{{ t("Negative = export surplus · Positive = import surplus") }}</p>
             <div id="map-detail" class="map-detail" role="status" aria-live="polite">
-              Ein Land fokussieren, um Details anzuzeigen.
+              {{ t("Focus a country to see details.") }}
             </div>
           </aside>
         </div>
@@ -119,66 +126,66 @@
     <section id="comparison" aria-labelledby="comparison-title">
       <header class="tool-card-header">
         <div class="table-card-title">
-          <h2 id="comparison-title">Zeitvergleich</h2>
+          <h2 id="comparison-title">{{ t("Time comparison") }}</h2>
         </div>
       </header>
       <div id="comparison-stage" class="comparison-stage">
-        <div id="comparison-controls" class="comparison-controls" aria-label="Zeitvergleich steuern">
+        <div id="comparison-controls" class="comparison-controls" aria-label="{{ t("Time comparison controls") }}">
           <div class="country-control">
             <div class="select-field">
-              <select id="compare-country-add" aria-label="Land hinzufügen"></select>
+              <select id="compare-country-add" aria-label="{{ t("Add country") }}"></select>
             </div>
-            <div id="compare-chips" class="country-chips" aria-label="Ausgewählte Länder"></div>
+            <div id="compare-chips" class="country-chips" aria-label="{{ t("Selected countries") }}"></div>
           </div>
           <div id="compare-family-picker" class="metric-family-picker">
-            <span id="compare-family-label" class="field-label">Kennzahlenfamilie</span>
+            <span id="compare-family-label" class="field-label">{{ t("Metric family") }}</span>
             <button id="compare-family-trigger" class="metric-family-trigger" type="button" aria-labelledby="compare-family-label compare-family-value" aria-haspopup="dialog" aria-expanded="false" aria-controls="compare-family-menu">
               <span id="compare-family-value"></span>
               <span class="metric-family-chevron" aria-hidden="true"></span>
             </button>
             <select id="compare-family" class="sr-only" tabindex="-1" aria-hidden="true"></select>
           </div>
-          <div class="select-field"><span class="field-label">Darstellung</span>
+          <div class="select-field"><span class="field-label">{{ t("Representation") }}</span>
             <select id="compare-metric"></select>
           </div>
-          <label id="compare-start-label">Von
+          <label id="compare-start-label">{{ t("From") }}
             <input id="compare-start" type="month" min="2015-01">
           </label>
-          <label id="compare-end-label">Bis
+          <label id="compare-end-label">{{ t("To") }}
             <input id="compare-end" type="month" min="2015-01">
           </label>
-          <div id="compare-axis-mode-label" class="select-field"><span class="field-label">Y-Achse</span>
+          <div id="compare-axis-mode-label" class="select-field"><span class="field-label">{{ t("Y-axis") }}</span>
             <select id="compare-axis-mode" aria-controls="timeseries-chart">
-              <option value="full">0 bis Maximum</option>
-              <option value="data-range">Minimum bis Maximum</option>
+              <option value="full">{{ t("0 to maximum") }}</option>
+              <option value="data-range">{{ t("Minimum to maximum") }}</option>
             </select>
           </div>
-          <div class="comparison-actions tool-actions" aria-label="Zeitreihe exportieren">
+          <div class="comparison-actions tool-actions" aria-label="{{ t("Export time series") }}">
             <button id="export-csv" type="button" disabled>CSV</button>
             <button id="export-svg" type="button" disabled>SVG</button>
             <button id="export-png" type="button" disabled>PNG</button>
-            <button id="copy-link" type="button" disabled>Link kopieren</button>
-            <button id="comparison-fullscreen" class="secondary-action" type="button" aria-pressed="false">Vollbild</button>
+            <button id="copy-link" type="button" disabled>{{ t("Copy link") }}</button>
+            <button id="comparison-fullscreen" class="secondary-action" type="button" aria-pressed="false">{{ t("Fullscreen") }}</button>
           </div>
           <div id="compare-family-menu" class="metric-family-menu" role="dialog" aria-labelledby="compare-family-label" hidden></div>
         </div>
-        <div id="comparison-presets" class="comparison-presets" role="group" aria-label="Schnellauswahl für den Vergleichszeitraum" data-has-active="false">
+        <div id="comparison-presets" class="comparison-presets" role="group" aria-label="{{ t("Quick selection for the comparison period") }}" data-has-active="false">
           <button type="button" data-range-preset="ytd" aria-pressed="false">YTD</button>
-          <button type="button" data-range-preset="1y" aria-pressed="false">1 Jahr</button>
-          <button type="button" data-range-preset="3y" aria-pressed="false">3 Jahre</button>
-          <button type="button" data-range-preset="5y" aria-pressed="false">5 Jahre</button>
-          <button type="button" data-range-preset="10y" aria-pressed="false">10 Jahre</button>
+          <button type="button" data-range-preset="1y" aria-pressed="false">{{ t("1 year") }}</button>
+          <button type="button" data-range-preset="3y" aria-pressed="false">{{ t("3 years") }}</button>
+          <button type="button" data-range-preset="5y" aria-pressed="false">{{ t("5 years") }}</button>
+          <button type="button" data-range-preset="10y" aria-pressed="false">{{ t("10 years") }}</button>
           <button type="button" data-range-preset="max" aria-pressed="false">Max</button>
         </div>
         <p id="comparison-status" class="hint" role="status" hidden></p>
         <div id="comparison-layout" class="comparison-layout">
           <div class="chart-panel">
-            <svg id="timeseries-chart" viewBox="0 0 1600 500" role="img" aria-label="Zeitreihenplot"></svg>
-            <button id="unpin-time" class="secondary-action" type="button" hidden>Zeitpunktfixierung aufheben</button>
+            <svg id="timeseries-chart" viewBox="0 0 1600 500" role="img" aria-label="{{ t("Time series chart") }}"></svg>
+            <button id="unpin-time" class="secondary-action" type="button" hidden>{{ t("Unpin time point") }}</button>
           </div>
           <aside class="ranking-panel" aria-labelledby="ranking-title">
             <div class="ranking-heading">
-              <h3 id="ranking-title">Live-Ranking</h3>
+              <h3 id="ranking-title">{{ t("Live ranking") }}</h3>
               <span id="ranking-period" class="period-flag"></span>
             </div>
             <div id="atlas-average-value" class="atlas-average-value"></div>
@@ -194,7 +201,7 @@
       <article class="table-card">
         <header class="table-card-header">
           <div class="table-card-title">
-            <h2 id="summary-title">Stromsysteme</h2>
+            <h2 id="summary-title">{{ t("Electricity systems") }}</h2>
           </div>
         </header>
         <div id="summary-table-region" class="table-wrap">
@@ -205,7 +212,7 @@
           </table>
         </div>
         <button id="summary-toggle" class="table-toggle table-edge-toggle" type="button" aria-expanded="false" aria-controls="summary-table-region">
-          <span class="table-toggle-label">Alle Länder anzeigen</span>
+          <span class="table-toggle-label">{{ t("Show all countries") }}</span>
           <span class="table-toggle-chevron" aria-hidden="true"></span>
         </button>
       </article>
@@ -215,12 +222,12 @@
       <article class="table-card ev-card">
         <header class="table-card-header">
           <div class="table-card-title">
-            <h2 id="ev-title">Elektromobilität</h2>
+            <h2 id="ev-title">{{ t("Electric mobility") }}</h2>
           </div>
         </header>
         <div class="table-card-context">
           <p id="ev-note" class="hint" role="status"></p>
-          <p class="ev-capacity-note"><strong>Pauschale Flottenannahme:</strong> Theoretische nominale Batteriekapazität = BEV-Bestand × 60 kWh. Das ist weder nutzbare Energie noch eine V2G- oder netzverfügbare Speicherkapazität.</p>
+          <p class="ev-capacity-note"><strong>{{ t("Flat fleet assumption:") }}</strong> {{ t("Theoretical nominal battery capacity = BEV stock × 60 kWh. This is neither usable energy nor V2G or grid-available storage capacity.") }}</p>
         </div>
         <div id="ev-table-region" class="table-wrap">
           <table id="ev-table">
@@ -230,7 +237,7 @@
           </table>
         </div>
         <button id="ev-toggle" class="table-toggle table-edge-toggle" type="button" aria-expanded="false" aria-controls="ev-table-region">
-          <span class="table-toggle-label">Alle Länder anzeigen</span>
+          <span class="table-toggle-label">{{ t("Show all countries") }}</span>
           <span class="table-toggle-chevron" aria-hidden="true"></span>
         </button>
       </article>
@@ -240,12 +247,12 @@
       <article class="table-card storage-card">
         <header class="table-card-header">
           <div class="table-card-title">
-            <h2 id="storage-title">Elektrische Speicher</h2>
+            <h2 id="storage-title">{{ t("Electricity storage") }}</h2>
           </div>
         </header>
         <div class="table-card-context">
           <p id="storage-note" class="hint"></p>
-          <p class="hint">Batterien und Pumpspeicher werden getrennt ausgewiesen. Die äquivalente Entladedauer ist jeweils aus fachlich zusammengehöriger Energie ÷ Leistung abgeleitet.</p>
+          <p class="hint">{{ t("Batteries and pumped storage are shown separately. Equivalent discharge duration is derived from energy ÷ power using matching observations.") }}</p>
         </div>
         <div id="storage-table-region" class="table-wrap storage-wrap">
           <table id="storage-table">
@@ -255,120 +262,120 @@
           </table>
         </div>
         <button id="storage-toggle" class="table-toggle table-edge-toggle" type="button" aria-expanded="false" aria-controls="storage-table-region">
-          <span class="table-toggle-label">Alle Länder anzeigen</span>
+          <span class="table-toggle-label">{{ t("Show all countries") }}</span>
           <span class="table-toggle-chevron" aria-hidden="true"></span>
         </button>
       </article>
     </section>
 
     <details class="source-details">
-      <summary>Datenquellen und Herkunft</summary>
+      <summary>{{ t("Data sources and provenance") }}</summary>
       <div class="source-grid">
         <article>
           <h3>Ember</h3>
-          <p><strong>Anbieter:</strong> Ember, kuratierte international vergleichbare Stromdaten.</p>
-          <p><strong>API:</strong> <a href="https://api.ember-energy.org/v1/docs" target="_blank" rel="noopener noreferrer">Ember API-Dokumentation</a>, Basis <code>https://api.ember-energy.org/v1</code>.</p>
+          <p><strong>{{ t("Provider:") }}</strong> {{ t("Ember, curated and internationally comparable electricity data.") }}</p>
+          <p><strong>API:</strong> <a href="https://api.ember-energy.org/v1/docs" target="_blank" rel="noopener noreferrer">{{ t("Ember API documentation") }}</a>{{ t(", base URL") }} <code>https://api.ember-energy.org/v1</code>.</p>
           <ul>
-            <li><code>/electricity-generation/monthly</code> und <code>/yearly</code>: Erzeugung und Energiemix.</li>
-            <li><code>/electricity-demand/monthly</code> und <code>/yearly</code>: Stromverbrauch.</li>
-            <li><code>/carbon-intensity/monthly</code> und <code>/yearly</code>: CO₂-Intensität.</li>
-            <li><a href="https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/price/outputs/european_wholesale_electricity_price_data_monthly.csv" target="_blank" rel="noopener noreferrer">European Wholesale Electricity Price Data Monthly CSV</a>: nationale monatliche Day-Ahead-Großhandelspreise.</li>
+            <li><code>/electricity-generation/monthly</code> {{ t("and") }} <code>/yearly</code>{{ t(": generation and electricity mix.") }}</li>
+            <li><code>/electricity-demand/monthly</code> {{ t("and") }} <code>/yearly</code>{{ t(": electricity consumption.") }}</li>
+            <li><code>/carbon-intensity/monthly</code> {{ t("and") }} <code>/yearly</code>{{ t(": carbon intensity.") }}</li>
+            <li><a href="https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/price/outputs/european_wholesale_electricity_price_data_monthly.csv" target="_blank" rel="noopener noreferrer">European Wholesale Electricity Price Data Monthly CSV</a>{{ t(": national monthly day-ahead wholesale electricity prices.") }}</li>
           </ul>
-          <p><strong>Verarbeitung:</strong> Bereits aggregierte TWh-, gCO₂/kWh- und EUR/MWh-Periodenwerte werden als Periodenwerte gespeichert. Jahrespreise werden nach der tatsächlichen Monatsdauer gewichtet und nur mit zwölf abgeschlossenen Monaten als vollständig ausgewiesen. Laufende Monate sind vorläufig, laufende Jahre YTD.</p>
-          <p><strong>Preisquellenangabe:</strong> Ember Wholesale Electricity Price Data, CC BY 4.0.</p>
-          <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quellenangabe: Ember.</p>
+          <p><strong>{{ t("Processing:") }}</strong> {{ t("Pre-aggregated TWh, gCO₂/kWh and EUR/MWh period values are stored as period observations. Annual prices are weighted by the actual number of days in each month and reported as complete only with twelve completed months. Current months are provisional; current years are YTD.") }}</p>
+          <p><strong>{{ t("Price attribution:") }}</strong> Ember Wholesale Electricity Price Data, CC BY 4.0.</p>
+          <p><strong>{{ t("Licence:") }}</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>{{ t(". Attribution: Ember.") }}</p>
         </article>
         <article>
           <h3>Eurostat</h3>
-          <p><strong>Anbieter:</strong> Statistisches Amt der Europäischen Union.</p>
-          <p><strong>Datensätze:</strong> Bevölkerung und BIP, installierte Nettoleistung, jährliche Haushalts- und Nicht-Haushaltsstrompreise samt Komponenten, Bruttostromimporte und -exporte sowie Bestand und Neuzulassungen batterieelektrischer Pkw.</p>
-          <p><strong>Verarbeitung:</strong> Der Import arbeitet seriell mit höchstens einer laufenden Anfrage. Jahreskennzahlen und daraus berechnete Pro-Kopf-Werte werden nur mit Daten desselben Kalenderjahres gebildet; fehlende Land-Jahr-Werte bleiben leer.</p>
-          <p><strong>Quelle:</strong> <a href="https://ec.europa.eu/eurostat/web/main/data/database" target="_blank" rel="noopener noreferrer">Eurostat-Datenbank</a>.</p>
+          <p><strong>{{ t("Provider:") }}</strong> {{ t("Statistical office of the European Union.") }}</p>
+          <p><strong>{{ t("Datasets:") }}</strong> {{ t("Population and GDP, installed net capacity, annual household and non-household electricity prices and their components, gross electricity imports and exports, and battery-electric passenger car stock and new registrations.") }}</p>
+          <p><strong>{{ t("Processing:") }}</strong> {{ t("Imports run sequentially, with at most one request in flight. Annual metrics and derived per-capita figures only use data from the same calendar year; missing country-year values remain blank.") }}</p>
+          <p><strong>{{ t("Source:") }}</strong> <a href="https://ec.europa.eu/eurostat/web/main/data/database" target="_blank" rel="noopener noreferrer">{{ t("Eurostat database") }}</a>.</p>
         </article>
         <article>
           <h3>European Environment Agency</h3>
-          <p><strong>Inhalt:</strong> Jährliches Treibhausgasinventar für CRT/IPCC-Kategorie <code>1.A.1.a</code>.</p>
-          <p><strong>Abgrenzung:</strong> Die Kategorie umfasst die öffentliche Strom- <strong>und Wärmeerzeugung</strong>. Sie ist kein reiner Stromerzeugungswert und wird nicht mit den geschätzten Erzeugungsemissionen gleichgesetzt.</p>
-          <p><strong>Quelle:</strong> <a href="https://www.eea.europa.eu/en/datahub/datahubitem-view/3b7fe76c-524a-439a-bfd2-a6e4046302a2" target="_blank" rel="noopener noreferrer">EEA GHG inventory</a>.</p>
-          <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quelle: European Environment Agency.</p>
+          <p><strong>{{ t("Content:") }}</strong> {{ t("Annual greenhouse gas inventory for CRT/IPCC category") }} <code>1.A.1.a</code>.</p>
+          <p><strong>{{ t("Scope:") }}</strong> {{ t("The category covers public electricity") }} <strong>{{ t("and heat production") }}</strong>{{ t(". It is not an electricity-only figure and is not equivalent to estimated generation emissions.") }}</p>
+          <p><strong>{{ t("Source:") }}</strong> <a href="https://www.eea.europa.eu/en/datahub/datahubitem-view/3b7fe76c-524a-439a-bfd2-a6e4046302a2" target="_blank" rel="noopener noreferrer">EEA GHG inventory</a>.</p>
+          <p><strong>{{ t("Licence:") }}</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>{{ t(". Source: European Environment Agency.") }}</p>
         </article>
         <article>
-          <h3>Battery-Charts Deutschland</h3>
-          <p><strong>Anbieter:</strong> Battery-Charts, Forschungsstelle für Energiewirtschaft und Batterietechnik der RWTH Aachen.</p>
-          <p><strong>Inhalt:</strong> Bereinigter MaStR-Gesamtbestand stationärer Batteriespeicher in Deutschland, getrennt nach Heimspeichern, Industrie- und Großspeichern.</p>
-          <p><strong>Verarbeitung:</strong> Monatswerte für Energie und Entladeleistung werden gemeinsam validiert. Der deutsche Gesamtwert ist exakt die Summe der drei Segmente; Fahrzeugbatterien sind nicht enthalten.</p>
-          <p><strong>Importweg:</strong> Ausschließlich manueller Import zweier lokal gespeicherter JSON-Antworten. Der Atlas ruft den Battery-Charts-Endpunkt nicht selbst auf.</p>
-          <p><strong>Coverage:</strong> Deutschland wird als <code>national_registry_total</code> gekennzeichnet. Deutsche JRC-Batterieprojekte werden nicht addiert.</p>
-          <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quelle: <a href="https://battery-charts.de/" target="_blank" rel="noopener noreferrer">Battery-Charts</a>.</p>
+          <h3>{{ t("Battery-Charts Germany") }}</h3>
+          <p><strong>{{ t("Provider:") }}</strong> {{ t("Battery-Charts, RWTH Aachen University’s research team for energy economics and battery technology.") }}</p>
+          <p><strong>{{ t("Content:") }}</strong> {{ t("Cleaned MaStR total of stationary battery storage in Germany, split into home, industrial and large-scale storage.") }}</p>
+          <p><strong>{{ t("Processing:") }}</strong> {{ t("Monthly energy and discharge power values are validated together. The German total is exactly the sum of the three segments; vehicle batteries are excluded.") }}</p>
+          <p><strong>{{ t("Import method:") }}</strong> {{ t("A controlled browser export captures the public Battery-Charts data. Local JSON imports remain available. Monthly refreshes preserve the previous inventory if capture or validation fails.") }}</p>
+          <p><strong>Coverage:</strong> {{ t("Germany is labelled") }} <code>national_registry_total</code> {{ t(". German JRC battery projects are not added to this total.") }}</p>
+          <p><strong>{{ t("Licence:") }}</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>{{ t(". Source:") }} <a href="https://battery-charts.de/" target="_blank" rel="noopener noreferrer">Battery-Charts</a>.</p>
         </article>
         <article>
           <h3>JRC Energy Storage Inventory</h3>
-          <p><strong>Anbieter:</strong> Joint Research Centre der Europäischen Kommission.</p>
-          <p><strong>Inhalt:</strong> Operative elektrochemische Projekte außerhalb Deutschlands sowie ausschließlich als <em>Pumped Hydro Storage (PHS)</em> klassifizierte Pumpspeicher in allen Atlas-Ländern.</p>
-          <p><strong>Importweg:</strong> Ein bewusster, höchstens monatlicher CLI-Abruf der öffentlichen Projekt-API. Die API ist öffentlich erreichbar, aber nicht formal versioniert.</p>
-          <p><strong>Coverage:</strong> JRC-Werte sind ein <code>tracked_project_inventory</code>, kein vollständiger nationaler Gesamtbestand. Fehlende Energie bleibt fehlend; geschätzte Kapazitäten werden sichtbar gekennzeichnet.</p>
-          <p><strong>Quelle:</strong> <a href="https://ses.jrc.ec.europa.eu/storage-inventory" target="_blank" rel="noopener noreferrer">European Energy Storage Inventory</a>.</p>
+          <p><strong>{{ t("Provider:") }}</strong> {{ t("Joint Research Centre of the European Commission.") }}</p>
+          <p><strong>{{ t("Content:") }}</strong> {{ t("Operational electrochemical projects outside Germany, plus storage classified exclusively as") }} <em>Pumped Hydro Storage (PHS)</em> {{ t("in all Atlas countries.") }}</p>
+          <p><strong>{{ t("Import method:") }}</strong> {{ t("A controlled browser export downloads the current official dashboard data. The old, undocumented project API is not used. If the optional export fails, the previous inventory is preserved.") }}</p>
+          <p><strong>Coverage:</strong> {{ t("JRC values represent a") }} <code>tracked_project_inventory</code>{{ t(", not a complete national total. Missing energy remains missing; estimated capacities are visibly labelled.") }}</p>
+          <p><strong>{{ t("Source:") }}</strong> <a href="https://ses.jrc.ec.europa.eu/storage-inventory" target="_blank" rel="noopener noreferrer">European Energy Storage Inventory</a>.</p>
         </article>
         <article>
           <h3>JRC Hydro-power database</h3>
-          <p><strong>Inhalt:</strong> Statischer Anlagen-Snapshot zu erfasster Wasserkraftwerksleistung, Pumpleistung und direkt berichteter Speicherenergie.</p>
-          <p><strong>Abgrenzung:</strong> Dieses Anlageninventar ist vom laufend gepflegten JRC Energy Storage Inventory getrennt. Fehlende Speicherenergie wird weder aus Leistung noch aus anderen Anlagendaten geschätzt.</p>
-          <p><strong>Datenstand:</strong> Der jeweilige Snapshot wird kennzahlspezifisch in Karte und Länderdetail ausgewiesen.</p>
-          <p><strong>Quelle:</strong> <a href="https://data.jrc.ec.europa.eu/dataset/52b00441-d3e0-44e0-8281-fda86a63546d" target="_blank" rel="noopener noreferrer">JRC Hydro-power database</a>.</p>
-          <p><strong>Lizenz:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Quelle: European Commission JRC.</p>
+          <p><strong>{{ t("Content:") }}</strong> {{ t("Static plant snapshot of recorded hydropower generation capacity, pumping power and directly reported storage energy.") }}</p>
+          <p><strong>{{ t("Scope:") }}</strong> {{ t("This plant inventory is separate from the actively maintained JRC Energy Storage Inventory. Missing storage energy is not estimated from power or other plant data.") }}</p>
+          <p><strong>{{ t("Reporting date:") }}</strong> {{ t("Each snapshot’s metric-specific reporting date is shown in the map and country details.") }}</p>
+          <p><strong>{{ t("Source:") }}</strong> <a href="https://data.jrc.ec.europa.eu/dataset/52b00441-d3e0-44e0-8281-fda86a63546d" target="_blank" rel="noopener noreferrer">JRC Hydro-power database</a>.</p>
+          <p><strong>{{ t("Licence:") }}</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>{{ t(". Source: European Commission JRC.") }}</p>
         </article>
         <article>
-          <h3>Atlas-Ableitungen</h3>
-          <p><strong>Erneuerbare pro Kopf:</strong> erneuerbare Erzeugung geteilt durch die Bevölkerung desselben Jahres.</p>
-          <p><strong>CO₂-armer Anteil:</strong> erneuerbare und nukleare Erzeugung im Verhältnis zur Gesamterzeugung. <strong>Eigenversorgung:</strong> Erzeugung im Verhältnis zum Verbrauch.</p>
-          <p><strong>Geschätzte Erzeugungsemissionen:</strong> CO₂-Intensität × Erzeugung. Das Ergebnis ist eine rechnerische Schätzung und kein Treibhausgasinventar.</p>
-          <p><strong>Dekarbonisierungsrate:</strong> Veränderung der CO₂-Intensität zum abgeschlossenen Vorjahr. Positive Werte bedeuten sinkende, negative Werte steigende CO₂-Intensität.</p>
-          <p><strong>Verknüpfte Darstellungen:</strong> Erzeugung und Verbrauch werden durch das nominale BIP desselben Jahres geteilt. Die Emissionsrelation verwendet das EEA-Inventar für öffentliche Strom- und Wärmeerzeugung. Der Preisabstand entspricht dem Haushaltsgesamtpreis abzüglich des kalendertäglich gewichteten Jahresmittels des Großhandelspreises. Der Stromhandelsdurchsatz setzt Bruttoimporte plus Bruttoexporte ins Verhältnis zum Verbrauch.</p>
+          <h3>{{ t("Atlas-derived metrics") }}</h3>
+          <p><strong>{{ t("Renewables per capita:") }}</strong> {{ t("renewable generation divided by the population of the same year.") }}</p>
+          <p><strong>{{ t("Low-carbon share:") }}</strong> {{ t("renewable and nuclear generation as a share of total generation.") }} <strong>{{ t("Self-sufficiency:") }}</strong> {{ t("generation relative to consumption.") }}</p>
+          <p><strong>{{ t("Estimated generation emissions:") }}</strong> {{ t("carbon intensity × generation. The result is a calculated estimate, not a greenhouse gas inventory.") }}</p>
+          <p><strong>{{ t("Decarbonisation rate:") }}</strong> {{ t("change in carbon intensity compared with the completed previous year. Positive values mean falling carbon intensity; negative values mean rising carbon intensity.") }}</p>
+          <p><strong>{{ t("Combined indicators:") }}</strong> {{ t("Generation and consumption are divided by nominal GDP for the same year. The emissions ratio uses the EEA inventory for public electricity and heat production. The price gap is the household total price minus the annual wholesale average weighted by calendar days. Electricity trade throughput relates gross imports plus gross exports to consumption.") }}</p>
         </article>
         <article>
           <h3>Natural Earth</h3>
-          <p><strong>Kartengrundlage:</strong> Natural Earth 1:50m Admin 0 Countries, Version 5.1.1.</p>
-          <p><strong>Verarbeitung:</strong> Während der Entwicklung auf den europäischen Ausschnitt begrenzt, geometrisch vereinfacht und als lokales SVG gespeichert. Beim Öffnen der Anwendung werden keine Kartenkacheln oder externen Dienste geladen.</p>
-          <p><strong>Nutzungsbedingungen:</strong> Natural-Earth-Kartendaten sind gemeinfrei und dürfen verändert sowie kommerziell genutzt werden.</p>
-          <p><strong>Quelle:</strong> <a href="https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/" target="_blank" rel="noopener noreferrer">Natural Earth Admin-0 Countries</a>.</p>
+          <p><strong>{{ t("Base map:") }}</strong> {{ t("Natural Earth 1:50m Admin 0 Countries, version 5.1.1.") }}</p>
+          <p><strong>{{ t("Processing:") }}</strong> {{ t("Cropped to Europe, geometrically simplified and stored as a local SVG during development. Opening the application does not load map tiles or external map services.") }}</p>
+          <p><strong>{{ t("Terms of use:") }}</strong> {{ t("Natural Earth map data is in the public domain and may be modified and used commercially.") }}</p>
+          <p><strong>{{ t("Source:") }}</strong> <a href="https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/" target="_blank" rel="noopener noreferrer">Natural Earth Admin-0 Countries</a>.</p>
         </article>
       </div>
-      <p>Importierte Quellantworten und Metadaten liegen lokal in <code>data/atlas.sqlite3</code>. Ember-Schlüssel werden vor der Speicherung redigiert; für Battery-Charts verwendet der Atlas keinen Schlüssel. Quellen werden nicht stillschweigend vermischt.</p>
+      <p>{{ t("Imported source responses and metadata are stored locally in") }} <code>data/atlas.sqlite3</code>{{ t(". Ember keys are redacted before storage; the Atlas uses no key for Battery-Charts. Sources are not silently mixed.") }}</p>
     </details>
 
     <details>
-      <summary>Definitions- und Coverage-Hinweise</summary>
+      <summary>{{ t("Definitions and coverage notes") }}</summary>
       <ul>
-        <li>Erzeugung, Energiemix, Verbrauch und CO₂-Intensität stammen aus Embers kuratierten Monats- und Jahresdaten.</li>
-        <li>Preise sind nationale Monatswerte von Ember und werden bei vollständigen Jahren kalendertäglich gewichtet.</li>
-        <li>Bruttostromimporte und -exporte stammen als Jahreswerte aus Eurostat. Negative Preisstunden und operative Intervallwerte sind nicht Teil dieses Monatsatlas.</li>
-        <li>Nettoimporte sind positiv bei Nettoimport und negativ bei Nettoexport. Die Nettoimportquote bezieht sich auf den Verbrauch desselben Zeitraums.</li>
-        <li>Eurostat-Kennzahlen und daraus berechnete Pro-Kopf-, Kapazitätsfaktor- und EV-Werte sind ausschließlich in der Jahresansicht verfügbar.</li>
-        <li>Die theoretische nominale EV-Batteriekapazität verwendet als pauschale Flottenannahme fest 60 kWh je BEV. Sie beschreibt weder nutzbare Energie noch V2G- oder netzverfügbare Speicherkapazität.</li>
-        <li>EEA CRT 1.A.1.a umfasst öffentliche Strom- und Wärmeerzeugung und ist kein reiner Stromwert.</li>
-        <li>BIP-Relationen verwenden das nominale BIP zu laufenden Preisen. Längere Zeitvergleiche können deshalb durch Inflation und Preisniveauänderungen beeinflusst sein.</li>
-        <li>Geschätzte Erzeugungsemissionen sind eine rechnerische Ableitung aus CO₂-Intensität und Erzeugung. Eine positive Dekarbonisierungsrate bedeutet sinkende CO₂-Intensität gegenüber dem Vorjahr.</li>
-        <li>Speicherwerte sind separat datierte Bestandswerte und werden nicht wie Monats- oder Jahresflüsse behandelt. Deutschland-Batterien stammen ausschließlich aus Battery-Charts; andere Batterien und alle Pumpspeicher aus JRC.</li>
-        <li>Das JRC-Wasserkraftinventar ist ein separater Anlagen-Snapshot. Nur direkt berichtete Speicherenergie wird angezeigt; fehlende Energie bleibt fehlend.</li>
-        <li>Der laufende Monat ist vorläufig. Das laufende Jahr wird nur aus abgeschlossenen Monaten als YTD ausgewiesen.</li>
-        <li>Ein leerer Wert bedeutet, dass die angegebene Quelle für Land und Zeitraum keine Kennzahl liefert.</li>
+        <li>{{ t("Generation, electricity mix, consumption and carbon intensity come from Ember’s curated monthly and annual data.") }}</li>
+        <li>{{ t("Prices are national monthly Ember values and are weighted by calendar days for complete years.") }}</li>
+        <li>{{ t("Gross electricity imports and exports are annual Eurostat values. Negative-price hours and operational interval data are outside the scope of this monthly Atlas.") }}</li>
+        <li>{{ t("Net imports are positive for net importers and negative for net exporters. The net import share uses consumption from the same period.") }}</li>
+        <li>{{ t("Eurostat metrics and derived per-capita, capacity-factor and EV values are only available in the annual view.") }}</li>
+        <li>{{ t("The theoretical nominal EV battery capacity uses a flat fleet assumption of 60 kWh per BEV. It represents neither usable energy nor V2G or grid-available storage capacity.") }}</li>
+        <li>{{ t("EEA CRT 1.A.1.a covers public electricity and heat production and is not an electricity-only figure.") }}</li>
+        <li>{{ t("GDP ratios use nominal GDP at current prices. Long-term comparisons may therefore be affected by inflation and changes in price levels.") }}</li>
+        <li>{{ t("Estimated generation emissions are calculated from carbon intensity and generation. A positive decarbonisation rate means carbon intensity fell compared with the previous year.") }}</li>
+        <li>{{ t("Storage values are separately dated inventories, not monthly or annual flows. German battery data comes exclusively from Battery-Charts; other batteries and all pumped storage come from JRC.") }}</li>
+        <li>{{ t("The JRC hydropower inventory is a separate plant snapshot. Only directly reported storage energy is displayed; missing energy remains missing.") }}</li>
+        <li>{{ t("The current month is provisional. The current year is reported as YTD using completed months only.") }}</li>
+        <li>{{ t("A blank value means the specified source provides no metric for that country and period.") }}</li>
       </ul>
       <div id="coverage"></div>
     </details>
     </div>
 
-    <footer class="site-footer" aria-label="Projektinformationen">
-      <p>Öffentliche Beta · privates, nichtkommerzielles Open-Source-Projekt</p>
-      <nav aria-label="Projekt, Datenzugriff, Rechtliches und Kontakt">
-        <a href="/contact.html">Projekt &amp; Kontakt</a>
-        <a href="/api.html">API &amp; Datenzugriff</a>
-        <a href="/llms.txt" type="text/plain">Datenzugriff für LLMs</a>
-        <a href="/privacy.html">Datenschutz &amp; Cookies</a>
-        <a href="https://github.com/Captain-Boba/EEA" target="_blank" rel="noopener noreferrer">Quellcode</a>
+    <footer class="site-footer" aria-label="{{ t("Project information") }}">
+      <p>{{ t("Public beta · private, non-commercial open-source project") }}</p>
+      <nav aria-label="{{ t("Project, data access, legal information and contact") }}">
+        <a href="{{ page_url('/contact.html') }}">{{ t("Project & contact") }}</a>
+        <a href="{{ page_url('/api.html') }}">{{ t("API & data access") }}</a>
+        <a href="/llms.txt" type="text/plain">{{ t("Data access for LLMs") }}</a>
+        <a href="{{ page_url('/privacy.html') }}">{{ t("Privacy & cookies") }}</a>
+        <a href="https://github.com/Captain-Boba/EEA" target="_blank" rel="noopener noreferrer">{{ t("Source code") }}</a>
       </nav>
     </footer>
   </main>
-  <script src="/wallpapers.js?v=europa-overload-gallery-v4"></script>
-  <script src="/app.js?v=landing-route-v3"></script>
+  <script src="/wallpapers.js?v=bilingual-v1"></script>
+  <script src="/app.js?v=bilingual-v1"></script>
 </body>
 </html>

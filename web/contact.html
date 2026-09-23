@@ -1,36 +1,44 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ language }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070d18">
-  <title>EEA · Projekt &amp; Kontakt</title>
+  <title>{{ t("EEA · Project & contact") }}</title>
+  <link rel="canonical" href="{{ canonical_url }}">
   <link rel="icon" href="/assets/eea-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
+  <script src="/vendor/i18next/i18next-26.0.0.min.js"></script>
+  <script src="/locales/resources.js?v=bilingual-v1"></script>
+  <script src="/i18n.js?v=bilingual-v1"></script>
+  <link rel="alternate" hreflang="de" href="{{ alternate_de }}">
+  <link rel="alternate" hreflang="en" href="{{ alternate_en }}">
+  <link rel="alternate" hreflang="x-default" href="{{ alternate_de }}">
 </head>
 <body>
   <main class="legal-page">
     <header class="site-header legal-header">
-      <a class="brand-lockup legal-brand" href="/" aria-label="Zurück zum European Electricity Atlas">
+      <a class="brand-lockup legal-brand" href="{{ page_url('/') }}" aria-label="{{ t("Back to the European Electricity Atlas") }}">
         <span class="brand-mark" aria-hidden="true"><img src="/assets/eea-mark.svg" alt=""></span>
         <div><h1>European Electricity Atlas</h1></div>
       </a>
+      {% include "language-switch.html" %}
     </header>
 
     <article class="legal-card">
-      <p class="legal-kicker">Öffentliche Beta</p>
-      <h2>Projekt &amp; Kontakt</h2>
-      <p>Der European Electricity Atlas ist ein privates, nichtkommerzielles Open-Source-Projekt. Er stellt öffentlich verfügbare Strom-, Klima- und Kontextdaten vergleichbar dar und ist weder amtliche Statistik noch Anlage- oder Energieberatung.</p>
+      <p class="legal-kicker">{{ t("Public beta") }}</p>
+      <h2>{{ t("Project & contact") }}</h2>
+      <p>{{ t("The European Electricity Atlas is a private, non-commercial open-source project. It presents publicly available electricity, climate and contextual data in a comparable form. It is neither official statistics nor investment or energy advice.") }}</p>
 
-      <h3>Kontakt und Fehlerberichte</h3>
-      <p>Fragen, Datenhinweise, Fehlerberichte und Datenschutzanfragen können öffentlich über das GitHub-Projekt eingereicht werden:</p>
-      <p><a href="https://github.com/Captain-Boba/EEA/issues" target="_blank" rel="noopener noreferrer">GitHub Issues des European Electricity Atlas</a></p>
-      <p>Für vertrauliche Anfragen kann die auf dem GitHub-Profil des Projektbetreibers angebotene Kontaktmöglichkeit verwendet werden.</p>
+      <h3>{{ t("Contact and bug reports") }}</h3>
+      <p>{{ t("Questions, data suggestions, bug reports and privacy requests can be submitted publicly through the GitHub project:") }}</p>
+      <p><a href="https://github.com/Captain-Boba/EEA/issues" target="_blank" rel="noopener noreferrer">{{ t("European Electricity Atlas GitHub Issues") }}</a></p>
+      <p>{{ t("For confidential enquiries, use the contact option offered on the project operator’s GitHub profile.") }}</p>
 
-      <h3>Transparenz</h3>
-      <p>Quellcode, Datenmodell, Quellenhinweise und bekannte Einschränkungen sind im <a href="https://github.com/Captain-Boba/EEA" target="_blank" rel="noopener noreferrer">öffentlichen Repository</a> dokumentiert. Die im Atlas genannten Drittanbieter sind nicht Betreiber dieses Projekts.</p>
+      <h3>{{ t("Transparency") }}</h3>
+      <p>{{ t("Source code, data model, source notes and known limitations are documented in the") }} <a href="https://github.com/Captain-Boba/EEA" target="_blank" rel="noopener noreferrer">{{ t("public repository") }}</a>{{ t(". The third-party providers named in the Atlas do not operate this project.") }}</p>
 
-      <p class="legal-actions"><a href="/">Zurück zum Atlas</a> · <a href="/privacy.html">Datenschutz &amp; Cookies</a></p>
+      <p class="legal-actions"><a href="{{ page_url('/') }}">{{ t("Back to the Atlas") }}</a> · <a href="{{ page_url('/privacy.html') }}">{{ t("Privacy & cookies") }}</a></p>
     </article>
   </main>
 </body>

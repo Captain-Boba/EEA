@@ -4,6 +4,12 @@ The European Electricity Atlas has no runtime dependency beyond Python 3.11 or n
 
 ## Runtime configuration
 
+The bilingual public pages require Jinja2, declared in both `pyproject.toml` and
+`requirements.txt`; deploy through the normal dependency-installing build.
+The pinned i18next runtime and generated translation bundle are served locally.
+No translation API, language secret, database migration or additional Railway
+service is needed. See [localization](LOCALIZATION.md).
+
 The command-line value wins over an environment variable; an environment variable wins over the local default.
 
 | Setting | Default | Purpose |

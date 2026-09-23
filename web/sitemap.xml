@@ -21,4 +21,16 @@
   <url>
     <loc>https://ee-atlas.eu/privacy.html</loc>
   </url>
+  <url>
+    <loc>https://ee-atlas.eu/?lang=en</loc>
+  </url>
+  <url>
+    <loc>https://ee-atlas.eu/contact.html?lang=en</loc>
+  </url>
+  <url>
+    <loc>https://ee-atlas.eu/privacy.html?lang=en</loc>
+  </url>
+  <url>
+    <loc>https://ee-atlas.eu/api.html?lang=en</loc>
+  </url>
 </urlset>

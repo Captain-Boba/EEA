@@ -119,7 +119,7 @@ def build_timeseries(
             for code in codes
         ],
         "atlas_average": {
-            "label": "Atlas-Durchschnitt",
+            "label": "Atlas average",
             "values": average_points,
         },
     }

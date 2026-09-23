@@ -1,3 +1,4 @@
+from electricity_atlas.pages import render_page
 import json
 import re
 import unittest
@@ -14,7 +15,7 @@ class WallpaperTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.javascript = (ROOT / "web" / "wallpapers.js").read_text(encoding="utf-8")
-        cls.html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        cls.html = render_page("index.html", "de", "/").decode("utf-8")
         cls.css = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
         cls.manifest = json.loads((ROOT / "web" / "wallpapers.json").read_text(encoding="utf-8"))
 
@@ -48,8 +49,8 @@ class WallpaperTest(unittest.TestCase):
 
     def test_public_vote_controls_are_symbolic_accessible_and_not_localstorage_reactions(self):
         self.assertIn('const VOTES_URL = "/api/wallpaper-votes"', self.javascript)
-        self.assertIn('button("wallpaper-vote-up", "Daumen hoch vergeben"', self.javascript)
-        self.assertIn('button("wallpaper-vote-down", "Daumen runter vergeben"', self.javascript)
+        self.assertIn('button("wallpaper-vote-up", t("Like this image")', self.javascript)
+        self.assertIn('button("wallpaper-vote-down", t("Dislike this image")', self.javascript)
         self.assertIn("aria-pressed", self.javascript)
         self.assertIn("votePending", self.javascript)
         self.assertIn("own_vote", self.javascript)
@@ -64,7 +65,7 @@ class WallpaperTest(unittest.TestCase):
         self.assertIn('voteHelp.className = "wallpaper-vote-help"', self.javascript)
         self.assertIn('voteHelp.tabIndex = 0', self.javascript)
         self.assertIn('voteHelpTooltip.setAttribute("role", "tooltip")', self.javascript)
-        self.assertIn('←/→ Bildwechsel\\n↑ Like\\n↓ Dislike', self.javascript)
+        self.assertIn('←/→ Change image\\n↑ Like\\n↓ Dislike', self.javascript)
         self.assertIn(".wallpaper-vote-help:hover .wallpaper-vote-help-tooltip", self.css)
         self.assertIn(".wallpaper-vote-help:focus .wallpaper-vote-help-tooltip", self.css)
         self.assertIn("white-space: pre-line", self.css)
@@ -87,6 +88,6 @@ class WallpaperTest(unittest.TestCase):
         self.assertIn("if (readOptIn()) void start()", self.javascript)
         self.assertIn("await loadCatalog(); if (!readOptIn()) return; active = true", self.javascript)
         self.assertLess(self.javascript.index("await loadCatalog()"), self.javascript.index("sequence = shuffled(catalog)"))
-        self.assertIn('src="/wallpapers.js?v=europa-overload-gallery-v4"', self.html)
+        self.assertIn('src="/wallpapers.js?v=bilingual-v1"', self.html)
         self.assertIn('id="wallpaper-stream"', self.html)
         self.assertIn('aria-pressed="false"', self.html)

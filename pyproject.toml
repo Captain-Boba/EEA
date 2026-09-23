@@ -9,7 +9,7 @@ description = "Traceable data core for comparing European electricity systems"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
-dependencies = ["playwright>=1.62,<2"]
+dependencies = ["playwright>=1.62,<2", "Jinja2>=3.1.6,<4"]
 
 [project.scripts]
 eea = "electricity_atlas.cli:main"
@@ -19,3 +19,6 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+electricity_atlas = ["locales/*.json"]

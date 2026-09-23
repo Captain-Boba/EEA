@@ -17,272 +17,130 @@ from .config import (
 )
 
 
+from .localization import metric_labels, metric_identities, source_label
+
+
 def _metric(
-    metric_id: str,
-    label: str,
-    group: str,
-    unit: str,
-    *,
-    monthly: bool,
-    yearly: bool,
-    snapshot: bool = False,
-    table: bool = False,
-    map_view: bool = True,
-    compare: bool = True,
-    source: str = EMBER_SOURCE_LABEL,
-    missing: str = "null",
-    family: str | None = None,
-    representation: str | None = None,
-    map_scale: str = "sequential",
-    map_palette: str = "generation",
+    metric_id: str, *, monthly: bool, yearly: bool, snapshot: bool = False,
+    table: bool = False, map_view: bool = True, compare: bool = True,
+    source: str = EMBER_SOURCE_LABEL, missing: str = "null",
+    map_scale: str = "sequential", map_palette: str = "generation",
     map_domain: tuple[float, float] | None = None,
-    map_midpoint: float | None = None,
-    map_decimals: int = 2,
+    map_midpoint: float | None = None, map_decimals: int = 2,
     map_latest_available_year: bool = False,
-    display_topic: str | None = None,
-    display_metric: str | None = None,
-    display_basis: str | None = None,
 ) -> dict[str, Any]:
-    views = [view for view, enabled in (("table", table), ("map", map_view), ("compare", compare)) if enabled]
+    labels = metric_labels(metric_id, "en")
     return {
-        "id": metric_id,
-        "label_de": label,
-        "group": group,
-        "unit": unit,
-        "views": views,
+        "id": metric_id, **labels,
+        "label_en": labels["label"],
+        "label_de": metric_labels(metric_id, "de")["label"],
+        **metric_identities()[metric_id],
+        "views": [view for view, enabled in (("table", table), ("map", map_view), ("compare", compare)) if enabled],
         "temporal_availability": {"monthly": monthly, "yearly": yearly, "snapshot": snapshot},
-        "sortable": True,
-        "table": table,
-        "map": map_view,
-        "compare": compare,
-        "source": source,
-        "missing_value": missing,
-        "family": family or label,
-        "representation": representation or label,
-        # These fields are the dedicated, presentation-only naming contract.
-        # The older fields above retain their established grouping and control
-        # semantics for tables and selectors.
-        "display_topic": display_topic or group,
-        "display_metric": display_metric or label,
-        "display_basis": display_basis or "",
+        "sortable": True, "table": table, "map": map_view, "compare": compare,
+        "source": source_label(source), "missing_value": missing,
         "map_config": {
-            "scale": map_scale,
-            "palette": map_palette,
+            "scale": map_scale, "palette": map_palette,
             "domain": list(map_domain) if map_domain else None,
-            "midpoint": map_midpoint,
-            "decimals": map_decimals,
+            "midpoint": map_midpoint, "decimals": map_decimals,
             "latest_available_year": map_latest_available_year,
         },
     }
 
 
 METRICS: tuple[dict[str, Any], ...] = (
-    _metric("generation_twh", "Erzeugung", "Stromsystem", "TWh", monthly=True, yearly=True, table=True, family="Erzeugung", representation="Erzeugung in TWh"),
-    _metric("consumption_twh", "Verbrauch", "Stromsystem", "TWh", monthly=True, yearly=True, table=True, family="Verbrauch", representation="Verbrauch in TWh", map_palette="consumption"),
-    _metric("generation_per_capita_mwh", "Erzeugung pro Kopf", "Stromsystem", "MWh/Einwohner", monthly=False, yearly=True, family="Erzeugung", representation="Erzeugung in MWh je Einwohner"),
-    _metric("consumption_per_capita_mwh", "Verbrauch pro Kopf", "Stromsystem", "MWh/Einwohner", monthly=False, yearly=True, table=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Verbrauch", representation="Verbrauch in MWh je Einwohner", map_palette="consumption"),
-    _metric("low_carbon_share_pct", "CO₂-armer Erzeugungsanteil", "Stromsystem", "%", monthly=True, yearly=True, family="CO₂-arme Erzeugung", representation="Erneuerbare und Kernenergie an der Gesamterzeugung", map_palette="renewables", map_decimals=1),
-    _metric("self_sufficiency_pct", "Erzeugung zu Verbrauch", "Stromsystem", "%", monthly=True, yearly=True, family="Eigenversorgung", representation="Erzeugung im Verhältnis zum Verbrauch", map_palette="consumption", map_decimals=1),
-    _metric("renewable_twh", "Erneuerbare gesamt", "Erneuerbare", "TWh", monthly=True, yearly=True, family="Erneuerbare gesamt", representation="Erzeugung in TWh", map_palette="renewables"),
-    _metric("renewable_share_pct", "Erneuerbare", "Erneuerbare", "%", monthly=True, yearly=True, table=True, family="Erneuerbare gesamt", representation="Anteil an der Gesamterzeugung", map_palette="renewables", map_decimals=1),
-    _metric("renewable_per_capita_mwh", "Erneuerbare pro Einwohner", "Erneuerbare", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Erneuerbare gesamt", representation="Erzeugung in MWh je Einwohner", map_palette="renewables"),
-    _metric("wind_twh", "Wind", "Erneuerbare", "TWh", monthly=True, yearly=True, family="Wind", representation="Erzeugung in TWh", map_palette="wind"),
-    _metric("wind_share_pct", "Windanteil", "Erneuerbare", "%", monthly=True, yearly=True, family="Wind", representation="Anteil an der Gesamterzeugung", map_palette="wind", map_decimals=1),
-    _metric("wind_per_capita_mwh", "Wind pro Einwohner", "Erneuerbare", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Wind", representation="Erzeugung in MWh je Einwohner", map_palette="wind"),
-    _metric("solar_twh", "Solar", "Erneuerbare", "TWh", monthly=True, yearly=True, family="Solar", representation="Erzeugung in TWh", map_palette="solar"),
-    _metric("solar_share_pct", "Solaranteil", "Erneuerbare", "%", monthly=True, yearly=True, family="Solar", representation="Anteil an der Gesamterzeugung", map_palette="solar", map_decimals=1),
-    _metric("solar_per_capita_mwh", "Solar pro Einwohner", "Erneuerbare", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Solar", representation="Erzeugung in MWh je Einwohner", map_palette="solar"),
-    _metric("hydro_twh", "Wasserkraft", "Erneuerbare", "TWh", monthly=True, yearly=True, family="Wasserkraft", representation="Erzeugung in TWh", map_palette="hydro"),
-    _metric("hydro_share_pct", "Wasserkraftanteil", "Erneuerbare", "%", monthly=True, yearly=True, family="Wasserkraft", representation="Anteil an der Gesamterzeugung", map_palette="hydro", map_decimals=1),
-    _metric("hydro_per_capita_mwh", "Wasserkraft pro Einwohner", "Erneuerbare", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Wasserkraft", representation="Erzeugung in MWh je Einwohner", map_palette="hydro"),
-    _metric("bioenergy_twh", "Bioenergie", "Erneuerbare", "TWh", monthly=True, yearly=True, family="Bioenergie", representation="Erzeugung in TWh", map_palette="bioenergy"),
-    _metric("bioenergy_share_pct", "Bioenergieanteil", "Erneuerbare", "%", monthly=True, yearly=True, family="Bioenergie", representation="Anteil an der Gesamterzeugung", map_palette="bioenergy", map_decimals=1),
-    _metric("bioenergy_per_capita_mwh", "Bioenergie pro Einwohner", "Erneuerbare", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Bioenergie", representation="Erzeugung in MWh je Einwohner", map_palette="bioenergy"),
-    _metric("other_renewables_twh", "Sonstige Erneuerbare", "Erneuerbare", "TWh", monthly=True, yearly=True, family="Sonstige Erneuerbare", representation="Erzeugung in TWh", map_palette="other-renewables"),
-    _metric("other_renewables_share_pct", "Anteil sonstige Erneuerbare", "Erneuerbare", "%", monthly=True, yearly=True, family="Sonstige Erneuerbare", representation="Anteil an der Gesamterzeugung", map_palette="other-renewables", map_decimals=1),
-    _metric("other_renewables_per_capita_mwh", "Sonstige Erneuerbare pro Einwohner", "Erneuerbare", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Sonstige Erneuerbare", representation="Erzeugung in MWh je Einwohner", map_palette="other-renewables"),
-    _metric("fossil_twh", "Fossile gesamt", "Fossile", "TWh", monthly=True, yearly=True, family="Fossile gesamt", representation="Erzeugung in TWh", map_palette="fossil"),
-    _metric("fossil_share_pct", "Fossile", "Fossile", "%", monthly=True, yearly=True, table=True, family="Fossile gesamt", representation="Anteil an der Gesamterzeugung", map_palette="fossil", map_decimals=1),
-    _metric("fossil_per_capita_mwh", "Fossile Erzeugung pro Einwohner", "Fossile", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Fossile gesamt", representation="Erzeugung in MWh je Einwohner", map_palette="fossil"),
-    _metric("coal_twh", "Kohle", "Fossile", "TWh", monthly=True, yearly=True, family="Kohle", representation="Erzeugung in TWh", map_palette="coal"),
-    _metric("coal_share_pct", "Kohleanteil", "Fossile", "%", monthly=True, yearly=True, family="Kohle", representation="Anteil an der Gesamterzeugung", map_palette="coal", map_decimals=1),
-    _metric("coal_per_capita_mwh", "Kohle pro Einwohner", "Fossile", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Kohle", representation="Erzeugung in MWh je Einwohner", map_palette="coal"),
-    _metric("gas_twh", "Gas", "Fossile", "TWh", monthly=True, yearly=True, family="Gas", representation="Erzeugung in TWh", map_palette="gas"),
-    _metric("gas_share_pct", "Gasanteil", "Fossile", "%", monthly=True, yearly=True, family="Gas", representation="Anteil an der Gesamterzeugung", map_palette="gas", map_decimals=1),
-    _metric("gas_per_capita_mwh", "Gas pro Einwohner", "Fossile", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Gas", representation="Erzeugung in MWh je Einwohner", map_palette="gas"),
-    _metric("other_fossil_twh", "Sonstige Fossile", "Fossile", "TWh", monthly=True, yearly=True, family="Sonstige Fossile", representation="Erzeugung in TWh", map_palette="other-fossil"),
-    _metric("other_fossil_share_pct", "Anteil sonstige Fossile", "Fossile", "%", monthly=True, yearly=True, family="Sonstige Fossile", representation="Anteil an der Gesamterzeugung", map_palette="other-fossil", map_decimals=1),
-    _metric("other_fossil_per_capita_mwh", "Sonstige Fossile pro Einwohner", "Fossile", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Sonstige Fossile", representation="Erzeugung in MWh je Einwohner", map_palette="other-fossil"),
-    _metric("nuclear_twh", "Kernenergie", "Kernenergie", "TWh", monthly=True, yearly=True, family="Kernenergie", representation="Erzeugung in TWh", map_palette="nuclear"),
-    _metric("nuclear_share_pct", "Kernenergie", "Kernenergie", "%", monthly=True, yearly=True, table=True, family="Kernenergie", representation="Anteil an der Gesamterzeugung", map_palette="nuclear", map_decimals=1),
-    _metric("nuclear_per_capita_mwh", "Kernenergie pro Einwohner", "Kernenergie", "MWh/Einwohner", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Kernenergie", representation="Erzeugung in MWh je Einwohner", map_palette="nuclear"),
-    _metric("net_imports_twh", "Nettoimporte", "Handel", "TWh", monthly=True, yearly=True, family="Nettoimporte", representation="Nettoimporte in TWh", map_scale="diverging", map_palette="trade", map_midpoint=0),
-    _metric("net_import_share_pct", "Nettoimportquote", "Handel", "%", monthly=True, yearly=True, table=True, family="Nettoimporte", representation="Anteil am Verbrauch", map_scale="diverging", map_palette="trade", map_midpoint=0, map_decimals=1),
-    _metric("price_avg_eur_mwh", "Großhandelspreis", "Preise", "EUR/MWh", monthly=True, yearly=True, table=True, source=EMBER_PRICE_SOURCE_LABEL, family="Großhandelspreis", representation="Durchschnittspreis", map_palette="price"),
-    _metric("carbon_intensity_gco2eq_kwh", "CO₂-Intensität", "Klima", "gCO₂eq/kWh", monthly=True, yearly=True, table=True, family="CO₂-Intensität", representation="CO₂-Intensität", map_palette="carbon", map_decimals=0),
-    _metric("estimated_generation_emissions_mtco2eq", "Geschätzte Erzeugungsemissionen", "Klima", "Mt CO₂eq", monthly=True, yearly=True, family="Erzeugungsemissionen", representation="CO₂-Intensität × Erzeugung", map_palette="carbon", map_decimals=2),
-    _metric("decarbonization_rate_pct", "Dekarbonisierung zum Vorjahr", "Klima", "%", monthly=False, yearly=True, family="CO₂-Intensität", representation="Veränderung zum abgeschlossenen Vorjahr", map_scale="diverging", map_palette="carbon", map_midpoint=0, map_decimals=1),
-    _metric("eea_public_electricity_heat_emissions_mtco2eq", "Emissionen öffentliche Strom- und Wärmeerzeugung", "Klima", "Mt CO₂eq", monthly=False, yearly=True, source=EEA_GHG_SOURCE_LABEL, family="Inventaremissionen", representation="CRT 1.A.1.a; Strom und Wärme", map_palette="carbon"),
-    _metric("population", "Bevölkerung", "Sozioökonomie", "Einwohner", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, family="Bevölkerung", representation="Einwohner", map_palette="population", map_decimals=0),
-    _metric("gdp_current_billion_eur", "BIP", "Sozioökonomie", "Mrd. EUR", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, family="BIP", representation="BIP zu laufenden Preisen", map_palette="gdp"),
-    _metric("gdp_per_capita_pps", "BIP pro Kopf", "Sozioökonomie", "PPS/Einwohner", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, family="BIP pro Kopf", representation="Kaufkraftstandard je Einwohner", map_palette="gdp-per-capita", map_decimals=0),
-    _metric("generation_gdp_intensity_kwh_eur", "Erzeugung je BIP", "Stromsystem", "kWh/EUR", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Erzeugung", representation="Erzeugung je nominalem BIP", map_palette="generation", map_decimals=3),
-    _metric("consumption_gdp_intensity_kwh_eur", "Verbrauch je BIP", "Stromsystem", "kWh/EUR", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Verbrauch", representation="Verbrauch je nominalem BIP", map_palette="consumption", map_decimals=3),
-    _metric("electricity_heat_emissions_gdp_t_million_eur", "Strom- und Wärmeemissionen je BIP", "Klima", "t CO₂eq/Mio. EUR", monthly=False, yearly=True, source=f"{EEA_GHG_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}", family="Inventaremissionen", representation="Inventaremissionen je nominalem BIP", map_palette="carbon", map_decimals=1, map_latest_available_year=True),
-    _metric("capacity_total_gw", "Installierte Gesamtleistung", "Installierte Leistung", "GW", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, family="Installierte Leistung", representation="Gesamtleistung", map_palette="generation", map_latest_available_year=True),
-    _metric("capacity_wind_gw", "Installierte Windleistung", "Installierte Leistung", "GW", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, family="Wind", representation="Installierte Leistung", map_palette="wind", map_latest_available_year=True),
-    _metric("capacity_solar_gw", "Installierte Solarleistung", "Installierte Leistung", "GW", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, family="Solar", representation="Installierte Leistung", map_palette="solar", map_latest_available_year=True),
-    _metric("capacity_hydro_gw", "Installierte Wasserkraftleistung", "Installierte Leistung", "GW", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, family="Wasserkraft", representation="Installierte Leistung", map_palette="hydro", map_latest_available_year=True),
-    _metric("capacity_fossil_gw", "Installierte fossile Leistung", "Installierte Leistung", "GW", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, family="Fossile gesamt", representation="Installierte Leistung", map_palette="fossil", map_latest_available_year=True),
-    _metric("capacity_nuclear_gw", "Installierte Kernenergieleistung", "Installierte Leistung", "GW", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, family="Kernenergie", representation="Installierte Leistung", map_palette="nuclear", map_latest_available_year=True),
-    _metric("capacity_factor_wind_pct", "Wind-Kapazitätsfaktor", "Installierte Leistung", "%", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}", family="Wind", representation="Erzeugung relativ zur installierten Leistung", map_palette="wind", map_decimals=1),
-    _metric("capacity_factor_solar_pct", "Solar-Kapazitätsfaktor", "Installierte Leistung", "%", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}", family="Solar", representation="Erzeugung relativ zur installierten Leistung", map_palette="solar", map_decimals=1),
-    _metric("capacity_factor_hydro_pct", "Wasserkraft-Kapazitätsfaktor", "Installierte Leistung", "%", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}", family="Wasserkraft", representation="Erzeugung relativ zur installierten Leistung", map_palette="hydro", map_decimals=1),
-    _metric("capacity_factor_fossil_pct", "Fossiler Kapazitätsfaktor", "Installierte Leistung", "%", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}", family="Fossile gesamt", representation="Erzeugung relativ zur installierten Leistung", map_palette="fossil", map_decimals=1),
-    _metric("capacity_factor_nuclear_pct", "Kernenergie-Kapazitätsfaktor", "Installierte Leistung", "%", monthly=False, yearly=True, source=f"{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}", family="Kernenergie", representation="Erzeugung relativ zur installierten Leistung", map_palette="nuclear", map_decimals=1),
-    _metric("household_electricity_price_eur_mwh", "Haushaltsstrompreis", "Endkundenpreise", "ct/kWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Haushaltsstrompreis", representation="Gesamtpreis (2.500–4.999 kWh/Jahr)", map_palette="price"),
-    _metric("household_price_energy_eur_mwh", "Haushalt: Energie und Vertrieb", "Endkundenpreise", "ct/kWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Haushaltsstrompreis", representation="Energie und Vertrieb (Preisbestandteil)", map_palette="price"),
-    _metric("household_price_network_eur_mwh", "Haushalt: Netzentgelte", "Endkundenpreise", "ct/kWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Haushaltsstrompreis", representation="Netzentgelte (Preisbestandteil)", map_palette="price"),
-    _metric("household_price_taxes_eur_mwh", "Haushalt: Steuern, Abgaben und Umlagen", "Endkundenpreise", "ct/kWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Haushaltsstrompreis", representation="Steuern, Abgaben und Umlagen (Preisbestandteil)", map_palette="price"),
-    _metric("household_wholesale_price_gap_ct_kwh", "Endkunden–Großhandelspreis-Abstand", "Endkundenpreise", "ct/kWh", monthly=False, yearly=True, source=f"{EUROSTAT_RETAIL_PRICE_SOURCE_LABEL}; {EMBER_PRICE_SOURCE_LABEL}", family="Haushaltsstrompreis", representation="Haushaltspreis minus Großhandelspreis", map_palette="price", map_decimals=2),
-    _metric("nonhousehold_electricity_price_eur_mwh", "Nicht-Haushaltsstrompreis", "Endkundenpreise", "EUR/MWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Nicht-Haushaltsstrompreis", representation="Band IC, Jahreskomponenten", map_palette="price"),
-    _metric("nonhousehold_price_energy_eur_mwh", "Nicht-Haushalt: Energie und Vertrieb", "Endkundenpreise", "EUR/MWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Nicht-Haushaltsstrompreis", representation="Energie und Vertrieb, Band IC", map_palette="price"),
-    _metric("nonhousehold_price_network_eur_mwh", "Nicht-Haushalt: Netzkosten", "Endkundenpreise", "EUR/MWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Nicht-Haushaltsstrompreis", representation="Netzkosten, Band IC", map_palette="price"),
-    _metric("nonhousehold_price_taxes_eur_mwh", "Nicht-Haushalt: Steuern und Abgaben", "Endkundenpreise", "EUR/MWh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, family="Nicht-Haushaltsstrompreis", representation="Steuern und Abgaben, Band IC", map_palette="price"),
-    _metric("gross_imports_twh", "Bruttostromimporte", "Handel", "TWh", monthly=False, yearly=True, source=EUROSTAT_BALANCE_SOURCE_LABEL, family="Stromhandel", representation="Bruttoimporte", map_palette="trade"),
-    _metric("gross_exports_twh", "Bruttostromexporte", "Handel", "TWh", monthly=False, yearly=True, source=EUROSTAT_BALANCE_SOURCE_LABEL, family="Stromhandel", representation="Bruttoexporte", map_palette="trade"),
-    _metric("electricity_trade_throughput_pct", "Stromhandelsdurchsatz", "Handel", "%", monthly=False, yearly=True, source=f"{EUROSTAT_BALANCE_SOURCE_LABEL}; {EMBER_SOURCE_LABEL}", family="Stromhandel", representation="Importe plus Exporte im Verhältnis zum Verbrauch", map_palette="trade", map_decimals=1),
-    _metric("bev_stock", "Batterieelektrische Pkw im Bestand", "Elektromobilität", "Fahrzeuge", monthly=False, yearly=True, source=EUROSTAT_ROAD_SOURCE_LABEL, family="Batterieelektrische Pkw", representation="Bestand", map_palette="battery", map_decimals=0),
-    _metric("bev_new_registrations", "Neue batterieelektrische Pkw", "Elektromobilität", "Fahrzeuge", monthly=False, yearly=True, source=EUROSTAT_ROAD_SOURCE_LABEL, family="Batterieelektrische Pkw", representation="Neuzulassungen", map_palette="battery", map_decimals=0),
-    _metric("ev_battery_nominal_capacity_est_gwh", "Theoretische EV-Batteriekapazität", "Elektromobilität", "GWh", monthly=False, yearly=True, source=EUROSTAT_ROAD_SOURCE_LABEL, family="Batterieelektrische Pkw", representation="Pauschale Flottenannahme: Bestand × 60 kWh; nicht V2G-verfügbar", map_palette="battery"),
-    _metric("hydro_plant_capacity_gw", "JRC-Wasserkraftwerksleistung", "Wasserkraftinventar", "GW", monthly=False, yearly=False, snapshot=True, compare=False, source=JRC_HYDRO_SOURCE_LABEL, family="Wasserkraftinventar", representation="Summe erfasster Anlagenleistung", map_palette="hydro"),
-    _metric("hydro_pumping_power_gw", "JRC-Pumpleistung", "Wasserkraftinventar", "GW", monthly=False, yearly=False, snapshot=True, compare=False, source=JRC_HYDRO_SOURCE_LABEL, family="Wasserkraftinventar", representation="Summe erfasster Pumpleistung", map_palette="hydro"),
-    _metric("hydro_reservoir_energy_gwh", "JRC-Wasserkraft-Speicherenergie", "Wasserkraftinventar", "GWh", monthly=False, yearly=False, snapshot=True, compare=False, source=JRC_HYDRO_SOURCE_LABEL, family="Wasserkraftinventar", representation="Nur direkt berichtete Anlagenwerte", map_palette="hydro"),
-    _metric("battery_power_gw", "Batterie-Entladeleistung", "Kapazitäten und Speicher", "GW", monthly=False, yearly=False, snapshot=True, source=f"{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}", family="Batteriespeicher", representation="Entladeleistung in GW", map_palette="battery"),
-    _metric("battery_energy_gwh", "Batterie-Speicherenergie", "Kapazitäten und Speicher", "GWh", monthly=False, yearly=False, snapshot=True, source=f"{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}", family="Batteriespeicher", representation="Speicherenergie in GWh", map_palette="battery"),
-    _metric("battery_duration_hours", "Batterie-Entladedauer", "Kapazitäten und Speicher", "h", monthly=False, yearly=False, snapshot=True, source=f"{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}", family="Batteriespeicher", representation="Äquivalente Entladedauer in Stunden", map_palette="battery"),
-    _metric("pumped_storage_power_gw", "Pumpspeicher-Entladeleistung", "Kapazitäten und Speicher", "GW", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Entladeleistung in GW", map_palette="pumped-storage"),
-    _metric("pumped_storage_energy_gwh", "Pumpspeicher-Speicherenergie", "Kapazitäten und Speicher", "GWh", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Speicherenergie in GWh", map_palette="pumped-storage"),
-    _metric("pumped_storage_duration_hours", "Pumpspeicher-Entladedauer", "Kapazitäten und Speicher", "h", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, family="Pumpspeicher", representation="Äquivalente Entladedauer in Stunden", map_palette="pumped-storage"),
-)
-
-
-def _default_display_basis(metric: dict[str, Any]) -> str:
-    """Make the third label line explicit without repeating a unit."""
-    representation = str(metric["representation"]).strip()
-    unit = str(metric["unit"]).strip()
-    if representation == "Einwohner":
-        return "Anzahl der Einwohner"
-    if representation in {"Bestand", "Neuzulassungen"} and unit == "Fahrzeuge":
-        return "Anzahl der Fahrzeuge"
-    if unit and unit in representation:
-        return representation
-    if "je Einwohner" in representation and unit.endswith("/Einwohner"):
-        return representation
-    if unit == "%" and representation.startswith("Anteil "):
-        return representation.replace("Anteil ", "Anteil in % ", 1)
-    if unit == "%" and "Verhältnis" in representation:
-        return f"{representation} in %"
-    return f"{representation} · in {unit}" if unit else representation
-
-
-# Explicit labels keep the visible contract consistently split into:
-# category -> what is measured -> unit or denominator.  The technical
-# ``family`` and ``representation`` fields remain untouched for controls and
-# backwards-compatible API behaviour.
-DISPLAY_LABEL_OVERRIDES: dict[str, tuple[str, str, str]] = {
-    "generation_twh": ("Stromerzeugung", "Erzeugung absolut", "in TWh"),
-    "consumption_twh": ("Stromverbrauch", "Verbrauch absolut", "in TWh"),
-    "generation_per_capita_mwh": ("Stromerzeugung", "Erzeugung pro Kopf", "in MWh je Einwohner"),
-    "consumption_per_capita_mwh": ("Stromverbrauch", "Verbrauch pro Kopf", "in MWh je Einwohner"),
-    "low_carbon_share_pct": (
-        "CO₂-arme Erzeugung", "Erneuerbare und Kernenergie",
-        "Anteil in % an der Gesamterzeugung",
-    ),
-    "self_sufficiency_pct": ("Stromsystem", "Eigenversorgung", "Erzeugung im Verhältnis zum Verbrauch in %"),
-    "net_imports_twh": ("Stromhandel", "Nettoimporte absolut", "in TWh"),
-    "net_import_share_pct": ("Stromhandel", "Nettoimporte", "Anteil in % am Stromverbrauch"),
-    "price_avg_eur_mwh": ("Großhandelsstrompreis", "Durchschnittlicher Day-Ahead-Preis", "in EUR/MWh"),
-    "carbon_intensity_gco2eq_kwh": (
-        "Emissionen der Stromerzeugung", "CO₂-Intensität", "in gCO₂eq/kWh",
-    ),
-    "decarbonization_rate_pct": (
-        "Emissionen der Stromerzeugung", "Dekarbonisierung",
-        "Veränderung in % gegenüber dem Vorjahr",
-    ),
-    "estimated_generation_emissions_mtco2eq": (
-        "Emissionen der Stromerzeugung", "Geschätzte Emissionen", "in Mt CO₂eq",
-    ),
-    "population": ("Sozioökonomie", "Bevölkerung", "in Einwohnern"),
-    "gdp_current_billion_eur": ("Sozioökonomie", "BIP", "in Mrd. EUR"),
-    "gdp_per_capita_pps": ("Sozioökonomie", "BIP pro Kopf", "in PPS je Einwohner"),
-    "generation_gdp_intensity_kwh_eur": ("Stromerzeugung", "Erzeugung je BIP", "in kWh/EUR"),
-    "consumption_gdp_intensity_kwh_eur": ("Stromverbrauch", "Verbrauch je BIP", "in kWh/EUR"),
-    "electricity_heat_emissions_gdp_t_million_eur": (
-        "Emissionen der Stromerzeugung", "Strom- und Wärmeemissionen je BIP", "in t CO₂eq/Mio. EUR",
-    ),
-    "capacity_total_gw": ("Installierte Leistung", "Gesamtleistung", "in GW"),
-    "capacity_wind_gw": ("Installierte Leistung", "Windleistung", "in GW"),
-    "capacity_solar_gw": ("Installierte Leistung", "Solarleistung", "in GW"),
-    "capacity_hydro_gw": ("Installierte Leistung", "Wasserkraftleistung", "in GW"),
-    "capacity_fossil_gw": ("Installierte Leistung", "Fossile Leistung", "in GW"),
-    "capacity_nuclear_gw": ("Installierte Leistung", "Kernenergieleistung", "in GW"),
-    "capacity_factor_wind_pct": ("Wind", "Kapazitätsfaktor", "in % der installierten Leistung"),
-    "capacity_factor_solar_pct": ("Solar", "Kapazitätsfaktor", "in % der installierten Leistung"),
-    "capacity_factor_hydro_pct": ("Wasserkraft", "Kapazitätsfaktor", "in % der installierten Leistung"),
-    "capacity_factor_fossil_pct": ("Fossile gesamt", "Kapazitätsfaktor", "in % der installierten Leistung"),
-    "capacity_factor_nuclear_pct": ("Kernenergie", "Kapazitätsfaktor", "in % der installierten Leistung"),
-    "gross_imports_twh": ("Stromhandel", "Bruttoimporte", "in TWh"),
-    "gross_exports_twh": ("Stromhandel", "Bruttoexporte", "in TWh"),
-    "bev_stock": ("Elektromobilität", "Batterieelektrische Pkw im Bestand", "in Fahrzeugen"),
-    "bev_new_registrations": ("Elektromobilität", "Neue batterieelektrische Pkw", "in Fahrzeugen"),
-    "ev_battery_nominal_capacity_est_gwh": (
-        "Elektromobilität", "Theoretische EV-Batteriekapazität", "in GWh",
-    ),
-    "hydro_plant_capacity_gw": ("Wasserkraftinventar", "Kraftwerksleistung", "in GW"),
-    "hydro_pumping_power_gw": ("Wasserkraftinventar", "Pumpleistung", "in GW"),
-    "hydro_reservoir_energy_gwh": ("Wasserkraftinventar", "Speicherenergie", "in GWh"),
-    "battery_energy_gwh": ("Batteriespeicher", "Installierte Speicherkapazität", "in GWh"),
-    "battery_power_gw": ("Batteriespeicher", "Installierte Entladeleistung", "in GW"),
-    "pumped_storage_energy_gwh": ("Pumpspeicher", "Installierte Speicherkapazität", "in GWh"),
-    "pumped_storage_power_gw": ("Pumpspeicher", "Installierte Entladeleistung", "in GW"),
-    "battery_duration_hours": ("Batteriespeicher", "Äquivalente Entladedauer", "in Stunden"),
-    "pumped_storage_duration_hours": ("Pumpspeicher", "Äquivalente Entladedauer", "in Stunden"),
-}
-
-
-def _display_labels(metric: dict[str, Any]) -> tuple[str, str, str]:
-    """Return the presentation-only category, measure and basis labels."""
-    override = DISPLAY_LABEL_OVERRIDES.get(metric["id"])
-    if override:
-        return override
-
-    # Generation technologies share a family (the category) but differ only
-    # by the measured form.  This avoids labels such as
-    # ``Kernenergie · Kernenergie · Erzeugung in TWh`` in every surface.
-    if metric["group"] in {"Erneuerbare", "Fossile", "Kernenergie"}:
-        if metric["id"].endswith("_twh"):
-            return metric["family"], "Erzeugung absolut", "in TWh"
-        if metric["id"].endswith("_share_pct"):
-            return metric["family"], "Anteil", "in % an der Gesamterzeugung"
-        if metric["id"].endswith("_per_capita_mwh"):
-            return metric["family"], "Erzeugung pro Kopf", "in MWh je Einwohner"
-
-    return metric["display_topic"], metric["display_metric"], _default_display_basis(metric)
-
-
-METRICS = tuple(
-    {
-        **metric,
-        "display_topic": _display_labels(metric)[0],
-        "display_metric": _display_labels(metric)[1],
-        "display_basis": _display_labels(metric)[2],
-    }
-    for metric in METRICS
+    _metric("generation_twh", monthly=True, yearly=True, table=True),
+    _metric("consumption_twh", monthly=True, yearly=True, table=True, map_palette='consumption'),
+    _metric("generation_per_capita_mwh", monthly=False, yearly=True),
+    _metric("consumption_per_capita_mwh", monthly=False, yearly=True, table=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='consumption'),
+    _metric("low_carbon_share_pct", monthly=True, yearly=True, map_palette='renewables', map_decimals=1),
+    _metric("self_sufficiency_pct", monthly=True, yearly=True, map_palette='consumption', map_decimals=1),
+    _metric("renewable_twh", monthly=True, yearly=True, map_palette='renewables'),
+    _metric("renewable_share_pct", monthly=True, yearly=True, table=True, map_palette='renewables', map_decimals=1),
+    _metric("renewable_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='renewables'),
+    _metric("wind_twh", monthly=True, yearly=True, map_palette='wind'),
+    _metric("wind_share_pct", monthly=True, yearly=True, map_palette='wind', map_decimals=1),
+    _metric("wind_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='wind'),
+    _metric("solar_twh", monthly=True, yearly=True, map_palette='solar'),
+    _metric("solar_share_pct", monthly=True, yearly=True, map_palette='solar', map_decimals=1),
+    _metric("solar_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='solar'),
+    _metric("hydro_twh", monthly=True, yearly=True, map_palette='hydro'),
+    _metric("hydro_share_pct", monthly=True, yearly=True, map_palette='hydro', map_decimals=1),
+    _metric("hydro_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='hydro'),
+    _metric("bioenergy_twh", monthly=True, yearly=True, map_palette='bioenergy'),
+    _metric("bioenergy_share_pct", monthly=True, yearly=True, map_palette='bioenergy', map_decimals=1),
+    _metric("bioenergy_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='bioenergy'),
+    _metric("other_renewables_twh", monthly=True, yearly=True, map_palette='other-renewables'),
+    _metric("other_renewables_share_pct", monthly=True, yearly=True, map_palette='other-renewables', map_decimals=1),
+    _metric("other_renewables_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='other-renewables'),
+    _metric("fossil_twh", monthly=True, yearly=True, map_palette='fossil'),
+    _metric("fossil_share_pct", monthly=True, yearly=True, table=True, map_palette='fossil', map_decimals=1),
+    _metric("fossil_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='fossil'),
+    _metric("coal_twh", monthly=True, yearly=True, map_palette='coal'),
+    _metric("coal_share_pct", monthly=True, yearly=True, map_palette='coal', map_decimals=1),
+    _metric("coal_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='coal'),
+    _metric("gas_twh", monthly=True, yearly=True, map_palette='gas'),
+    _metric("gas_share_pct", monthly=True, yearly=True, map_palette='gas', map_decimals=1),
+    _metric("gas_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='gas'),
+    _metric("other_fossil_twh", monthly=True, yearly=True, map_palette='other-fossil'),
+    _metric("other_fossil_share_pct", monthly=True, yearly=True, map_palette='other-fossil', map_decimals=1),
+    _metric("other_fossil_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='other-fossil'),
+    _metric("nuclear_twh", monthly=True, yearly=True, map_palette='nuclear'),
+    _metric("nuclear_share_pct", monthly=True, yearly=True, table=True, map_palette='nuclear', map_decimals=1),
+    _metric("nuclear_per_capita_mwh", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='nuclear'),
+    _metric("net_imports_twh", monthly=True, yearly=True, map_scale='diverging', map_palette='trade', map_midpoint=0),
+    _metric("net_import_share_pct", monthly=True, yearly=True, table=True, map_scale='diverging', map_palette='trade', map_midpoint=0, map_decimals=1),
+    _metric("price_avg_eur_mwh", monthly=True, yearly=True, table=True, source=EMBER_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("carbon_intensity_gco2eq_kwh", monthly=True, yearly=True, table=True, map_palette='carbon', map_decimals=0),
+    _metric("estimated_generation_emissions_mtco2eq", monthly=True, yearly=True, map_palette='carbon', map_decimals=2),
+    _metric("decarbonization_rate_pct", monthly=False, yearly=True, map_scale='diverging', map_palette='carbon', map_midpoint=0, map_decimals=1),
+    _metric("eea_public_electricity_heat_emissions_mtco2eq", monthly=False, yearly=True, source=EEA_GHG_SOURCE_LABEL, map_palette='carbon'),
+    _metric("population", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, map_palette='population', map_decimals=0),
+    _metric("gdp_current_billion_eur", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, map_palette='gdp'),
+    _metric("gdp_per_capita_pps", monthly=False, yearly=True, source=EUROSTAT_SOURCE_LABEL, map_palette='gdp-per-capita', map_decimals=0),
+    _metric("generation_gdp_intensity_kwh_eur", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='generation', map_decimals=3),
+    _metric("consumption_gdp_intensity_kwh_eur", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='consumption', map_decimals=3),
+    _metric("electricity_heat_emissions_gdp_t_million_eur", monthly=False, yearly=True, source=f'{EEA_GHG_SOURCE_LABEL}; {EUROSTAT_SOURCE_LABEL}', map_palette='carbon', map_decimals=1, map_latest_available_year=True),
+    _metric("capacity_total_gw", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, map_palette='generation', map_latest_available_year=True),
+    _metric("capacity_wind_gw", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, map_palette='wind', map_latest_available_year=True),
+    _metric("capacity_solar_gw", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, map_palette='solar', map_latest_available_year=True),
+    _metric("capacity_hydro_gw", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, map_palette='hydro', map_latest_available_year=True),
+    _metric("capacity_fossil_gw", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, map_palette='fossil', map_latest_available_year=True),
+    _metric("capacity_nuclear_gw", monthly=False, yearly=True, source=EUROSTAT_CAPACITY_SOURCE_LABEL, map_palette='nuclear', map_latest_available_year=True),
+    _metric("capacity_factor_wind_pct", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}', map_palette='wind', map_decimals=1),
+    _metric("capacity_factor_solar_pct", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}', map_palette='solar', map_decimals=1),
+    _metric("capacity_factor_hydro_pct", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}', map_palette='hydro', map_decimals=1),
+    _metric("capacity_factor_fossil_pct", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}', map_palette='fossil', map_decimals=1),
+    _metric("capacity_factor_nuclear_pct", monthly=False, yearly=True, source=f'{EMBER_SOURCE_LABEL}; {EUROSTAT_CAPACITY_SOURCE_LABEL}', map_palette='nuclear', map_decimals=1),
+    _metric("household_electricity_price_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("household_price_energy_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("household_price_network_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("household_price_taxes_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("household_wholesale_price_gap_ct_kwh", monthly=False, yearly=True, source=f'{EUROSTAT_RETAIL_PRICE_SOURCE_LABEL}; {EMBER_PRICE_SOURCE_LABEL}', map_palette='price', map_decimals=2),
+    _metric("nonhousehold_electricity_price_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("nonhousehold_price_energy_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("nonhousehold_price_network_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("nonhousehold_price_taxes_eur_mwh", monthly=False, yearly=True, source=EUROSTAT_RETAIL_PRICE_SOURCE_LABEL, map_palette='price'),
+    _metric("gross_imports_twh", monthly=False, yearly=True, source=EUROSTAT_BALANCE_SOURCE_LABEL, map_palette='trade'),
+    _metric("gross_exports_twh", monthly=False, yearly=True, source=EUROSTAT_BALANCE_SOURCE_LABEL, map_palette='trade'),
+    _metric("electricity_trade_throughput_pct", monthly=False, yearly=True, source=f'{EUROSTAT_BALANCE_SOURCE_LABEL}; {EMBER_SOURCE_LABEL}', map_palette='trade', map_decimals=1),
+    _metric("bev_stock", monthly=False, yearly=True, source=EUROSTAT_ROAD_SOURCE_LABEL, map_palette='battery', map_decimals=0),
+    _metric("bev_new_registrations", monthly=False, yearly=True, source=EUROSTAT_ROAD_SOURCE_LABEL, map_palette='battery', map_decimals=0),
+    _metric("ev_battery_nominal_capacity_est_gwh", monthly=False, yearly=True, source=EUROSTAT_ROAD_SOURCE_LABEL, map_palette='battery'),
+    _metric("hydro_plant_capacity_gw", monthly=False, yearly=False, snapshot=True, compare=False, source=JRC_HYDRO_SOURCE_LABEL, map_palette='hydro'),
+    _metric("hydro_pumping_power_gw", monthly=False, yearly=False, snapshot=True, compare=False, source=JRC_HYDRO_SOURCE_LABEL, map_palette='hydro'),
+    _metric("hydro_reservoir_energy_gwh", monthly=False, yearly=False, snapshot=True, compare=False, source=JRC_HYDRO_SOURCE_LABEL, map_palette='hydro'),
+    _metric("battery_power_gw", monthly=False, yearly=False, snapshot=True, source=f'{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}', map_palette='battery'),
+    _metric("battery_energy_gwh", monthly=False, yearly=False, snapshot=True, source=f'{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}', map_palette='battery'),
+    _metric("battery_duration_hours", monthly=False, yearly=False, snapshot=True, source=f'{BATTERY_CHARTS_SOURCE_LABEL}; {JRC_STORAGE_SOURCE_LABEL}', map_palette='battery'),
+    _metric("pumped_storage_power_gw", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, map_palette='pumped-storage'),
+    _metric("pumped_storage_energy_gwh", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, map_palette='pumped-storage'),
+    _metric("pumped_storage_duration_hours", monthly=False, yearly=False, snapshot=True, source=JRC_STORAGE_SOURCE_LABEL, map_palette='pumped-storage'),
 )
 
 METRICS_BY_ID = {metric["id"]: metric for metric in METRICS}
 
 
-def metric_catalog() -> list[dict[str, Any]]:
-    return [dict(metric) for metric in METRICS]
+def metric_catalog(language: str = "de") -> list[dict[str, Any]]:
+    """Legacy German presentation by default; identifiers never depend on language."""
+    return [{**metric, **metric_labels(metric["id"], language), "source": source_label(metric["source"], language)} for metric in METRICS]

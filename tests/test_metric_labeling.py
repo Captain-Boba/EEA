@@ -3,6 +3,7 @@ import unittest
 
 from electricity_atlas.country_profile import build_country_profile
 from electricity_atlas.db import connect, initialize
+from electricity_atlas.localization import localize_payload
 from electricity_atlas.metrics import metric_catalog
 
 
@@ -62,7 +63,7 @@ class MetricLabelingTests(unittest.TestCase):
         connection = connect(":memory:")
         self.addCleanup(connection.close)
         initialize(connection)
-        profile = build_country_profile(connection, "DE", 2025)
+        profile = localize_payload(build_country_profile(connection, "DE", 2025), "de")
         profile_metrics = {
             metric["id"]
             for section in profile["sections"]
@@ -103,14 +104,14 @@ class MetricLabelingTests(unittest.TestCase):
             )
 
     def test_selectors_and_map_panel_use_the_same_three_level_labels(self):
-        self.assertIn('return `${metric.group}::${metricLabels(metric).topic}`;', APP)
+        self.assertIn('return `${metric.group_id}::${metric.category_id}`;', APP)
         self.assertIn('escapeHtml(metricLabels(variants[0]).topic)', APP)
         map_label_styles = STYLE[STYLE.index(".metric-label-topic"):STYLE.index(".map-legend")]
         self.assertNotIn("text-transform: uppercase;", map_label_styles)
         self.assertIn(".metric-label-metric,\n.metric-label-basis", STYLE)
 
     def test_table_headers_keep_their_unique_domain_labels(self):
-        self.assertIn("const label = tableHeaderText(metric.label_de);", APP)
+        self.assertIn("const label = tableHeaderText((metric.label || metric.label_de));", APP)
 
     def test_document_matrix_covers_the_entire_catalog(self):
         documented = {}

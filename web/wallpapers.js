@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const {t} = window.AtlasI18n;
   const OPT_IN_KEY = "eea-europa-overload";
   const CATALOG_URL = "/wallpapers.json";
   const VOTES_URL = "/api/wallpaper-votes";
@@ -46,23 +47,23 @@
     element.type = "button"; element.className = className; element.setAttribute("aria-label", label); element.innerHTML = markup;
     return element;
   };
-  const closeButton = button("wallpaper-lightbox-close", "Bildergalerie schließen", '<img src="/assets/europe-star.svg" alt="">');
-  const previousButton = button("wallpaper-gallery-previous", "Vorheriges Bild", icons.previous);
-  const nextButton = button("wallpaper-gallery-next", "Nächstes Bild", icons.next);
+  const closeButton = button("wallpaper-lightbox-close", t("Close image gallery"), '<img src="/assets/europe-star.svg" alt="">');
+  const previousButton = button("wallpaper-gallery-previous", t("Previous image"), icons.previous);
+  const nextButton = button("wallpaper-gallery-next", t("Next image"), icons.next);
   const image = document.createElement("img"); image.className = "wallpaper-lightbox-image";
   const info = document.createElement("div"); info.className = "wallpaper-lightbox-info";
   const title = document.createElement("h2"); title.id = "wallpaper-lightbox-title";
   const position = document.createElement("p"); position.className = "wallpaper-gallery-position";
   const details = document.createElement("p"); details.className = "wallpaper-lightbox-details";
   const attribution = document.createElement("p"); attribution.className = "wallpaper-lightbox-attribution";
-  const source = document.createElement("a"); source.className = "wallpaper-lightbox-source"; source.target = "_blank"; source.rel = "noopener noreferrer"; source.textContent = "Quelle auf Wikimedia Commons";
+  const source = document.createElement("a"); source.className = "wallpaper-lightbox-source"; source.target = "_blank"; source.rel = "noopener noreferrer"; source.textContent = t("Source on Wikimedia Commons");
   const voteSummary = document.createElement("p"); voteSummary.className = "wallpaper-vote-summary"; voteSummary.setAttribute("role", "status");
-  const reactions = document.createElement("div"); reactions.className = "wallpaper-reactions"; reactions.setAttribute("aria-label", "Öffentliche Abstimmung");
-  const upButton = button("wallpaper-vote-up", "Daumen hoch vergeben", icons.up); upButton.dataset.reaction = "up";
-  const downButton = button("wallpaper-vote-down", "Daumen runter vergeben", icons.down); downButton.dataset.reaction = "down";
-  const voteHelp = document.createElement("span"); voteHelp.className = "wallpaper-vote-help"; voteHelp.tabIndex = 0; voteHelp.setAttribute("aria-label", "Tastatursteuerung für die Abstimmung"); voteHelp.setAttribute("aria-describedby", "wallpaper-vote-help-tooltip");
+  const reactions = document.createElement("div"); reactions.className = "wallpaper-reactions"; reactions.setAttribute("aria-label", t("Public voting"));
+  const upButton = button("wallpaper-vote-up", t("Like this image"), icons.up); upButton.dataset.reaction = "up";
+  const downButton = button("wallpaper-vote-down", t("Dislike this image"), icons.down); downButton.dataset.reaction = "down";
+  const voteHelp = document.createElement("span"); voteHelp.className = "wallpaper-vote-help"; voteHelp.tabIndex = 0; voteHelp.setAttribute("aria-label", t("Voting keyboard controls")); voteHelp.setAttribute("aria-describedby", "wallpaper-vote-help-tooltip");
   const voteHelpLabel = document.createElement("span"); voteHelpLabel.setAttribute("aria-hidden", "true"); voteHelpLabel.textContent = "i";
-  const voteHelpTooltip = document.createElement("span"); voteHelpTooltip.id = "wallpaper-vote-help-tooltip"; voteHelpTooltip.className = "wallpaper-vote-help-tooltip"; voteHelpTooltip.setAttribute("role", "tooltip"); voteHelpTooltip.textContent = "←/→ Bildwechsel\n↑ Like\n↓ Dislike";
+  const voteHelpTooltip = document.createElement("span"); voteHelpTooltip.id = "wallpaper-vote-help-tooltip"; voteHelpTooltip.className = "wallpaper-vote-help-tooltip"; voteHelpTooltip.setAttribute("role", "tooltip"); voteHelpTooltip.textContent = t("←/→ Change image\n↑ Like\n↓ Dislike");
   voteHelp.append(voteHelpLabel, voteHelpTooltip);
   upButton.setAttribute("aria-keyshortcuts", "ArrowUp"); downButton.setAttribute("aria-keyshortcuts", "ArrowDown");
   reactions.append(voteSummary, upButton, downButton, voteHelp);
@@ -73,13 +74,18 @@
     if (catalog.length) return catalog;
     const response = await fetch(CATALOG_URL, {credentials: "same-origin"});
     const payload = await response.json();
-    if (!response.ok || !Array.isArray(payload) || payload.length !== 250 || payload.some(item => !item?.id || !item.file)) throw new Error("Der Bilderkatalog konnte nicht geladen werden.");
-    catalog = payload; return catalog;
+    if (!response.ok || !Array.isArray(payload) || payload.length !== 250 || payload.some(item => !item?.id || !item.file)) throw new Error(t("Could not load the image catalogue."));
+    catalog = payload.map(item => ({...item,
+      title: t(`gallery.${item.id}.title`, {defaultValue: item.title}),
+      subject: t(`gallery.${item.id}.subject`, {defaultValue: t(`gallery.${item.id}.title`, {defaultValue: item.subject})}),
+      country: t(item.country),
+    }));
+    return catalog;
   }
   async function loadVotes() {
     const response = await fetch(VOTES_URL, {credentials: "same-origin"});
     const payload = await response.json();
-    if (!response.ok || !Array.isArray(payload.wallpapers)) throw new Error(payload.error || "Abstimmung nicht erreichbar");
+    if (!response.ok || !Array.isArray(payload.wallpapers)) throw new Error(payload.error || t("Voting unavailable"));
     voteStates.clear(); payload.wallpapers.forEach(state => voteStates.set(state.wallpaper_id, state)); votesAvailable = true;
   }
   const scoreLabel = score => score > 0 ? `+${score}` : String(score || 0);
@@ -89,14 +95,14 @@
     upButton.setAttribute("aria-pressed", String(own === 1)); downButton.setAttribute("aria-pressed", String(own === -1));
     upButton.disabled = !votesAvailable || votePending; downButton.disabled = !votesAvailable || votePending;
     voteSummary.hidden = false;
-    if (!votesAvailable) { voteSummary.textContent = "Öffentliche Abstimmung derzeit nicht erreichbar."; return; }
-    if (!state) { voteSummary.textContent = "Abstimmung wird geladen …"; return; }
+    if (!votesAvailable) { voteSummary.textContent = t("Public voting is currently unavailable."); return; }
+    if (!state) { voteSummary.textContent = t("Loading votes …"); return; }
     if (!own) {
       voteSummary.hidden = !voteError;
-      voteSummary.textContent = voteError ? `Nicht gespeichert: ${voteError}` : "";
+      voteSummary.textContent = voteError ? `${t("Not saved")}: ${voteError}` : "";
       return;
     }
-    voteSummary.textContent = `${state.upvotes} 👍 · ${state.downvotes} 👎 · Score ${scoreLabel(state.score)} · Platz ${state.rank}${state.rank_shared ? " (geteilt)" : ""} von ${catalog.length}${voteError ? ` · Nicht gespeichert: ${voteError}` : ""}`;
+    voteSummary.textContent = `${state.upvotes} 👍 · ${state.downvotes} 👎 · Score ${scoreLabel(state.score)} · ${t("Rank")} ${state.rank}${state.rank_shared ? ` ${t("(tied)")}` : ""} ${t("of")} ${catalog.length}${voteError ? ` · ${t("Not saved")}: ${voteError}` : ""}`;
   }
   function preloadGalleryImages() {
     if (activeIndex === null || !sequence.length) return;
@@ -138,10 +144,10 @@
     voteError = ""; votePending = true; updateVoteUi();
     try {
       const response = await fetch(VOTES_URL, {method: "POST", credentials: "same-origin", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wallpaper_id: wallpaper.id, vote: requested})});
-      const payload = await response.json(); if (!response.ok || !payload.wallpaper) throw new Error(payload.error || "Stimme konnte nicht gespeichert werden");
+      const payload = await response.json(); if (!response.ok || !payload.wallpaper) throw new Error(payload.error || t("Could not save your vote"));
       voteStates.set(payload.wallpaper.wallpaper_id, payload.wallpaper);
     } catch (error) {
-      voteError = error.message;
+      voteError = t(error.message);
     } finally { votePending = false; updateVoteUi(); }
   }
   function handleLightboxKeydown(event) {
@@ -160,7 +166,7 @@
   function postcardStep() { return Math.max(220, viewportHeight * .28); }
   function createPanel(index) {
     const panel = document.createElement("div"), wallpaper = sequence[index];
-    panel.className = "wallpaper-panel"; panel.dataset.wallpaperIndex = String(index); panel.tabIndex = 0; panel.setAttribute("role", "button"); panel.setAttribute("aria-label", `Postkarte öffnen: ${wallpaper.title}`);
+    panel.className = "wallpaper-panel"; panel.dataset.wallpaperIndex = String(index); panel.tabIndex = 0; panel.setAttribute("role", "button"); panel.setAttribute("aria-label", `${t("Open postcard")}: ${wallpaper.title}`);
     panel.style.top = `${index * postcardStep() + Math.max(24, viewportHeight * .06)}px`; panel.style.setProperty("--postcard-index", String(index));
     const caption = document.createElement("div"); caption.className = "wallpaper-caption"; caption.innerHTML = `<strong></strong><span></span>`; caption.querySelector("strong").textContent = wallpaper.title; caption.querySelector("span").textContent = `${wallpaper.country} · ${wallpaper.author}`; panel.append(caption);
     panel.addEventListener("click", () => openLightbox(index, panel)); panel.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openLightbox(index, panel); } });
@@ -203,7 +209,20 @@
   function setEnabled(enabled) { persistOptIn(Boolean(enabled)); if (enabled) void start(); else stop(); }
   closeButton.addEventListener("click", () => closeLightbox()); previousButton.addEventListener("click", () => showIndex(activeIndex - 1)); nextButton.addEventListener("click", () => showIndex(activeIndex + 1));
   upButton.addEventListener("click", () => void submitVote("up")); downButton.addEventListener("click", () => void submitVote("down")); lightbox.addEventListener("click", event => { if (event.target === lightbox) closeLightbox(); }); document.addEventListener("keydown", handleLightboxKeydown);
-  const controller = Object.freeze({setEnabled, isEnabled: () => active}); window.__atlasWallpaper = controller;
+  const controller = Object.freeze({setEnabled, isEnabled: () => active,
+    captureState: () => ({order: sequence.map(item => item.id), index: activeIndex}),
+    restoreState: async state => {
+      if (!state || !readOptIn()) return;
+      await start();
+      if (!Array.isArray(state.order) || state.order.length !== catalog.length || new Set(state.order).size !== catalog.length) return;
+      const byId = new Map(catalog.map(item => [item.id, item]));
+      if (state.order.some(id => !byId.has(id))) return;
+      panels.splice(0).forEach(panel => panel.remove());
+      sequence = state.order.map(id => byId.get(id));
+      layoutWallpapers();
+      if (Number.isInteger(state.index) && state.index >= 0 && state.index < sequence.length) openLightbox(state.index, panels[state.index]);
+    },
+  }); window.__atlasWallpaper = controller;
   window.__atlasWallpaperTest = {catalog: () => catalog, shuffled, imageUrl, showIndex, controller};
   if (readOptIn()) void start();
 })();

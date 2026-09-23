@@ -1,3 +1,4 @@
+from electricity_atlas.pages import render_page
 import json
 import os
 import shutil
@@ -30,6 +31,7 @@ class FrontendTimeseriesTests(unittest.TestCase):
     def run_node(self, script):
         if NODE is None:
             self.fail("Node.js is required for JavaScript tests; set EEA_NODE or add node to PATH.")
+        script = script.replace('require("./web/app.js")', '(require("./tests/js_i18n_bootstrap.cjs"), require("./web/app.js"))')
         encoded = script.encode("utf-8").hex()
         bootstrap = f'eval(Buffer.from("{encoded}", "hex").toString("utf8"))'
         result = subprocess.run(
@@ -71,7 +73,7 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
         self.assertIn("function liveRankingExportEntries()", app)
         self.assertIn('$("ranking-list").querySelectorAll(".ranking-item")', app)
         self.assertIn("async function serializedComparisonExportSvg()", app)
-        self.assertIn('exportText(root, panelX + 22, contentY + 35, "Live-Ranking"', app)
+        self.assertIn('exportText(root, panelX + 22, contentY + 35, t("Live ranking")', app)
         self.assertIn('$("atlas-average-value").textContent.trim()', app)
         self.assertIn('href: `/assets/flags/${flagCode(entry.code)}.svg`', app)
         self.assertIn("appendExportBranding(root, timeseriesData.metric", app)
@@ -123,7 +125,7 @@ process.stdout.write(JSON.stringify({csv: buildComparisonCsv(payload), uk: flagC
 
     def test_comparison_family_picker_renders_a_grouped_menu_grid(self):
         app = APP_PATH.read_text(encoding="utf-8")
-        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         style = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
         self.assertIn('id="compare-family-trigger"', html)
         self.assertIn('id="compare-family-menu"', html)

@@ -105,6 +105,15 @@ Der operative Weg bis zur Veröffentlichung mit Abnahme-Gates steht in [BETA_ROA
 
 ## Umgesetzter Projektstand
 
+### Zweisprachige Oberfläche
+
+- Englische Basissprache mit vollständiger deutscher Übersetzung und DE/EN-Schalter.
+- Kennzahlen, Ländersteckbriefe, Exporte, Hinweise und 250 Galerietitel sind lokalisiert.
+- Sprache und aktuelle Ansicht bleiben beim Wechsel erhalten; der Erstaufruf ohne
+  Sprachwahl bleibt Deutsch und verändert die Startseiten-URL nicht.
+- Optionale API-Anzeigesprache `lang=en|de` bei unveränderten Zahlen und IDs.
+- Technische Details und lokaler Browsercheck: [LOCALIZATION.md](docs/LOCALIZATION.md).
+
 ### Datenkern
 
 - 31 europäische Atlasländer; Albanien und Russland gehören nicht zum Katalog.

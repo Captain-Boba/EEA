@@ -6,6 +6,8 @@ An open, interactive atlas for comparing European electricity systems. The web i
 
 The public beta is desktop-first and covers 31 European countries from 2015 onwards. On smartphones, the complete 1920-pixel desktop workspace is intentionally preserved and initially scaled to fit instead of collapsing the analytical tools into an incomplete mobile layout; pinch zoom and horizontal navigation remain available. Missing, provisional, YTD, annual, monthly, and snapshot values remain visibly distinct instead of being silently filled or mixed.
 
+The interface is available in **[English](https://ee-atlas.eu/?lang=en)** and **[Deutsch](https://ee-atlas.eu/?lang=de)**. The DE/EN switch keeps the current analytical view and saves your language preference. Existing links without a language retain German as the first-visit default. English is the source language for code-facing labels and translation resources.
+
 ## The interface
 
 ### European electricity systems ranked side by side
@@ -248,7 +250,10 @@ The web interface never performs imports. The analytical interface, map, flags, 
 
 ## Development and tests
 
-The local server and analytical API use the Python standard library. JRC and
+The local HTTP server and analytical API use the Python standard library;
+Jinja2 renders translated public HTML with automatic escaping. The browser uses
+a pinned, locally vendored i18next build, without an external translation service.
+JRC and
 Battery-Charts dashboard downloads additionally use the declared Playwright
 dependency and its isolated Chromium runtime. For automatic Railway acquisition,
 set `RAILPACK_PYTHON_PLAYWRIGHT_INSTALL=1` during the build; see
@@ -262,6 +267,10 @@ node --check web\wallpapers.js
 git diff --check
 ```
 
+After editing translations, run `python scripts/build_locales.py` and include
+the generated browser bundle. See [localization](docs/LOCALIZATION.md) for the
+resource layout, API compatibility rules and opt-in browser regression check.
+
 Tests use local fixtures exclusively and never perform live imports. Node.js is required for the JavaScript tests; set `EEA_NODE` to an explicit executable path when `node` is not available through `PATH`. The prepared GitHub Actions workflow runs the same suite with Python 3.11 and Node 22 on pushes, pull requests, and manual dispatches.
 
 ## Further documentation
@@ -271,6 +280,7 @@ Tests use local fixtures exclusively and never perform live imports. Node.js is 
 - [Beta data validation](docs/BETA_DATA_VALIDATION.md)
 - [Complete data refresh lifecycle](docs/DATA_REFRESH.md)
 - [Metric labeling contract](docs/METRIC_LABELING.md)
+- [English/German localization](docs/LOCALIZATION.md)
 - [Deployment and operations](docs/DEPLOYMENT.md)
 - [Ember coverage](docs/EMBER_COVERAGE.md)
 - [JRC storage import](docs/JRC_STORAGE_IMPORT.md)

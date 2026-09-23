@@ -11,37 +11,37 @@ class Country:
 
 
 ATLAS_COUNTRIES: dict[str, Country] = {
-    "AT": Country("AT", "Österreich"),
-    "BE": Country("BE", "Belgien"),
-    "BG": Country("BG", "Bulgarien"),
-    "CH": Country("CH", "Schweiz"),
-    "CZ": Country("CZ", "Tschechien"),
-    "DE": Country("DE", "Deutschland"),
-    "DK": Country("DK", "Dänemark"),
-    "ES": Country("ES", "Spanien"),
-    "EE": Country("EE", "Estland"),
-    "FI": Country("FI", "Finnland"),
-    "FR": Country("FR", "Frankreich"),
-    "UK": Country("UK", "Vereinigtes Königreich"),
-    "GR": Country("GR", "Griechenland"),
-    "HR": Country("HR", "Kroatien"),
-    "HU": Country("HU", "Ungarn"),
-    "IE": Country("IE", "Irland"),
-    "IT": Country("IT", "Italien"),
-    "LT": Country("LT", "Litauen"),
-    "LU": Country("LU", "Luxemburg"),
-    "LV": Country("LV", "Lettland"),
+    "AT": Country("AT", "Austria"),
+    "BE": Country("BE", "Belgium"),
+    "BG": Country("BG", "Bulgaria"),
+    "CH": Country("CH", "Switzerland"),
+    "CZ": Country("CZ", "Czechia"),
+    "DE": Country("DE", "Germany"),
+    "DK": Country("DK", "Denmark"),
+    "ES": Country("ES", "Spain"),
+    "EE": Country("EE", "Estonia"),
+    "FI": Country("FI", "Finland"),
+    "FR": Country("FR", "France"),
+    "UK": Country("UK", "United Kingdom"),
+    "GR": Country("GR", "Greece"),
+    "HR": Country("HR", "Croatia"),
+    "HU": Country("HU", "Hungary"),
+    "IE": Country("IE", "Ireland"),
+    "IT": Country("IT", "Italy"),
+    "LT": Country("LT", "Lithuania"),
+    "LU": Country("LU", "Luxembourg"),
+    "LV": Country("LV", "Latvia"),
     "ME": Country("ME", "Montenegro"),
-    "MK": Country("MK", "Nordmazedonien"),
-    "NL": Country("NL", "Niederlande"),
-    "NO": Country("NO", "Norwegen"),
-    "PL": Country("PL", "Polen"),
+    "MK": Country("MK", "North Macedonia"),
+    "NL": Country("NL", "Netherlands"),
+    "NO": Country("NO", "Norway"),
+    "PL": Country("PL", "Poland"),
     "PT": Country("PT", "Portugal"),
-    "RO": Country("RO", "Rumänien"),
-    "RS": Country("RS", "Serbien"),
-    "SK": Country("SK", "Slowakei"),
-    "SI": Country("SI", "Slowenien"),
-    "SE": Country("SE", "Schweden"),
+    "RO": Country("RO", "Romania"),
+    "RS": Country("RS", "Serbia"),
+    "SK": Country("SK", "Slovakia"),
+    "SI": Country("SI", "Slovenia"),
+    "SE": Country("SE", "Sweden"),
 }
 
 EMBER_COUNTRIES = tuple(ATLAS_COUNTRIES)
@@ -101,6 +101,8 @@ EUROSTAT_SOURCE_LABEL = "Eurostat"
 EUROSTAT_GEO = {code: ("EL" if code == "GR" else code) for code in ATLAS_COUNTRIES}
 EUROSTAT_GEO_TO_ATLAS = {geo: code for code, geo in EUROSTAT_GEO.items()}
 
+# Legacy provenance labels are retained for existing records. Presentation
+# translations live in localization.py; these are not UI grouping identifiers.
 EUROSTAT_CAPACITY_SOURCE_LABEL = "Eurostat – installierte Nettoleistung"
 EUROSTAT_RETAIL_PRICE_SOURCE_LABEL = "Eurostat – Strompreise und Preisbestandteile"
 EUROSTAT_BALANCE_SOURCE_LABEL = "Eurostat – Strombilanz"

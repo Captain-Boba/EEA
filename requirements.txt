@@ -1,3 +1,4 @@
 # Railpack's pip provider requires this file; pyproject.toml alone is not installed.
 # Keep runtime dependencies identical to [project].dependencies (covered by tests).
 playwright>=1.62,<2
+Jinja2>=3.1.6,<4

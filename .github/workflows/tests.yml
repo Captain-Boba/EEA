@@ -37,6 +37,11 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/wallpapers.js
+          node --check web/i18n.js
+          node --check web/locales/resources.js
+
+      - name: Verify translation bundle
+        run: python scripts/build_locales.py --check
 
       - name: Run test suite
         env:

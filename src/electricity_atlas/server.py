@@ -19,6 +19,8 @@ from .community import CommunityStore, browser_hash
 from .country_profile import build_country_profile
 from .db import database, read_database
 from .metrics import metric_catalog
+from .localization import LANGUAGES, localize_payload
+from .pages import PUBLIC_PAGES, render_page
 from .monthly_refresh import MonthlyRefreshConfig, MonthlyRefreshScheduler, monthly_refresh_health
 from .runtime import DEFAULT_COMMUNITY_DB, parse_public_origin, validate_existing_atlas_database
 from .storage_online import latest_storage
@@ -42,6 +44,7 @@ API_DISCOVERY = {
     "openapi_url": f"{PUBLIC_SITE_URL}/openapi.json",
     "authentication": "none",
     "format": "application/json; charset=utf-8",
+    "presentation_languages": {"parameter": "lang", "supported": ["de", "en"], "default": "de"},
     "analytical_endpoints": [
         {
             "method": "GET",
@@ -153,10 +156,32 @@ class AtlasHandler(BaseHTTPRequestHandler):
         if not candidate.is_file():
             self.send_error(HTTPStatus.NOT_FOUND)
             return
-        content = candidate.read_bytes()
+        relative = candidate.relative_to(WEB_ROOT.resolve()).as_posix()
+        # Includes are templates, never standalone public documents.
+        if candidate.suffix == ".html" and relative not in PUBLIC_PAGES:
+            self.send_error(HTTPStatus.NOT_FOUND)
+            return
+        if relative in PUBLIC_PAGES:
+            query = parse_qs(parsed.query)
+            cookie = SimpleCookie()
+            try:
+                cookie.load(self.headers.get("Cookie", ""))
+            except Exception:
+                pass
+            preference = cookie.get("eea_language")
+            language = query.get("lang", [preference.value if preference else "de"])[0]
+            if language not in LANGUAGES:
+                language = "de"
+            content = render_page(relative, language, self.path)
+        else:
+            content = candidate.read_bytes()
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", mimetypes.guess_type(candidate.name)[0] or "application/octet-stream")
         self.send_header("Content-Length", str(len(content)))
+        if relative in PUBLIC_PAGES:
+            self.send_header("Content-Language", language)
+            self.send_header("Vary", "Cookie")
+            self.send_header("Cache-Control", "private, no-cache")
         self._security_headers()
         self.end_headers()
         self.wfile.write(content)
@@ -194,6 +219,9 @@ class AtlasHandler(BaseHTTPRequestHandler):
 
     def _api(self, path: str, query: dict[str, list[str]]) -> None:
         try:
+            language = query.get("lang", ["de"])[0]
+            if language not in LANGUAGES:
+                raise ValueError("lang must be 'de' or 'en'")
             if path in {"/api", "/api/"}:
                 self._json(API_DISCOVERY)
                 return
@@ -247,7 +275,7 @@ class AtlasHandler(BaseHTTPRequestHandler):
                 else:
                     self._json({"error": "not found"}, HTTPStatus.NOT_FOUND)
                     return
-            self._json(payload)
+            self._json(localize_payload(payload, language))
         except (ValueError, TypeError) as exc:
             self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
 

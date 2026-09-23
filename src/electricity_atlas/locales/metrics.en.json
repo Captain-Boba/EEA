@@ -1,0 +1,872 @@
+{
+  "generation_twh": {
+    "group": "Electricity system",
+    "unit": "TWh",
+    "family": "Generation",
+    "representation": "Generation in TWh",
+    "display_topic": "Electricity generation",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Generation"
+  },
+  "consumption_twh": {
+    "group": "Electricity system",
+    "unit": "TWh",
+    "family": "Consumption",
+    "representation": "Consumption in TWh",
+    "display_topic": "Electricity consumption",
+    "display_metric": "Total consumption",
+    "display_basis": "TWh",
+    "label": "Consumption"
+  },
+  "generation_per_capita_mwh": {
+    "group": "Electricity system",
+    "unit": "MWh/person",
+    "family": "Generation",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Electricity generation",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Generation per capita"
+  },
+  "consumption_per_capita_mwh": {
+    "group": "Electricity system",
+    "unit": "MWh/person",
+    "family": "Consumption",
+    "representation": "Consumption in MWh per capita",
+    "display_topic": "Electricity consumption",
+    "display_metric": "Consumption per capita",
+    "display_basis": "MWh per capita",
+    "label": "Consumption per capita"
+  },
+  "low_carbon_share_pct": {
+    "group": "Electricity system",
+    "unit": "%",
+    "family": "Low-carbon generation",
+    "representation": "Renewables and nuclear as a share of total generation",
+    "display_topic": "Low-carbon generation",
+    "display_metric": "Renewables and nuclear",
+    "display_basis": "Share of total generation in %",
+    "label": "Low-carbon generation share"
+  },
+  "self_sufficiency_pct": {
+    "group": "Electricity system",
+    "unit": "%",
+    "family": "Self-sufficiency",
+    "representation": "Generation relative to consumption",
+    "display_topic": "Electricity system",
+    "display_metric": "Self-sufficiency",
+    "display_basis": "Generation relative to consumption in %",
+    "label": "Generation to consumption"
+  },
+  "renewable_twh": {
+    "group": "Renewables",
+    "unit": "TWh",
+    "family": "Total renewables",
+    "representation": "Generation in TWh",
+    "display_topic": "Total renewables",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Total renewables"
+  },
+  "renewable_share_pct": {
+    "group": "Renewables",
+    "unit": "%",
+    "family": "Total renewables",
+    "representation": "Share of total generation",
+    "display_topic": "Total renewables",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Renewables"
+  },
+  "renewable_per_capita_mwh": {
+    "group": "Renewables",
+    "unit": "MWh/person",
+    "family": "Total renewables",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Total renewables",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Renewables per capita"
+  },
+  "wind_twh": {
+    "group": "Renewables",
+    "unit": "TWh",
+    "family": "Wind",
+    "representation": "Generation in TWh",
+    "display_topic": "Wind",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Wind"
+  },
+  "wind_share_pct": {
+    "group": "Renewables",
+    "unit": "%",
+    "family": "Wind",
+    "representation": "Share of total generation",
+    "display_topic": "Wind",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Wind share"
+  },
+  "wind_per_capita_mwh": {
+    "group": "Renewables",
+    "unit": "MWh/person",
+    "family": "Wind",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Wind",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Wind per capita"
+  },
+  "solar_twh": {
+    "group": "Renewables",
+    "unit": "TWh",
+    "family": "Solar",
+    "representation": "Generation in TWh",
+    "display_topic": "Solar",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Solar"
+  },
+  "solar_share_pct": {
+    "group": "Renewables",
+    "unit": "%",
+    "family": "Solar",
+    "representation": "Share of total generation",
+    "display_topic": "Solar",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Solar share"
+  },
+  "solar_per_capita_mwh": {
+    "group": "Renewables",
+    "unit": "MWh/person",
+    "family": "Solar",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Solar",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Solar per capita"
+  },
+  "hydro_twh": {
+    "group": "Renewables",
+    "unit": "TWh",
+    "family": "Hydropower",
+    "representation": "Generation in TWh",
+    "display_topic": "Hydropower",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Hydropower"
+  },
+  "hydro_share_pct": {
+    "group": "Renewables",
+    "unit": "%",
+    "family": "Hydropower",
+    "representation": "Share of total generation",
+    "display_topic": "Hydropower",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Hydropower share"
+  },
+  "hydro_per_capita_mwh": {
+    "group": "Renewables",
+    "unit": "MWh/person",
+    "family": "Hydropower",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Hydropower",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Hydropower per capita"
+  },
+  "bioenergy_twh": {
+    "group": "Renewables",
+    "unit": "TWh",
+    "family": "Bioenergy",
+    "representation": "Generation in TWh",
+    "display_topic": "Bioenergy",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Bioenergy"
+  },
+  "bioenergy_share_pct": {
+    "group": "Renewables",
+    "unit": "%",
+    "family": "Bioenergy",
+    "representation": "Share of total generation",
+    "display_topic": "Bioenergy",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Bioenergy share"
+  },
+  "bioenergy_per_capita_mwh": {
+    "group": "Renewables",
+    "unit": "MWh/person",
+    "family": "Bioenergy",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Bioenergy",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Bioenergy per capita"
+  },
+  "other_renewables_twh": {
+    "group": "Renewables",
+    "unit": "TWh",
+    "family": "Other renewables",
+    "representation": "Generation in TWh",
+    "display_topic": "Other renewables",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Other renewables"
+  },
+  "other_renewables_share_pct": {
+    "group": "Renewables",
+    "unit": "%",
+    "family": "Other renewables",
+    "representation": "Share of total generation",
+    "display_topic": "Other renewables",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Other renewables share"
+  },
+  "other_renewables_per_capita_mwh": {
+    "group": "Renewables",
+    "unit": "MWh/person",
+    "family": "Other renewables",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Other renewables",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Other renewables per capita"
+  },
+  "fossil_twh": {
+    "group": "Fossil fuels",
+    "unit": "TWh",
+    "family": "Total fossil fuels",
+    "representation": "Generation in TWh",
+    "display_topic": "Total fossil fuels",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Total fossil fuels"
+  },
+  "fossil_share_pct": {
+    "group": "Fossil fuels",
+    "unit": "%",
+    "family": "Total fossil fuels",
+    "representation": "Share of total generation",
+    "display_topic": "Total fossil fuels",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Fossil fuels"
+  },
+  "fossil_per_capita_mwh": {
+    "group": "Fossil fuels",
+    "unit": "MWh/person",
+    "family": "Total fossil fuels",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Total fossil fuels",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Fossil generation per capita"
+  },
+  "coal_twh": {
+    "group": "Fossil fuels",
+    "unit": "TWh",
+    "family": "Coal",
+    "representation": "Generation in TWh",
+    "display_topic": "Coal",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Coal"
+  },
+  "coal_share_pct": {
+    "group": "Fossil fuels",
+    "unit": "%",
+    "family": "Coal",
+    "representation": "Share of total generation",
+    "display_topic": "Coal",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Coal share"
+  },
+  "coal_per_capita_mwh": {
+    "group": "Fossil fuels",
+    "unit": "MWh/person",
+    "family": "Coal",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Coal",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Coal per capita"
+  },
+  "gas_twh": {
+    "group": "Fossil fuels",
+    "unit": "TWh",
+    "family": "Gas",
+    "representation": "Generation in TWh",
+    "display_topic": "Gas",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Gas"
+  },
+  "gas_share_pct": {
+    "group": "Fossil fuels",
+    "unit": "%",
+    "family": "Gas",
+    "representation": "Share of total generation",
+    "display_topic": "Gas",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Gas share"
+  },
+  "gas_per_capita_mwh": {
+    "group": "Fossil fuels",
+    "unit": "MWh/person",
+    "family": "Gas",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Gas",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Gas per capita"
+  },
+  "other_fossil_twh": {
+    "group": "Fossil fuels",
+    "unit": "TWh",
+    "family": "Other fossil fuels",
+    "representation": "Generation in TWh",
+    "display_topic": "Other fossil fuels",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Other fossil fuels"
+  },
+  "other_fossil_share_pct": {
+    "group": "Fossil fuels",
+    "unit": "%",
+    "family": "Other fossil fuels",
+    "representation": "Share of total generation",
+    "display_topic": "Other fossil fuels",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Other fossil fuels share"
+  },
+  "other_fossil_per_capita_mwh": {
+    "group": "Fossil fuels",
+    "unit": "MWh/person",
+    "family": "Other fossil fuels",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Other fossil fuels",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Other fossil fuels per capita"
+  },
+  "nuclear_twh": {
+    "group": "Nuclear",
+    "unit": "TWh",
+    "family": "Nuclear",
+    "representation": "Generation in TWh",
+    "display_topic": "Nuclear",
+    "display_metric": "Total generation",
+    "display_basis": "TWh",
+    "label": "Nuclear"
+  },
+  "nuclear_share_pct": {
+    "group": "Nuclear",
+    "unit": "%",
+    "family": "Nuclear",
+    "representation": "Share of total generation",
+    "display_topic": "Nuclear",
+    "display_metric": "Share",
+    "display_basis": "% of total generation",
+    "label": "Nuclear"
+  },
+  "nuclear_per_capita_mwh": {
+    "group": "Nuclear",
+    "unit": "MWh/person",
+    "family": "Nuclear",
+    "representation": "Generation in MWh per capita",
+    "display_topic": "Nuclear",
+    "display_metric": "Generation per capita",
+    "display_basis": "MWh per capita",
+    "label": "Nuclear per capita"
+  },
+  "net_imports_twh": {
+    "group": "Trade",
+    "unit": "TWh",
+    "family": "Net imports",
+    "representation": "Net imports in TWh",
+    "display_topic": "Electricity trade",
+    "display_metric": "Total net imports",
+    "display_basis": "TWh",
+    "label": "Net imports"
+  },
+  "net_import_share_pct": {
+    "group": "Trade",
+    "unit": "%",
+    "family": "Net imports",
+    "representation": "Share of consumption",
+    "display_topic": "Electricity trade",
+    "display_metric": "Net imports",
+    "display_basis": "Share of electricity consumption in %",
+    "label": "Net import share"
+  },
+  "price_avg_eur_mwh": {
+    "group": "Prices",
+    "unit": "EUR/MWh",
+    "family": "Wholesale price",
+    "representation": "Average price",
+    "display_topic": "Wholesale electricity price",
+    "display_metric": "Average day-ahead price",
+    "display_basis": "EUR/MWh",
+    "label": "Wholesale price"
+  },
+  "carbon_intensity_gco2eq_kwh": {
+    "group": "Climate",
+    "unit": "gCO₂eq/kWh",
+    "family": "Carbon intensity",
+    "representation": "Carbon intensity",
+    "display_topic": "Electricity generation emissions",
+    "display_metric": "Carbon intensity",
+    "display_basis": "gCO₂eq/kWh",
+    "label": "Carbon intensity"
+  },
+  "estimated_generation_emissions_mtco2eq": {
+    "group": "Climate",
+    "unit": "Mt CO₂eq",
+    "family": "Generation emissions",
+    "representation": "Carbon intensity × generation",
+    "display_topic": "Electricity generation emissions",
+    "display_metric": "Estimated emissions",
+    "display_basis": "Mt CO₂eq",
+    "label": "Estimated generation emissions"
+  },
+  "decarbonization_rate_pct": {
+    "group": "Climate",
+    "unit": "%",
+    "family": "Carbon intensity",
+    "representation": "Change from the completed previous year",
+    "display_topic": "Electricity generation emissions",
+    "display_metric": "Decarbonisation",
+    "display_basis": "Year-on-year change in %",
+    "label": "Year-on-year decarbonisation"
+  },
+  "eea_public_electricity_heat_emissions_mtco2eq": {
+    "group": "Climate",
+    "unit": "Mt CO₂eq",
+    "family": "Inventory emissions",
+    "representation": "CRT 1.A.1.a; electricity and heat",
+    "display_topic": "Climate",
+    "display_metric": "Public electricity and heat production emissions",
+    "display_basis": "CRT 1.A.1.a; electricity and heat · Mt CO₂eq",
+    "label": "Public electricity and heat production emissions"
+  },
+  "population": {
+    "group": "Socioeconomics",
+    "unit": "Residents",
+    "family": "Population",
+    "representation": "Residents",
+    "display_topic": "Socioeconomics",
+    "display_metric": "Population",
+    "display_basis": "Residents",
+    "label": "Population"
+  },
+  "gdp_current_billion_eur": {
+    "group": "Socioeconomics",
+    "unit": "billion EUR",
+    "family": "GDP",
+    "representation": "GDP at current prices",
+    "display_topic": "Socioeconomics",
+    "display_metric": "GDP",
+    "display_basis": "billion EUR",
+    "label": "GDP"
+  },
+  "gdp_per_capita_pps": {
+    "group": "Socioeconomics",
+    "unit": "PPS/person",
+    "family": "GDP per capita",
+    "representation": "Purchasing power standard per capita",
+    "display_topic": "Socioeconomics",
+    "display_metric": "GDP per capita",
+    "display_basis": "PPS per capita",
+    "label": "GDP per capita"
+  },
+  "generation_gdp_intensity_kwh_eur": {
+    "group": "Electricity system",
+    "unit": "kWh/EUR",
+    "family": "Generation",
+    "representation": "Generation per nominal GDP",
+    "display_topic": "Electricity generation",
+    "display_metric": "Generation per GDP",
+    "display_basis": "kWh/EUR",
+    "label": "Generation per GDP"
+  },
+  "consumption_gdp_intensity_kwh_eur": {
+    "group": "Electricity system",
+    "unit": "kWh/EUR",
+    "family": "Consumption",
+    "representation": "Consumption per nominal GDP",
+    "display_topic": "Electricity consumption",
+    "display_metric": "Consumption per GDP",
+    "display_basis": "kWh/EUR",
+    "label": "Consumption per GDP"
+  },
+  "electricity_heat_emissions_gdp_t_million_eur": {
+    "group": "Climate",
+    "unit": "t CO₂eq/million EUR",
+    "family": "Inventory emissions",
+    "representation": "Inventory emissions per nominal GDP",
+    "display_topic": "Electricity generation emissions",
+    "display_metric": "Electricity and heat emissions per GDP",
+    "display_basis": "t CO₂eq/million EUR",
+    "label": "Electricity and heat emissions per GDP"
+  },
+  "capacity_total_gw": {
+    "group": "Installed capacity",
+    "unit": "GW",
+    "family": "Installed capacity",
+    "representation": "Total capacity",
+    "display_topic": "Installed capacity",
+    "display_metric": "Total capacity",
+    "display_basis": "GW",
+    "label": "Total installed capacity"
+  },
+  "capacity_wind_gw": {
+    "group": "Installed capacity",
+    "unit": "GW",
+    "family": "Wind",
+    "representation": "Installed capacity",
+    "display_topic": "Installed capacity",
+    "display_metric": "Wind capacity",
+    "display_basis": "GW",
+    "label": "Installed wind capacity"
+  },
+  "capacity_solar_gw": {
+    "group": "Installed capacity",
+    "unit": "GW",
+    "family": "Solar",
+    "representation": "Installed capacity",
+    "display_topic": "Installed capacity",
+    "display_metric": "Solar capacity",
+    "display_basis": "GW",
+    "label": "Installed solar capacity"
+  },
+  "capacity_hydro_gw": {
+    "group": "Installed capacity",
+    "unit": "GW",
+    "family": "Hydropower",
+    "representation": "Installed capacity",
+    "display_topic": "Installed capacity",
+    "display_metric": "Hydropower capacity",
+    "display_basis": "GW",
+    "label": "Installed hydropower capacity"
+  },
+  "capacity_fossil_gw": {
+    "group": "Installed capacity",
+    "unit": "GW",
+    "family": "Total fossil fuels",
+    "representation": "Installed capacity",
+    "display_topic": "Installed capacity",
+    "display_metric": "Fossil fuel capacity",
+    "display_basis": "GW",
+    "label": "Installed fossil fuel capacity"
+  },
+  "capacity_nuclear_gw": {
+    "group": "Installed capacity",
+    "unit": "GW",
+    "family": "Nuclear",
+    "representation": "Installed capacity",
+    "display_topic": "Installed capacity",
+    "display_metric": "Nuclear capacity",
+    "display_basis": "GW",
+    "label": "Installed nuclear capacity"
+  },
+  "capacity_factor_wind_pct": {
+    "group": "Installed capacity",
+    "unit": "%",
+    "family": "Wind",
+    "representation": "Generation relative to installed capacity",
+    "display_topic": "Wind",
+    "display_metric": "Capacity factor",
+    "display_basis": "% of installed capacity",
+    "label": "Wind capacity factor"
+  },
+  "capacity_factor_solar_pct": {
+    "group": "Installed capacity",
+    "unit": "%",
+    "family": "Solar",
+    "representation": "Generation relative to installed capacity",
+    "display_topic": "Solar",
+    "display_metric": "Capacity factor",
+    "display_basis": "% of installed capacity",
+    "label": "Solar capacity factor"
+  },
+  "capacity_factor_hydro_pct": {
+    "group": "Installed capacity",
+    "unit": "%",
+    "family": "Hydropower",
+    "representation": "Generation relative to installed capacity",
+    "display_topic": "Hydropower",
+    "display_metric": "Capacity factor",
+    "display_basis": "% of installed capacity",
+    "label": "Hydropower capacity factor"
+  },
+  "capacity_factor_fossil_pct": {
+    "group": "Installed capacity",
+    "unit": "%",
+    "family": "Total fossil fuels",
+    "representation": "Generation relative to installed capacity",
+    "display_topic": "Total fossil fuels",
+    "display_metric": "Capacity factor",
+    "display_basis": "% of installed capacity",
+    "label": "Fossil fuel capacity factor"
+  },
+  "capacity_factor_nuclear_pct": {
+    "group": "Installed capacity",
+    "unit": "%",
+    "family": "Nuclear",
+    "representation": "Generation relative to installed capacity",
+    "display_topic": "Nuclear",
+    "display_metric": "Capacity factor",
+    "display_basis": "% of installed capacity",
+    "label": "Nuclear capacity factor"
+  },
+  "household_electricity_price_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "ct/kWh",
+    "family": "Household electricity price",
+    "representation": "Total price (2,500–4,999 kWh/year)",
+    "display_topic": "Retail prices",
+    "display_metric": "Household electricity price",
+    "display_basis": "Total price (2,500–4,999 kWh/year) · ct/kWh",
+    "label": "Household electricity price"
+  },
+  "household_price_energy_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "ct/kWh",
+    "family": "Household electricity price",
+    "representation": "Energy and supply (price component)",
+    "display_topic": "Retail prices",
+    "display_metric": "Household: energy and supply",
+    "display_basis": "Energy and supply (price component) · ct/kWh",
+    "label": "Household: energy and supply"
+  },
+  "household_price_network_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "ct/kWh",
+    "family": "Household electricity price",
+    "representation": "Network charges (price component)",
+    "display_topic": "Retail prices",
+    "display_metric": "Household: network charges",
+    "display_basis": "Network charges (price component) · ct/kWh",
+    "label": "Household: network charges"
+  },
+  "household_price_taxes_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "ct/kWh",
+    "family": "Household electricity price",
+    "representation": "Taxes, levies and charges (price component)",
+    "display_topic": "Retail prices",
+    "display_metric": "Household: taxes, levies and charges",
+    "display_basis": "Taxes, levies and charges (price component) · ct/kWh",
+    "label": "Household: taxes, levies and charges"
+  },
+  "household_wholesale_price_gap_ct_kwh": {
+    "group": "Retail prices",
+    "unit": "ct/kWh",
+    "family": "Household electricity price",
+    "representation": "Household price minus wholesale price",
+    "display_topic": "Retail prices",
+    "display_metric": "Retail–wholesale price gap",
+    "display_basis": "Household price minus wholesale price · ct/kWh",
+    "label": "Retail–wholesale price gap"
+  },
+  "nonhousehold_electricity_price_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "EUR/MWh",
+    "family": "Non-household electricity price",
+    "representation": "Band IC, annual components",
+    "display_topic": "Retail prices",
+    "display_metric": "Non-household electricity price",
+    "display_basis": "Band IC, annual components · EUR/MWh",
+    "label": "Non-household electricity price"
+  },
+  "nonhousehold_price_energy_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "EUR/MWh",
+    "family": "Non-household electricity price",
+    "representation": "Energy and supply, band IC",
+    "display_topic": "Retail prices",
+    "display_metric": "Non-household: energy and supply",
+    "display_basis": "Energy and supply, band IC · EUR/MWh",
+    "label": "Non-household: energy and supply"
+  },
+  "nonhousehold_price_network_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "EUR/MWh",
+    "family": "Non-household electricity price",
+    "representation": "Network costs, band IC",
+    "display_topic": "Retail prices",
+    "display_metric": "Non-household: network costs",
+    "display_basis": "Network costs, band IC · EUR/MWh",
+    "label": "Non-household: network costs"
+  },
+  "nonhousehold_price_taxes_eur_mwh": {
+    "group": "Retail prices",
+    "unit": "EUR/MWh",
+    "family": "Non-household electricity price",
+    "representation": "Taxes and levies, band IC",
+    "display_topic": "Retail prices",
+    "display_metric": "Non-household: taxes and levies",
+    "display_basis": "Taxes and levies, band IC · EUR/MWh",
+    "label": "Non-household: taxes and levies"
+  },
+  "gross_imports_twh": {
+    "group": "Trade",
+    "unit": "TWh",
+    "family": "Electricity trade",
+    "representation": "Gross imports",
+    "display_topic": "Electricity trade",
+    "display_metric": "Gross imports",
+    "display_basis": "TWh",
+    "label": "Gross electricity imports"
+  },
+  "gross_exports_twh": {
+    "group": "Trade",
+    "unit": "TWh",
+    "family": "Electricity trade",
+    "representation": "Gross exports",
+    "display_topic": "Electricity trade",
+    "display_metric": "Gross exports",
+    "display_basis": "TWh",
+    "label": "Gross electricity exports"
+  },
+  "electricity_trade_throughput_pct": {
+    "group": "Trade",
+    "unit": "%",
+    "family": "Electricity trade",
+    "representation": "Imports plus exports relative to consumption",
+    "display_topic": "Trade",
+    "display_metric": "Electricity trade throughput",
+    "display_basis": "Imports plus exports relative to consumption in %",
+    "label": "Electricity trade throughput"
+  },
+  "bev_stock": {
+    "group": "Electric mobility",
+    "unit": "Vehicles",
+    "family": "Battery-electric passenger cars",
+    "representation": "Stock",
+    "display_topic": "Electric mobility",
+    "display_metric": "Battery-electric passenger car stock",
+    "display_basis": "Vehicles",
+    "label": "Battery-electric passenger car stock"
+  },
+  "bev_new_registrations": {
+    "group": "Electric mobility",
+    "unit": "Vehicles",
+    "family": "Battery-electric passenger cars",
+    "representation": "New registrations",
+    "display_topic": "Electric mobility",
+    "display_metric": "New battery-electric passenger cars",
+    "display_basis": "Vehicles",
+    "label": "New battery-electric passenger cars"
+  },
+  "ev_battery_nominal_capacity_est_gwh": {
+    "group": "Electric mobility",
+    "unit": "GWh",
+    "family": "Battery-electric passenger cars",
+    "representation": "Flat fleet assumption: stock × 60 kWh; not V2G-available",
+    "display_topic": "Electric mobility",
+    "display_metric": "Theoretical EV battery capacity",
+    "display_basis": "GWh",
+    "label": "Theoretical EV battery capacity"
+  },
+  "hydro_plant_capacity_gw": {
+    "group": "Hydropower inventory",
+    "unit": "GW",
+    "family": "Hydropower inventory",
+    "representation": "Total recorded generation capacity",
+    "display_topic": "Hydropower inventory",
+    "display_metric": "Generation capacity",
+    "display_basis": "GW",
+    "label": "JRC hydropower generation capacity"
+  },
+  "hydro_pumping_power_gw": {
+    "group": "Hydropower inventory",
+    "unit": "GW",
+    "family": "Hydropower inventory",
+    "representation": "Total recorded pumping power",
+    "display_topic": "Hydropower inventory",
+    "display_metric": "Pumping power",
+    "display_basis": "GW",
+    "label": "JRC pumping power"
+  },
+  "hydro_reservoir_energy_gwh": {
+    "group": "Hydropower inventory",
+    "unit": "GWh",
+    "family": "Hydropower inventory",
+    "representation": "Directly reported plant values only",
+    "display_topic": "Hydropower inventory",
+    "display_metric": "Storage energy",
+    "display_basis": "GWh",
+    "label": "JRC hydropower storage energy"
+  },
+  "battery_power_gw": {
+    "group": "Capacity and storage",
+    "unit": "GW",
+    "family": "Battery storage",
+    "representation": "Discharge power in GW",
+    "display_topic": "Battery storage",
+    "display_metric": "Installed discharge power",
+    "display_basis": "GW",
+    "label": "Battery discharge power"
+  },
+  "battery_energy_gwh": {
+    "group": "Capacity and storage",
+    "unit": "GWh",
+    "family": "Battery storage",
+    "representation": "Storage energy in GWh",
+    "display_topic": "Battery storage",
+    "display_metric": "Installed storage capacity",
+    "display_basis": "GWh",
+    "label": "Battery storage energy"
+  },
+  "battery_duration_hours": {
+    "group": "Capacity and storage",
+    "unit": "h",
+    "family": "Battery storage",
+    "representation": "Equivalent discharge duration in hours",
+    "display_topic": "Battery storage",
+    "display_metric": "Equivalent discharge duration",
+    "display_basis": "Hours",
+    "label": "Battery discharge duration"
+  },
+  "pumped_storage_power_gw": {
+    "group": "Capacity and storage",
+    "unit": "GW",
+    "family": "Pumped storage",
+    "representation": "Discharge power in GW",
+    "display_topic": "Pumped storage",
+    "display_metric": "Installed discharge power",
+    "display_basis": "GW",
+    "label": "Pumped storage discharge power"
+  },
+  "pumped_storage_energy_gwh": {
+    "group": "Capacity and storage",
+    "unit": "GWh",
+    "family": "Pumped storage",
+    "representation": "Storage energy in GWh",
+    "display_topic": "Pumped storage",
+    "display_metric": "Installed storage capacity",
+    "display_basis": "GWh",
+    "label": "Pumped storage energy"
+  },
+  "pumped_storage_duration_hours": {
+    "group": "Capacity and storage",
+    "unit": "h",
+    "family": "Pumped storage",
+    "representation": "Equivalent discharge duration in hours",
+    "display_topic": "Pumped storage",
+    "display_metric": "Equivalent discharge duration",
+    "display_basis": "Hours",
+    "label": "Pumped storage discharge duration"
+  }
+}

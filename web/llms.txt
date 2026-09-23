@@ -18,6 +18,7 @@ The Atlas is not an institution of the European Union and is not an official EU 
 ## General API rules
 
 - Public analytical endpoints use HTTP GET and return UTF-8 JSON.
+- Analytical GET endpoints accept `lang=en` or `lang=de` for presentation labels and country names. Without `lang`, the existing German presentation remains unchanged, regardless of browser cookies. IDs, numbers, nulls, quality codes and periods are identical in both languages. `label_de` always remains German; `label_en` always remains English; `label` follows the requested language. Use `group_id`, `family_id` and `category_id` for language-independent grouping. Human-readable unit spellings may differ, never their scale or meaning.
 - No API key or authentication is required for analytical GET requests.
 - Always use an explicit year and, when needed, an explicit month or date range.
 - Discover valid country codes with `/api/countries` and valid metric IDs with `/api/metrics` before constructing broader requests.
@@ -50,7 +51,7 @@ The Atlas is not an institution of the European Union and is not an official EU 
 
 `GET /api/countries`
 
-Returns all supported countries as objects containing `code` and German `name`.
+Returns all supported countries as objects containing `code` and `name` (German by default, English with `lang=en`).
 
 Example:
 
@@ -60,7 +61,7 @@ https://ee-atlas.eu/api/countries
 
 `GET /api/metrics`
 
-Returns the authoritative metric catalog. Use its `id` values in other requests. The catalog includes units, German labels, display labels, metric groups, representations, sources, map availability, and temporal availability (`monthly`, `yearly`, or `snapshot`).
+Returns the authoritative metric catalog. Use its `id` values in other requests. The catalog includes units, both `label_de` and `label_en`, localized display labels, stable group identifiers, representations, sources, map availability, and temporal availability (`monthly`, `yearly`, or `snapshot`).
 
 Example:
 

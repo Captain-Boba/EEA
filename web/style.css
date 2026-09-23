@@ -158,11 +158,9 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   overflow: visible;
 }
 .map-actions {
-  position: absolute;
-  top: .85rem;
-  right: .85rem;
+  position: static;
   z-index: 3;
-  margin: 0;
+  margin: 0 0 .8rem;
 }
 .map-actions button { min-height: 2.55rem; }
 .tool-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: .4rem; }
@@ -2178,3 +2176,9 @@ body { zoom: 1.1; }
 @media (max-width: 850px) {
   .tool-card-header { min-height: 0; }
 }
+
+.language-switch { display: flex; align-items: center; gap: .25rem; flex: 0 0 auto; }
+.language-switch a { padding: .45rem .6rem; border: 1px solid transparent; border-radius: .5rem; color: var(--muted, #91a9bd); text-decoration: none; font-size: .82rem; font-weight: 700; }
+.language-switch a[aria-current="true"] { color: var(--text, #edf7ff); border-color: #52657c; background: #13243a; }
+.language-switch a:hover, .language-switch a:focus-visible { color: #57d7ff; border-color: #57d7ff; }
+.site-header > .overload-toggle { margin-left: auto; margin-right: 1rem; }

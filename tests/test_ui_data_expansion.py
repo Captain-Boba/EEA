@@ -1,3 +1,4 @@
+from electricity_atlas.pages import render_page
 import json
 import os
 import re
@@ -35,6 +36,7 @@ class DataExpansionUiTests(unittest.TestCase):
     def run_node(self, script):
         if NODE is None:
             self.fail("Node.js is required for JavaScript tests; set EEA_NODE or add node to PATH.")
+        script = script.replace('require("./web/app.js")', '(require("./tests/js_i18n_bootstrap.cjs"), require("./web/app.js"))')
         encoded = script.encode("utf-8").hex()
         bootstrap = f'eval(Buffer.from("{encoded}", "hex").toString("utf8"))'
         result = subprocess.run(
@@ -47,7 +49,7 @@ class DataExpansionUiTests(unittest.TestCase):
         return json.loads(result.stdout)
 
     def test_ev_ranking_contains_exactly_three_metrics_and_accessible_controls(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         app = APP_PATH.read_text(encoding="utf-8")
         metric_block = re.search(r"const EV_METRIC_IDS = \[(.*?)\];", app, re.DOTALL)
         self.assertIsNotNone(metric_block)
@@ -181,7 +183,7 @@ process.stdout.write(JSON.stringify({
         )
 
     def test_estimate_eea_hydro_and_derivation_definitions_are_visible(self):
-        html = INDEX_PATH.read_text(encoding="utf-8")
+        html = render_page("index.html", "de", "/").decode("utf-8")
         self.assertIn("Pauschale Flottenannahme:</strong> Theoretische nominale Batteriekapazität = BEV-Bestand × 60 kWh", html)
         self.assertIn("weder nutzbare Energie noch eine V2G- oder netzverfügbare Speicherkapazität", html)
         self.assertIn("Die Kategorie umfasst die öffentliche Strom- <strong>und Wärmeerzeugung</strong>", html)
@@ -205,8 +207,8 @@ process.stdout.write(JSON.stringify({
         self.assertIn("function usesLatestAvailableMapYear(metric)", app)
         self.assertIn("metric?.map_config?.latest_available_year", app)
         self.assertIn("data_year", app)
-        self.assertIn("kein Leistungsdatenstand verfügbar", app)
-        self.assertIn("Keine Werte für den ausgewählten Datenstand verfügbar", app)
+        self.assertIn("no capacity data available", app)
+        self.assertIn("No values available for the selected reporting date.", app)
         self.assertNotIn("2024", app[app.index("function usesLatestAvailableMapYear"):app.index("function countryName")])
         for metric_id in (
             "capacity_total_gw", "capacity_wind_gw", "capacity_solar_gw", "capacity_hydro_gw",

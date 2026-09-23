@@ -1,0 +1,437 @@
+{
+  "generation_twh": {
+    "group_id": "electricity-system",
+    "family_id": "generation",
+    "category_id": "electricity-generation"
+  },
+  "consumption_twh": {
+    "group_id": "electricity-system",
+    "family_id": "consumption",
+    "category_id": "electricity-consumption"
+  },
+  "generation_per_capita_mwh": {
+    "group_id": "electricity-system",
+    "family_id": "generation",
+    "category_id": "electricity-generation"
+  },
+  "consumption_per_capita_mwh": {
+    "group_id": "electricity-system",
+    "family_id": "consumption",
+    "category_id": "electricity-consumption"
+  },
+  "low_carbon_share_pct": {
+    "group_id": "electricity-system",
+    "family_id": "low-carbon-generation",
+    "category_id": "low-carbon-generation"
+  },
+  "self_sufficiency_pct": {
+    "group_id": "electricity-system",
+    "family_id": "self-sufficiency",
+    "category_id": "electricity-system"
+  },
+  "renewable_twh": {
+    "group_id": "renewables",
+    "family_id": "total-renewables",
+    "category_id": "total-renewables"
+  },
+  "renewable_share_pct": {
+    "group_id": "renewables",
+    "family_id": "total-renewables",
+    "category_id": "total-renewables"
+  },
+  "renewable_per_capita_mwh": {
+    "group_id": "renewables",
+    "family_id": "total-renewables",
+    "category_id": "total-renewables"
+  },
+  "wind_twh": {
+    "group_id": "renewables",
+    "family_id": "wind",
+    "category_id": "wind"
+  },
+  "wind_share_pct": {
+    "group_id": "renewables",
+    "family_id": "wind",
+    "category_id": "wind"
+  },
+  "wind_per_capita_mwh": {
+    "group_id": "renewables",
+    "family_id": "wind",
+    "category_id": "wind"
+  },
+  "solar_twh": {
+    "group_id": "renewables",
+    "family_id": "solar",
+    "category_id": "solar"
+  },
+  "solar_share_pct": {
+    "group_id": "renewables",
+    "family_id": "solar",
+    "category_id": "solar"
+  },
+  "solar_per_capita_mwh": {
+    "group_id": "renewables",
+    "family_id": "solar",
+    "category_id": "solar"
+  },
+  "hydro_twh": {
+    "group_id": "renewables",
+    "family_id": "hydropower",
+    "category_id": "hydropower"
+  },
+  "hydro_share_pct": {
+    "group_id": "renewables",
+    "family_id": "hydropower",
+    "category_id": "hydropower"
+  },
+  "hydro_per_capita_mwh": {
+    "group_id": "renewables",
+    "family_id": "hydropower",
+    "category_id": "hydropower"
+  },
+  "bioenergy_twh": {
+    "group_id": "renewables",
+    "family_id": "bioenergy",
+    "category_id": "bioenergy"
+  },
+  "bioenergy_share_pct": {
+    "group_id": "renewables",
+    "family_id": "bioenergy",
+    "category_id": "bioenergy"
+  },
+  "bioenergy_per_capita_mwh": {
+    "group_id": "renewables",
+    "family_id": "bioenergy",
+    "category_id": "bioenergy"
+  },
+  "other_renewables_twh": {
+    "group_id": "renewables",
+    "family_id": "other-renewables",
+    "category_id": "other-renewables"
+  },
+  "other_renewables_share_pct": {
+    "group_id": "renewables",
+    "family_id": "other-renewables",
+    "category_id": "other-renewables"
+  },
+  "other_renewables_per_capita_mwh": {
+    "group_id": "renewables",
+    "family_id": "other-renewables",
+    "category_id": "other-renewables"
+  },
+  "fossil_twh": {
+    "group_id": "fossil-fuels",
+    "family_id": "total-fossil-fuels",
+    "category_id": "total-fossil-fuels"
+  },
+  "fossil_share_pct": {
+    "group_id": "fossil-fuels",
+    "family_id": "total-fossil-fuels",
+    "category_id": "total-fossil-fuels"
+  },
+  "fossil_per_capita_mwh": {
+    "group_id": "fossil-fuels",
+    "family_id": "total-fossil-fuels",
+    "category_id": "total-fossil-fuels"
+  },
+  "coal_twh": {
+    "group_id": "fossil-fuels",
+    "family_id": "coal",
+    "category_id": "coal"
+  },
+  "coal_share_pct": {
+    "group_id": "fossil-fuels",
+    "family_id": "coal",
+    "category_id": "coal"
+  },
+  "coal_per_capita_mwh": {
+    "group_id": "fossil-fuels",
+    "family_id": "coal",
+    "category_id": "coal"
+  },
+  "gas_twh": {
+    "group_id": "fossil-fuels",
+    "family_id": "gas",
+    "category_id": "gas"
+  },
+  "gas_share_pct": {
+    "group_id": "fossil-fuels",
+    "family_id": "gas",
+    "category_id": "gas"
+  },
+  "gas_per_capita_mwh": {
+    "group_id": "fossil-fuels",
+    "family_id": "gas",
+    "category_id": "gas"
+  },
+  "other_fossil_twh": {
+    "group_id": "fossil-fuels",
+    "family_id": "other-fossil-fuels",
+    "category_id": "other-fossil-fuels"
+  },
+  "other_fossil_share_pct": {
+    "group_id": "fossil-fuels",
+    "family_id": "other-fossil-fuels",
+    "category_id": "other-fossil-fuels"
+  },
+  "other_fossil_per_capita_mwh": {
+    "group_id": "fossil-fuels",
+    "family_id": "other-fossil-fuels",
+    "category_id": "other-fossil-fuels"
+  },
+  "nuclear_twh": {
+    "group_id": "nuclear",
+    "family_id": "nuclear",
+    "category_id": "nuclear"
+  },
+  "nuclear_share_pct": {
+    "group_id": "nuclear",
+    "family_id": "nuclear",
+    "category_id": "nuclear"
+  },
+  "nuclear_per_capita_mwh": {
+    "group_id": "nuclear",
+    "family_id": "nuclear",
+    "category_id": "nuclear"
+  },
+  "net_imports_twh": {
+    "group_id": "trade",
+    "family_id": "net-imports",
+    "category_id": "electricity-trade"
+  },
+  "net_import_share_pct": {
+    "group_id": "trade",
+    "family_id": "net-imports",
+    "category_id": "electricity-trade"
+  },
+  "price_avg_eur_mwh": {
+    "group_id": "prices",
+    "family_id": "wholesale-price",
+    "category_id": "wholesale-electricity-price"
+  },
+  "carbon_intensity_gco2eq_kwh": {
+    "group_id": "climate",
+    "family_id": "carbon-intensity",
+    "category_id": "electricity-generation-emissions"
+  },
+  "estimated_generation_emissions_mtco2eq": {
+    "group_id": "climate",
+    "family_id": "generation-emissions",
+    "category_id": "electricity-generation-emissions"
+  },
+  "decarbonization_rate_pct": {
+    "group_id": "climate",
+    "family_id": "carbon-intensity",
+    "category_id": "electricity-generation-emissions"
+  },
+  "eea_public_electricity_heat_emissions_mtco2eq": {
+    "group_id": "climate",
+    "family_id": "inventory-emissions",
+    "category_id": "climate"
+  },
+  "population": {
+    "group_id": "socioeconomics",
+    "family_id": "population",
+    "category_id": "socioeconomics"
+  },
+  "gdp_current_billion_eur": {
+    "group_id": "socioeconomics",
+    "family_id": "gdp",
+    "category_id": "socioeconomics"
+  },
+  "gdp_per_capita_pps": {
+    "group_id": "socioeconomics",
+    "family_id": "gdp-per-capita",
+    "category_id": "socioeconomics"
+  },
+  "generation_gdp_intensity_kwh_eur": {
+    "group_id": "electricity-system",
+    "family_id": "generation",
+    "category_id": "electricity-generation"
+  },
+  "consumption_gdp_intensity_kwh_eur": {
+    "group_id": "electricity-system",
+    "family_id": "consumption",
+    "category_id": "electricity-consumption"
+  },
+  "electricity_heat_emissions_gdp_t_million_eur": {
+    "group_id": "climate",
+    "family_id": "inventory-emissions",
+    "category_id": "electricity-generation-emissions"
+  },
+  "capacity_total_gw": {
+    "group_id": "installed-capacity",
+    "family_id": "installed-capacity",
+    "category_id": "installed-capacity"
+  },
+  "capacity_wind_gw": {
+    "group_id": "installed-capacity",
+    "family_id": "wind",
+    "category_id": "installed-capacity"
+  },
+  "capacity_solar_gw": {
+    "group_id": "installed-capacity",
+    "family_id": "solar",
+    "category_id": "installed-capacity"
+  },
+  "capacity_hydro_gw": {
+    "group_id": "installed-capacity",
+    "family_id": "hydropower",
+    "category_id": "installed-capacity"
+  },
+  "capacity_fossil_gw": {
+    "group_id": "installed-capacity",
+    "family_id": "total-fossil-fuels",
+    "category_id": "installed-capacity"
+  },
+  "capacity_nuclear_gw": {
+    "group_id": "installed-capacity",
+    "family_id": "nuclear",
+    "category_id": "installed-capacity"
+  },
+  "capacity_factor_wind_pct": {
+    "group_id": "installed-capacity",
+    "family_id": "wind",
+    "category_id": "wind"
+  },
+  "capacity_factor_solar_pct": {
+    "group_id": "installed-capacity",
+    "family_id": "solar",
+    "category_id": "solar"
+  },
+  "capacity_factor_hydro_pct": {
+    "group_id": "installed-capacity",
+    "family_id": "hydropower",
+    "category_id": "hydropower"
+  },
+  "capacity_factor_fossil_pct": {
+    "group_id": "installed-capacity",
+    "family_id": "total-fossil-fuels",
+    "category_id": "total-fossil-fuels"
+  },
+  "capacity_factor_nuclear_pct": {
+    "group_id": "installed-capacity",
+    "family_id": "nuclear",
+    "category_id": "nuclear"
+  },
+  "household_electricity_price_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "household_price_energy_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "household_price_network_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "household_price_taxes_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "household_wholesale_price_gap_ct_kwh": {
+    "group_id": "retail-prices",
+    "family_id": "household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "nonhousehold_electricity_price_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "non-household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "nonhousehold_price_energy_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "non-household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "nonhousehold_price_network_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "non-household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "nonhousehold_price_taxes_eur_mwh": {
+    "group_id": "retail-prices",
+    "family_id": "non-household-electricity-price",
+    "category_id": "retail-prices"
+  },
+  "gross_imports_twh": {
+    "group_id": "trade",
+    "family_id": "electricity-trade",
+    "category_id": "electricity-trade"
+  },
+  "gross_exports_twh": {
+    "group_id": "trade",
+    "family_id": "electricity-trade",
+    "category_id": "electricity-trade"
+  },
+  "electricity_trade_throughput_pct": {
+    "group_id": "trade",
+    "family_id": "electricity-trade",
+    "category_id": "trade"
+  },
+  "bev_stock": {
+    "group_id": "electric-mobility",
+    "family_id": "battery-electric-passenger-cars",
+    "category_id": "electric-mobility"
+  },
+  "bev_new_registrations": {
+    "group_id": "electric-mobility",
+    "family_id": "battery-electric-passenger-cars",
+    "category_id": "electric-mobility"
+  },
+  "ev_battery_nominal_capacity_est_gwh": {
+    "group_id": "electric-mobility",
+    "family_id": "battery-electric-passenger-cars",
+    "category_id": "electric-mobility"
+  },
+  "hydro_plant_capacity_gw": {
+    "group_id": "hydropower-inventory",
+    "family_id": "hydropower-inventory",
+    "category_id": "hydropower-inventory"
+  },
+  "hydro_pumping_power_gw": {
+    "group_id": "hydropower-inventory",
+    "family_id": "hydropower-inventory",
+    "category_id": "hydropower-inventory"
+  },
+  "hydro_reservoir_energy_gwh": {
+    "group_id": "hydropower-inventory",
+    "family_id": "hydropower-inventory",
+    "category_id": "hydropower-inventory"
+  },
+  "battery_power_gw": {
+    "group_id": "capacity-and-storage",
+    "family_id": "battery-storage",
+    "category_id": "battery-storage"
+  },
+  "battery_energy_gwh": {
+    "group_id": "capacity-and-storage",
+    "family_id": "battery-storage",
+    "category_id": "battery-storage"
+  },
+  "battery_duration_hours": {
+    "group_id": "capacity-and-storage",
+    "family_id": "battery-storage",
+    "category_id": "battery-storage"
+  },
+  "pumped_storage_power_gw": {
+    "group_id": "capacity-and-storage",
+    "family_id": "pumped-storage",
+    "category_id": "pumped-storage"
+  },
+  "pumped_storage_energy_gwh": {
+    "group_id": "capacity-and-storage",
+    "family_id": "pumped-storage",
+    "category_id": "pumped-storage"
+  },
+  "pumped_storage_duration_hours": {
+    "group_id": "capacity-and-storage",
+    "family_id": "pumped-storage",
+    "category_id": "pumped-storage"
+  }
+}

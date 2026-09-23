@@ -34,7 +34,7 @@ class CountryProfileTests(unittest.TestCase):
     def test_profile_is_catalog_driven_and_keeps_missing_values_null(self):
         profile = build_country_profile(self.connection, "DE", 2025)
         metrics = self.metrics(profile)
-        self.assertEqual(profile["country"], {"code": "DE", "name": "Deutschland"})
+        self.assertEqual(profile["country"], {"code": "DE", "name": "Germany"})
         self.assertEqual(len(metrics), 87)
         self.assertTrue({
             "generation_gdp_intensity_kwh_eur",

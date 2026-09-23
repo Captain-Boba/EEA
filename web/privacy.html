@@ -1,44 +1,55 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ language }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070d18">
-  <title>EEA · Datenschutz &amp; Cookies</title>
+  <title>{{ t("EEA · Privacy & cookies") }}</title>
+  <link rel="canonical" href="{{ canonical_url }}">
   <link rel="icon" href="/assets/eea-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
+  <script src="/vendor/i18next/i18next-26.0.0.min.js"></script>
+  <script src="/locales/resources.js?v=bilingual-v1"></script>
+  <script src="/i18n.js?v=bilingual-v1"></script>
+  <link rel="alternate" hreflang="de" href="{{ alternate_de }}">
+  <link rel="alternate" hreflang="en" href="{{ alternate_en }}">
+  <link rel="alternate" hreflang="x-default" href="{{ alternate_de }}">
 </head>
 <body>
   <main class="legal-page">
     <header class="site-header legal-header">
-      <a class="brand-lockup legal-brand" href="/" aria-label="Zurück zum European Electricity Atlas">
+      <a class="brand-lockup legal-brand" href="{{ page_url('/') }}" aria-label="{{ t("Back to the European Electricity Atlas") }}">
         <span class="brand-mark" aria-hidden="true"><img src="/assets/eea-mark.svg" alt=""></span>
         <div><h1>European Electricity Atlas</h1></div>
       </a>
+      {% include "language-switch.html" %}
     </header>
 
     <article class="legal-card">
-      <p class="legal-kicker">Stand: 25. August 2026</p>
-      <h2>Datenschutz &amp; Cookies</h2>
-      <p>Der Atlas verwendet keine Konten, Werbung oder eigene Reichweitenanalyse. Beim bloßen Öffnen der Seite wird kein Abstimmungs-Cookie gesetzt.</p>
+      <p class="legal-kicker">{{ t("Last updated: 23 September 2026") }}</p>
+      <h2>{{ t("Privacy & cookies") }}</h2>
+      <p>{{ t("The Atlas uses no accounts, advertising or proprietary audience analytics. Merely opening the site does not set a voting cookie.") }}</p>
 
-      <h3>Hosting und technische Verbindungsdaten</h3>
-      <p>Die öffentliche Beta wird bei Railway betrieben. Beim Abruf verarbeitet die Hosting-Infrastruktur technisch erforderliche Verbindungsdaten, insbesondere IP-Adresse, Zeitpunkt, angeforderte Adresse und technische Statusinformationen, um die Seite auszuliefern und den Betrieb abzusichern. Es gelten ergänzend die <a href="https://railway.com/legal/privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise von Railway</a>.</p>
+      <h3>{{ t("Language preference") }}</h3>
+      <p>{{ t("Your language preference is saved for up to 180 days in a functional cookie.") }} <code>eea_language</code>: {{ t("This stores only de or en, not a visitor identifier. The Atlas uses it to display pages in your chosen language; it is not used for tracking. Language switches temporarily preserve your current view in session storage.") }}</p>
+
+      <h3>{{ t("Hosting and technical connection data") }}</h3>
+      <p>{{ t("The public beta is hosted on Railway. When the site is requested, the hosting infrastructure processes technically necessary connection data, particularly the IP address, time, requested address and technical status information, to deliver the site and secure its operation.") }} <a href="https://railway.com/legal/privacy" target="_blank" rel="noopener noreferrer">{{ t("Railway privacy policy") }}</a>.</p>
 
       <h3>Europa Overload</h3>
-      <p>Der optionale Europa-Overload-Modus ist standardmäßig ausgeschaltet. Seine Auswahl wird ausschließlich im Browser unter <code>eea-europa-overload</code> gespeichert. Erst nach dem bewussten Aktivieren lädt der Browser Bilder direkt von Wikimedia Commons. Dabei erhält Wikimedia die für den Abruf technisch erforderlichen Verbindungsdaten. Das Deaktivieren beendet die Bildanzeige und verhindert weitere Bildabrufe durch den Atlas.</p>
+      <p>{{ t("The optional Europa Overload mode is off by default. Its selection is stored exclusively in the browser under") }} <code>eea-europa-overload</code>{{ t(". Only after explicit activation does the browser load images directly from Wikimedia Commons. Wikimedia receives the connection data technically required for these requests. Deactivation ends the image display and prevents further image requests by the Atlas.") }}</p>
 
-      <h3>Öffentliche Bildabstimmung</h3>
-      <p>Erst mit der ersten Daumenstimme setzt der Atlas den technisch für die Zuordnung dieser Stimme verwendeten Session-Cookie <code>eea_community</code>. Er ist zufällig, nicht in JavaScript auslesbar, auf die Atlas-Domain begrenzt und bei HTTPS zusätzlich als <code>Secure</code> gekennzeichnet. Der Server speichert nicht den Cookiewert, sondern nur dessen SHA-256-Hash zusammen mit Bildkennung, Stimmrichtung und Zeitstempeln.</p>
-      <p>Der Atlas speichert für die Abstimmung keine Namen, E-Mail-Adressen, Browser-Fingerprints oder User-Agent-Verläufe. Eine aktive Stimme kann durch erneutes Anklicken derselben Richtung entfernt oder durch die andere Richtung geändert werden. Das Löschen der Browserdaten entfernt die lokale Zuordnung; bereits ohne diese Zuordnung gespeicherte Stimmen können technisch nicht mehr einem Besucher zugeordnet werden.</p>
+      <h3>{{ t("Public image voting") }}</h3>
+      <p>{{ t("Only when you cast your first vote does the Atlas set the session cookie used to associate that vote:") }} <code>eea_community</code>{{ t(". It is random, inaccessible to JavaScript, limited to the Atlas domain and additionally marked") }} <code>Secure</code> {{ t("over HTTPS. The server stores only its SHA-256 hash, not the cookie value, together with the image ID, vote direction and timestamps.") }}</p>
+      <p>{{ t("The Atlas does not store names, email addresses, browser fingerprints or user-agent histories for voting. Click the same direction again to remove an active vote, or the opposite direction to change it. Clearing browser data removes the local association; stored votes can no longer be linked to a visitor without that association.") }}</p>
 
-      <h3>Speicherdauer und Empfänger</h3>
-      <p>Abstimmungen bleiben bis zu ihrer Entfernung oder einer betrieblichen Bereinigung der Community-Datenbank gespeichert. Empfänger technischer Verbindungsdaten sind Railway und – nur bei aktiviertem Europa Overload – Wikimedia. Der Atlas übermittelt keine Analysedaten an Werbe- oder Trackingdienste.</p>
+      <h3>{{ t("Retention and recipients") }}</h3>
+      <p>{{ t("Votes remain stored until they are removed or the community database is cleaned up as part of operations. Technical connection data is received by Railway and, only when Europa Overload is enabled, Wikimedia. The Atlas does not send analytics data to advertising or tracking services.") }}</p>
 
-      <h3>Kontakt</h3>
-      <p>Datenschutzanfragen und Hinweise können über die unter <a href="/contact.html">Projekt &amp; Kontakt</a> genannten Wege gestellt werden.</p>
+      <h3>{{ t("Contact") }}</h3>
+      <p>{{ t("Privacy requests and notices can be submitted using the channels listed under") }} <a href="{{ page_url('/contact.html') }}">{{ t("Project & contact") }}</a>{{ t(".") }}</p>
 
-      <p class="legal-actions"><a href="/">Zurück zum Atlas</a> · <a href="/contact.html">Projekt &amp; Kontakt</a></p>
+      <p class="legal-actions"><a href="{{ page_url('/') }}">{{ t("Back to the Atlas") }}</a> · <a href="{{ page_url('/contact.html') }}">{{ t("Project & contact") }}</a></p>
     </article>
   </main>
 </body>

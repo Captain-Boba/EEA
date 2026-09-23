@@ -1,9 +1,10 @@
+from electricity_atlas.pages import render_page
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INDEX = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+INDEX = render_page("index.html", "de", "/").decode("utf-8")
 SCRIPT = (ROOT / "web" / "mobile-viewport.js").read_text(encoding="utf-8")
 STYLE = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
 
