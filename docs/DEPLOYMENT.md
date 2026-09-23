@@ -181,6 +181,24 @@ enough. If the selected Railpack version does not recognize this setting,
 update the builder before enabling browser exports; do not install packages
 in the running service or add a separate cron service with a different volume.
 
+The repository includes `requirements.txt` as Railpack's pip installation
+entry point. Railpack 0.39 detects a plain `pyproject.toml` as Python, but does
+not install its dependencies without requirements or a supported lockfile.
+Keep `requirements.txt` synchronized with `[project].dependencies`; an offline
+test enforces this. The build must show `pip install -r requirements.txt`
+before `playwright install --only-shell`. The resulting `/app/.venv` and browser
+cache must be carried into the runtime image by Railpack.
+
+Verified on Railway Linux on 2026-09-23 (deployment
+`ba7b4848-45e3-4343-a00a-23f45f30c556`): Playwright 1.63.0 / Chromium 153
+started successfully. Against an in-memory copy of the production Atlas,
+Battery-Charts imported 1,692 observations through 2026-09-22 and JRC imported
+150 observations from four exports dated 2026-09-23. Both passed the published
+coverage checks; production Atlas/community file hashes were unchanged and
+the public health check stayed healthy. This was an acquisition smoke test,
+not another monthly publication. The CLI-deployed requirements fix must also
+be committed/pushed so subsequent GitHub deployments retain it.
+
 Playwright is already a production dependency (established Microsoft project,
 Apache-2.0); this adds its browser runtime, not another Python library.
 Browser binaries enlarge the image and increase peak RAM during the two
