@@ -29,7 +29,7 @@
   }
 
   let catalog = [], sequence = [], active = false, starting = null, votesAvailable = false, votePending = false, voteError = "";
-  let activeIndex = null, focusBeforeLightbox = null, lockedScrollY = 0, bodyStyles = null;
+  let activeIndex = null, focusBeforeLightbox = null, lockedScrollY = 0, lockedViewport = null, bodyStyles = null;
   let viewportHeight = Math.max(1, window.innerHeight), scrollFrame = null, layoutTimer = null, resizeObserver = null;
   const voteStates = new Map(), panels = [], preloadedHighResolution = new Set();
 
@@ -114,13 +114,15 @@
     }
   }
   function lockScroll() {
+    lockedViewport = window.AtlasI18n.captureViewport();
     lockedScrollY = window.scrollY;
     bodyStyles = {overflow: document.body.style.overflow, position: document.body.style.position, top: document.body.style.top, width: document.body.style.width};
     document.body.classList.add("overload-lightbox-open"); Object.assign(document.body.style, {overflow: "hidden", position: "fixed", top: `-${lockedScrollY}px`, width: "100%"});
   }
   function unlockScroll() {
     if (bodyStyles) Object.assign(document.body.style, bodyStyles);
-    bodyStyles = null; document.body.classList.remove("overload-lightbox-open"); window.scrollTo({top: lockedScrollY, behavior: "auto"});
+    bodyStyles = null; document.body.classList.remove("overload-lightbox-open");
+    window.AtlasI18n.restoreViewport(lockedViewport || {scrollY: lockedScrollY}); lockedViewport = null;
   }
   function renderLightbox() {
     const wallpaper = activeIndex === null ? null : sequence[activeIndex]; if (!wallpaper) return;
@@ -210,7 +212,7 @@
   closeButton.addEventListener("click", () => closeLightbox()); previousButton.addEventListener("click", () => showIndex(activeIndex - 1)); nextButton.addEventListener("click", () => showIndex(activeIndex + 1));
   upButton.addEventListener("click", () => void submitVote("up")); downButton.addEventListener("click", () => void submitVote("down")); lightbox.addEventListener("click", event => { if (event.target === lightbox) closeLightbox(); }); document.addEventListener("keydown", handleLightboxKeydown);
   const controller = Object.freeze({setEnabled, isEnabled: () => active,
-    captureState: () => ({order: sequence.map(item => item.id), index: activeIndex}),
+    captureState: () => ({order: sequence.map(item => item.id), index: activeIndex, viewport: lockedViewport}),
     restoreState: async state => {
       if (!state || !readOptIn()) return;
       await start();
@@ -220,7 +222,10 @@
       panels.splice(0).forEach(panel => panel.remove());
       sequence = state.order.map(id => byId.get(id));
       layoutWallpapers();
-      if (Number.isInteger(state.index) && state.index >= 0 && state.index < sequence.length) openLightbox(state.index, panels[state.index]);
+      if (Number.isInteger(state.index) && state.index >= 0 && state.index < sequence.length) {
+        window.AtlasI18n.restoreViewport(state.viewport);
+        openLightbox(state.index, panels[state.index]);
+      }
     },
   }); window.__atlasWallpaper = controller;
   window.__atlasWallpaperTest = {catalog: () => catalog, shuffled, imageUrl, showIndex, controller};

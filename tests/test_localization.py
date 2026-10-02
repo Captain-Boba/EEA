@@ -3,6 +3,9 @@ import copy
 import importlib.util
 import json
 import re
+import os
+import shutil
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -21,6 +24,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class LocalizationResourcesTests(unittest.TestCase):
+    def test_language_navigation_and_public_viewport_state(self):
+        node = os.environ.get("EEA_NODE") or shutil.which("node")
+        self.assertIsNotNone(node, "Node.js is required; set EEA_NODE or add node to PATH")
+        subprocess.run([node, "tests/js_language_state.cjs"], cwd=ROOT, check=True, capture_output=True, text=True)
+
     def test_bundle_is_current_and_placeholders_match(self):
         spec = importlib.util.spec_from_file_location("build_locales", ROOT / "scripts/build_locales.py")
         module = importlib.util.module_from_spec(spec)

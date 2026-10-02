@@ -70,16 +70,17 @@ def check(db: Path, artifacts: Path) -> None:
                     page.screenshot(path=str(artifacts / f"home-{lang}.png"))
                     for name, expression in (("map", "serializedMapSvg()"), ("comparison", "serializedComparisonExportSvg()")):
                         svg = page.evaluate(expression)
+                        (artifacts / f"{name}-{lang}.svg").write_text(svg, encoding="utf-8")
                         assert "{{" not in svg and "<svg" in svg
                         assert ("Atlas average" if lang == "en" else "Atlas-Durchschnitt") in svg
                         if lang == "en":
                             assert "Atlas-Durchschnitt" not in svg
                         # Parse in the browser to detect invalid SVG markup.
                         assert page.evaluate("svg => !new DOMParser().parseFromString(svg, 'image/svg+xml').querySelector('parsererror')", svg)
-                    png = page.evaluate("async () => {const blob=await buildMapPngBlob(); const bytes=new Uint8Array(await blob.arrayBuffer()); return {size:blob.size, magic:[...bytes.slice(0,8)]};}")
-                    assert png["size"] > 10000 and png["magic"] == [137,80,78,71,13,10,26,10]
-                    chart_png = page.evaluate("async () => (await buildChartPngBlob()).size")
-                    assert chart_png > 10000
+                    for name, expression in (("map", "buildMapPngBlob()"), ("comparison", "buildChartPngBlob()")):
+                        png = bytes(page.evaluate(f"async () => [...new Uint8Array(await (await {expression}).arrayBuffer())]"))
+                        assert len(png) > 10000 and png[:8] == b"\x89PNG\r\n\x1a\n"
+                        (artifacts / f"{name}-{lang}.png").write_bytes(png)
                     csv = page.evaluate("buildComparisonCsv(timeseriesData)")
                     assert csv.startswith("period,") and "DE" in csv and "atlas_average" in csv
                     page.locator("#map-fullscreen").click()
@@ -145,6 +146,7 @@ def check(db: Path, artifacts: Path) -> None:
                 ready()
                 page.locator("#europe-overload").click()
                 page.wait_for_function("window.__atlasWallpaper?.isEnabled()")
+                page.locator("#comparison").scroll_into_view_if_needed()
                 page.locator(".wallpaper-panel").first.evaluate("panel => panel.click()")
                 page.wait_for_function("!document.querySelector('#wallpaper-lightbox').hidden")
                 gallery_before = page.evaluate("window.__atlasWallpaper.captureState()")
@@ -158,11 +160,27 @@ def check(db: Path, artifacts: Path) -> None:
                 page.evaluate("document.querySelector('[data-language=de]').click()")
                 ready()
                 page.wait_for_function("window.__atlasWallpaper?.captureState().index === 0")
-                assert page.evaluate("window.__atlasWallpaper.captureState()") == gallery_before
+                gallery_after = page.evaluate("window.__atlasWallpaper.captureState()")
+                for key in ("order", "index"):
+                    assert gallery_after[key] == gallery_before[key]
                 assert "Bildwechsel" in page.locator("#wallpaper-vote-help-tooltip").text_content()
                 assert page.locator(".wallpaper-vote-down").get_attribute("aria-pressed") == "true"
                 page.keyboard.press("Escape")
-                print("PASS gallery order, all four arrow keys, local voting and translation", flush=True)
+                restored_viewport = page.evaluate("window.AtlasI18n.captureViewport()")
+                assert gallery_before["viewport"]["scrollY"] > 0
+                assert abs(restored_viewport["scrollAnchor"]["top"] - gallery_before["viewport"]["scrollAnchor"]["top"]) < 2
+                print("PASS gallery order, all four arrow keys, local voting, translation and background scroll", flush=True)
+
+                for path in ("/contact.html", "/privacy.html", "/api.html"):
+                    page.goto(base + path + "?lang=en")
+                    page.evaluate("window.scrollTo(0, 400)")
+                    viewport_before = page.evaluate("window.AtlasI18n.captureViewport()")
+                    page.locator('[data-language="de"]').evaluate("link => link.click()")
+                    page.wait_for_function("document.documentElement.lang === 'de' && window.scrollY > 0")
+                    viewport_after = page.evaluate("window.AtlasI18n.captureViewport()")
+                    assert viewport_after["scrollAnchor"]["index"] == viewport_before["scrollAnchor"]["index"]
+                    assert abs(viewport_after["scrollAnchor"]["top"] - viewport_before["scrollAnchor"]["top"]) < 2
+                print("PASS public information pages retain the visible section on language switch", flush=True)
 
                 # Static pages and their metadata work without JS, including crawlers.
                 nojs = browser.new_context(java_script_enabled=False)

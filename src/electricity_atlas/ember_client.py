@@ -220,7 +220,7 @@ class EmberClient:
                 row
                 for row in rows
                 if isinstance(row, dict)
-                and start_date <= str(row.get("date", ""))[:7] < end_date
+                and start_date <= str(row.get("date", ""))[:7] <= end_date
             ]
         elif endpoint.endswith("/yearly"):
             payload["data"] = [

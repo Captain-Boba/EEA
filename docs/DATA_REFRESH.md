@@ -156,6 +156,10 @@ contains API keys or request URLs with credentials. The separate fixed-size-in-c
 `MONTHLY_LIFECYCLE.generated.json` stores lifecycle results. A shared run ID
 allows recovery if the worker exits after publication but before recording
 monthly success. Logs identify source/country progress and publication phases.
+Failed Ember units are preserved under `sources.ember.failures` in the monthly
+report, with country, endpoint, requested period, sanitised error and the number
+of existing rows preserved by that unit. The same details are logged as warnings.
+These diagnostics remain private; public health exposes only source statuses.
 
 Read the status without opening or changing either database:
 
@@ -266,3 +270,63 @@ the background scheduler. Disable the scheduler again with
 `EEA_MONTHLY_REFRESH=0` and restart the web service. A successful current month
 is a no-op even for the one-off command. Disabling prevents future launches;
 it does not cancel an already running worker.
+
+## October 2026 incident: inclusive Ember month boundary
+
+Investigated on 2026-10-02 from checkout
+`906cdcf2b0e14df0d439a36e8bad757fd491391b`, matching Railway's active deployment
+`66dcc78c-0442-4488-ba7c-c07ae3814112`. Railway CLI/SSH access worked with the
+existing login once network access was available; no credentials were changed.
+
+The logs show an automatic attempt at 03:00 UTC and a retry at 09:02 UTC.
+The retained monthly/lifecycle reports describe run
+`5ed2d522ecf64c25bad7faaeb89e834c`, completed at 09:04:39 UTC:
+`ember=failed_critical`, all 31 countries failed, `publication=not_published`.
+Other sources were not reached. Cleanup completed without a retained work
+directory. Both serving databases remained byte-identical to their pre-run hashes:
+
+| Database | SHA-256 before and after failure, also checked after diagnosis |
+| --- | --- |
+| Atlas | `4DD51CAA0BCE79CC2366645DE6DAD519454563710FC45AE27C7002CC4EE1A036` |
+| Community | `6A978B8A03FE5D97AF431D956772A71F05B27C883AB9DD9A0D5C3D2DBC42F02D` |
+
+The original reports/logs named the failed countries but discarded individual
+endpoint errors. A fresh AT diagnostic in the deployed service, using SQLite
+`:memory:`, reproduced three historical monthly failures for generation,
+demand and carbon intensity: `record ... is outside the requested period`.
+Current-year and yearly units succeeded. Source requests returned HTTP 200;
+the service's Ember key was accepted.
+
+The importer assumed an exclusive monthly upper bound and translated the
+requested `2015-01..2025-12` interval into `end_date=2026-01`. Ember's current
+[official API specification](https://api.ember-energy.org/v1/openapi.json)
+(version 1.2.0) describes `end_date` as the latest month to return. Direct paired
+AT requests confirmed that `2026-01` includes January 2026, whereas `2025-12`
+ends at December 2025, for all three endpoints. The local range validation
+correctly rejected the extra month. This is an API-contract mismatch in our
+request construction, rather than an authentication failure or unavailable
+source. The exact upstream rollout time was not established.
+
+The correction sends the actual inclusive end month and includes that month
+when slicing covering cached responses. Out-of-range records still fail;
+coverage guards, whole-month retention, historical observations, null/zero
+handling and community publication boundaries retain their existing rules.
+Sanitised unit diagnostics now survive in the monthly report and logs.
+
+Regression tests failed against the old code and passed after the correction.
+They cover the historical/current-year boundary, December single-month imports,
+all three monthly cache endpoints, real zeros, null omission, and private failure
+reporting without publication or credential exposure. The local Python 3.12
+suite ran 262 tests: 260 passed, two Linux file-replacement tests were skipped on
+Windows. Live checks with the corrected local importer and a memory-only cache
+succeeded for AT (3,937 rows), DE (4,217) and UK (3,911), eight successful units
+and zero errors each. This does not constitute full production-refresh acceptance.
+
+The next operating step is to review and release this correction through the
+normal commit/CI/deployment process, then let the existing scheduler retry the
+still-incomplete October month. The observed report scheduled its next attempt
+for 2026-10-02 at 15:04:39 UTC (17:04:39 Europe/Berlin); later failed attempts can
+advance this deadline. Verify the new monthly/lifecycle reports, source warnings,
+cleanup and public health after the automatic retry. Any additional coverage
+failure must still block publication and be investigated separately. This
+investigation performed no manual production refresh, deployment, commit or push.

@@ -51,11 +51,6 @@ def _month_token(year: int, month: int) -> str:
     return f"{year:04d}-{month:02d}"
 
 
-def _next_month_token(value: str) -> str:
-    year, month = (int(part) for part in value.split("-"))
-    return f"{year + 1:04d}-01" if month == 12 else f"{year:04d}-{month + 1:02d}"
-
-
 def _record_period(value: str, granularity: str) -> tuple[str, str]:
     if granularity == "yearly":
         if len(value) != 4 or not value.isdigit():
@@ -211,14 +206,15 @@ class EmberImporter:
     def _import_endpoint(
         self, code: str, endpoint: str, granularity: str, start_date: str, end_date: str
     ) -> int:
-        api_end_date = _next_month_token(end_date) if granularity == "monthly" else end_date
+        # Ember's end_date includes the requested month, as it does for years.
+        # Advancing it would return records outside our replacement interval.
         if endpoint.startswith("electricity-generation/"):
             payloads = [
                 self.client.get(
                     endpoint,
                     EMBER_ISO3[code],
                     start_date,
-                    api_end_date,
+                    end_date,
                     extra={"is_aggregate_series": aggregate},
                     refresh=self.refresh,
                 )
@@ -247,7 +243,7 @@ class EmberImporter:
                 endpoint,
                 EMBER_ISO3[code],
                 start_date,
-                api_end_date,
+                end_date,
                 refresh=self.refresh,
             )
         rows = self._normalize_payload(code, endpoint, granularity, start_date, end_date, payload)

@@ -42,6 +42,41 @@ class FakeProcess:
 
 
 class MonthlyRefreshTests(unittest.TestCase):
+    def test_endpoint_failures_are_reported_and_redacted_without_publication(self):
+        original_atlas = self.atlas.read_bytes()
+        original_community = self.community.read_bytes()
+        runner = MonthlyRefreshRunner(self.atlas, self.community, self.config)
+        failures = [{
+            "endpoint": "electricity-demand/monthly", "period": "2015-01..2025-12",
+            "error": "EmberApiError: HTTP 403 fixture-private-key api_key=query-secret",
+            "preserved_rows": 132,
+        }]
+        with patch.dict(os.environ, {"EMBER_API_KEY": "fixture-private-key"}), patch(
+            "electricity_atlas.full_refresh.EMBER_COUNTRIES", ("AT",)
+        ), patch("electricity_atlas.full_refresh.load_ember_api_key"), patch(
+            "electricity_atlas.full_refresh.EmberImporter"
+        ) as ember, patch("electricity_atlas.full_refresh.WholesalePriceImporter") as prices:
+            ember.return_value.import_range.return_value = {"errors": 1, "failures": failures, "successes": []}
+            with self.assertLogs("electricity_atlas.full_refresh", level="WARNING") as logs:
+                with self.assertRaises(ScheduledRefreshCriticalError):
+                    runner.run(target_month="2026-10")
+        prices.assert_not_called()
+        report_text = runner.report_path.read_text(encoding="utf-8")
+        report = json.loads(report_text)
+        self.assertEqual(report["publication"], "not_published")
+        detail = report["sources"]["ember"]["failures"][0]
+        self.assertEqual(detail["country"], "AT")
+        self.assertEqual(detail["failures"], [{**failures[0], "error": "EmberApiError: HTTP 403 REDACTED api_key=REDACTED"}])
+        for output in (report_text, " ".join(logs.output)):
+            self.assertNotIn("fixture-private-key", output)
+            self.assertNotIn("query-secret", output)
+        health = monthly_refresh_health(self.atlas)
+        self.assertEqual(health["sources"]["ember"], "failed_critical")
+        self.assertNotIn("failures", json.dumps(health))
+        self.assertEqual(self.atlas.read_bytes(), original_atlas)
+        self.assertEqual(self.community.read_bytes(), original_community)
+        self.assertTrue(report["cleanup_complete"])
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)

@@ -421,6 +421,9 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
   background: color-mix(in srgb, var(--surface) 92%, transparent);
 }
 .comparison-controls select, .comparison-controls input { width: 100%; min-width: 0; }
+.comparison-controls > label,
+.comparison-controls > .select-field,
+.comparison-controls > .metric-family-picker { align-self: start; }
 .comparison-controls select.sr-only {
   width: 1px;
   height: 1px;
@@ -448,8 +451,8 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 }
 .metric-family-trigger:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .metric-family-trigger > span:first-child { display: grid; min-width: 0; gap: .03rem; }
-.metric-family-selected-group { overflow: hidden; color: #9eb4c8; font-size: .68rem; font-weight: 750; letter-spacing: .06em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
-.metric-family-selected-label { overflow: hidden; color: var(--text); font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.metric-family-selected-group { color: #9eb4c8; font-size: .68rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; overflow-wrap: anywhere; }
+.metric-family-selected-label { color: var(--text); font-weight: 750; overflow-wrap: anywhere; }
 .metric-family-chevron { width: .62rem; height: .62rem; flex: 0 0 .62rem; border-right: 2px solid #b7c8d7; border-bottom: 2px solid #b7c8d7; transform: rotate(45deg) translateY(-.18rem); transition: transform var(--motion-fast) ease; }
 .metric-family-picker.is-open .metric-family-chevron { transform: rotate(225deg) translate(-.18rem, -.18rem); }
 .metric-family-menu {
@@ -504,7 +507,7 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
   text-align: left;
 }
 .enhanced-select-trigger:hover:not(:disabled), .enhanced-select.is-open .enhanced-select-trigger { border-color: #6588a7; background: color-mix(in srgb, var(--surface-highlight) 90%, transparent); color: var(--text); }
-.enhanced-select-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.enhanced-select-value { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .enhanced-select-chevron { width: .62rem; height: .62rem; flex: 0 0 .62rem; border-right: 2px solid #b7c8d7; border-bottom: 2px solid #b7c8d7; transform: rotate(45deg) translateY(-.18rem); transition: transform var(--motion-fast) ease; }
 .enhanced-select.is-open .enhanced-select-chevron { transform: rotate(225deg) translate(-.18rem, -.18rem); }
 .enhanced-select-menu {
@@ -576,7 +579,9 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .comparison-actions .secondary-action { position: static; }
 
 @media (min-width: 851px) {
+  .country-control { min-height: 6rem; }
   .country-control > .select-field { width: calc(50% - .4rem); }
+  .comparison-actions { max-width: calc(50% - 1.5rem); }
 }
 .comparison-presets {
   --preset-index: 0;
@@ -1586,6 +1591,7 @@ html.table-disclosure-updating body * {
 .table-card .sort-action:hover:not(:disabled) { background: rgba(255,255,255,.08); }
 .table-card .table-header-actions {
   display: flex;
+  flex-wrap: wrap;
   min-height: 1.55rem;
   align-items: center;
   justify-content: center;
@@ -1602,9 +1608,9 @@ html.table-disclosure-updating body * {
   line-height: 1.05;
   text-transform: none;
   letter-spacing: -.025em;
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
   transform-origin: center;
-  white-space: nowrap;
+  white-space: normal;
 }
 .table-card .unit.is-condensed { transform: scaleX(var(--unit-text-scale)); }
 .table-card .map-column-action {
@@ -1710,17 +1716,15 @@ main { position: relative; z-index: 1; }
   pointer-events: none;
 }
 .wallpaper-caption strong {
-  overflow: hidden;
   font-size: .95rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 .wallpaper-caption span {
-  overflow: hidden;
   font-size: .68rem;
   opacity: .94;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 /* Keep Europa Overload inside the actual desktop gutter at lower desktop widths. */

@@ -570,6 +570,8 @@ function storageQualityLabel(quality) {
     derived_provisional: t("derived, provisional"),
     observed_with_estimates: t("includes estimates"),
     derived_with_estimates: t("derived, includes estimates"),
+    source_reported_including_estimates: t("includes estimates"),
+    derived_from_jrc_power_and_energy: t("derived, includes estimates"),
   }[quality] || quality || t("available");
 }
 
@@ -3206,7 +3208,8 @@ window.AtlasI18n.captureState = () => ({
   mapMetric: mapMetricId, mapValues: $("map-values").checked, focusedMapCountry,
   sortKey, sortDirection, storageSortKey, storageSortDirection, evSortKey, evSortDirection,
   summaryExpanded, storageExpanded, evExpanded, chartPinnedIndex,
-  scrollY: window.scrollY, titleSection: activeTitleSection,
+  ...(window.__atlasWallpaper?.captureState()?.viewport || window.AtlasI18n.captureViewport?.() || {scrollX: window.scrollX, scrollY: window.scrollY}),
+  titleSection: activeTitleSection,
   openDetails: [...document.querySelectorAll("details")].map(details => details.open),
   gallery: window.__atlasWallpaper?.captureState(),
 });
@@ -3252,9 +3255,10 @@ async function restoreLanguageView() {
   }
   if (profileUrlState()) await loadCountryProfile({scroll: false});
   [...document.querySelectorAll("details")].forEach((details, index) => { details.open = Boolean(state.openDetails?.[index]); });
+  window.AtlasI18n.restoreViewport?.(state);
   await window.__atlasWallpaper?.restoreState(state.gallery);
   requestAnimationFrame(() => {
-    window.scrollTo({top: Number.isFinite(state.scrollY) ? state.scrollY : 0, behavior: "instant"});
+    if (!Number.isInteger(state.gallery?.index)) window.AtlasI18n.restoreViewport?.(state);
     setDocumentTitle(state.titleSection);
   });
   return true;

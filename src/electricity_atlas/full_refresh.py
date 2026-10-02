@@ -240,14 +240,26 @@ def run_scheduled_refresh(
                 if country_result.get("errors", 0):
                     ember_failures.append({
                         "country": code,
-                        "failures": country_result.get("failures", []),
+                        "failures": [
+                            {
+                                "endpoint": failure.get("endpoint"),
+                                "period": failure.get("period"),
+                                "error": safe_error(failure.get("error", "")),
+                                "preserved_rows": failure.get("preserved_rows"),
+                            }
+                            for failure in country_result.get("failures", [])
+                        ],
                     })
+                    for failure in ember_failures[-1]["failures"]:
+                        logger.warning("Refresh Ember failed: %s %s %s (%s)",
+                                       code, failure["endpoint"], failure["period"], failure["error"])
             if ember_failures:
                 failed_countries = ", ".join(item["country"] for item in ember_failures)
                 source_results["ember"] = {
                     "status": "failed_critical",
                     "countries": len(EMBER_COUNTRIES),
                     "error": f"Ember refresh failed for Atlas countries: {failed_countries}",
+                    "failures": ember_failures,
                 }
                 raise ScheduledRefreshCriticalError(source_results, RuntimeError(source_results["ember"]["error"]))
             retention = critical("ember", lambda: retain_monthly_source_gaps(connection, ember_baseline))
